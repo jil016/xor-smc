@@ -1,0 +1,121 @@
+c AppMC SHA revision 7c0842bdfc9fdbc3e0e806663a235708a0e18941
+c AppMC version 3.0.0
+c AppMC compilation env CMAKE_CXX_COMPILER = /usr/lib/ccache/bin/c++ | CMAKE_CXX_FLAGS =  -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -fvisibility=hidden -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -Wextra-semi -pedantic | COMPILE_DEFINES =  -DUSE_ZLIB | STATICCOMPILE = ON | Boost_FOUND = 1 | ZLIB_FOUND = TRUE | VALGRIND_FOUND =  | ENABLE_ASSERTIONS = ON | MY_TARGETS =  | compilation date time = Nov 25 2018 20:03:06
+c AppMC compiled with gcc version 8.2.1 20180831
+c CryptoMiniSat version 5.6.5
+c CMS Copyright Mate Soos (soos.mate@gmail.com)
+c CMS SHA revision bccc0c2de8981fceab6726db89c1a00e84493783
+c CMS is MIT licensed
+c Using code from 'When Boolean Satisfiability Meets Gauss-E. in a Simplex Way'
+c       by C.-S. Han and J.-H. Roland Jiang in CAV 2012. Fixes by M. Soos
+c CMS compilation env CMAKE_CXX_COMPILER = /usr/lib/ccache/bin/c++ | CMAKE_CXX_FLAGS =  -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -Wextra-semi -pedantic -Wno-class-memaccess | COMPILE_DEFINES =  -DUSE_GAUSS -DUSE_ZLIB | STATICCOMPILE = ON | ONLY_SIMPLE = OFF | Boost_FOUND = 1 | STATS = OFF | SQLITE3_FOUND =  | ZLIB_FOUND = TRUE | VALGRIND_FOUND = TRUE | ENABLE_TESTING = OFF | M4RI_FOUND =  | NOM4RI = ON | SLOW_DEBUG = OFF | ENABLE_ASSERTIONS = ON | PYTHON_EXECUTABLE = /usr/bin/python2.7 | PYTHON_LIBRARY = PYTHON_LIBRARY-NOTFOUND | PYTHON_INCLUDE_DIRS =  | MY_TARGETS =  | LARGEMEM = OFF | LIMITMEM = OFF | compilation date time = Nov 25 2018 19:59:33
+c CMS compiled with gcc version 8.2.1 20180831
+[appmc] using seed: 1
+c -- header says num vars:            256
+c -- header says num clauses:           4
+c -- clauses added: 0
+c -- xor clauses added: 4
+c -- vars added 256
+[appmc] WARNING! Sampling set was not declared with 'c ind var1 [var2 var3 ..] 0' notation in the CNF.
+[appmc] we may work substantially worse!
+[appmc] Sampling set size: 256
+[appmc] Sampling set: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255, 256, 
+[appmc] Using start iteration 0
+[appmc] Starting up, initial measurement
+[appmc] [    0.00 ] bounded_sol_count looking for   73 solutions -- hashes active: 0
+[appmc] Explored:    0 ind set size:    256
+[appmc] hashes active:      1
+[appmc] [    0.02 ] bounded_sol_count looking for   73 solutions -- hashes active: 1
+[appmc] Explored:    1 ind set size:    256
+[appmc] hashes active:      2
+[appmc] [    0.04 ] bounded_sol_count looking for   73 solutions -- hashes active: 2
+[appmc] Explored:    2 ind set size:    256
+[appmc] hashes active:      4
+[appmc] [    0.08 ] bounded_sol_count looking for   73 solutions -- hashes active: 4
+[appmc] Explored:    4 ind set size:    256
+[appmc] hashes active:      8
+[appmc] [    0.28 ] bounded_sol_count looking for   73 solutions -- hashes active: 8
+[appmc] Explored:    8 ind set size:    256
+[appmc] hashes active:     16
+[appmc] [    0.41 ] bounded_sol_count looking for   73 solutions -- hashes active: 16
+[appmc] Explored:   16 ind set size:    256
+[appmc] hashes active:     32
+[appmc] [    0.55 ] bounded_sol_count looking for   73 solutions -- hashes active: 32
+[appmc] Explored:   32 ind set size:    256
+[appmc] hashes active:     64
+[appmc] [    0.80 ] bounded_sol_count looking for   73 solutions -- hashes active: 64
+[appmc] Explored:   64 ind set size:    256
+[appmc] hashes active:    128
+[appmc] [    1.26 ] bounded_sol_count looking for   73 solutions -- hashes active: 128
+[appmc] Explored:  128 ind set size:    256
+[appmc] hashes active:    192
+[appmc] [    2.27 ] bounded_sol_count looking for   73 solutions -- hashes active: 192
+[appmc] Explored:  192 ind set size:    256
+[appmc] hashes active:    224
+[appmc] [    3.88 ] bounded_sol_count looking for   73 solutions -- hashes active: 224
+[appmc] Explored:  224 ind set size:    256
+[appmc] hashes active:    240
+[appmc] [    5.85 ] bounded_sol_count looking for   73 solutions -- hashes active: 240
+[appmc] Explored:  240 ind set size:    256
+[appmc] hashes active:    248
+[appmc] [    7.95 ] bounded_sol_count looking for   73 solutions -- hashes active: 248
+[appmc] Explored:  248 ind set size:    256
+[appmc] hashes active:    252
+[appmc] [   10.11 ] bounded_sol_count looking for   73 solutions -- hashes active: 252
+[appmc] Explored:  252 ind set size:    256
+[appmc] hashes active:    250
+[appmc] [   10.61 ] bounded_sol_count looking for   73 solutions -- hashes active: 250
+[appmc] Explored:  254 ind set size:    256
+[appmc] hashes active:    249
+[appmc] [   11.75 ] bounded_sol_count looking for   73 solutions -- hashes active: 249
+[appmc] Explored:    0 ind set size:    256
+[appmc] hashes active:    249
+[appmc] [   13.70 ] bounded_sol_count looking for   73 solutions -- hashes active: 249
+[appmc] Explored:    7 ind set size:    256
+[appmc] hashes active:    248
+[appmc] [   16.17 ] bounded_sol_count looking for   73 solutions -- hashes active: 248
+[appmc] Explored:    0 ind set size:    256
+[appmc] hashes active:    249
+[appmc] [   18.50 ] bounded_sol_count looking for   73 solutions -- hashes active: 249
+[appmc] Explored:    7 ind set size:    256
+[appmc] hashes active:    248
+[appmc] [   21.02 ] bounded_sol_count looking for   73 solutions -- hashes active: 248
+[appmc] Explored:    0 ind set size:    256
+[appmc] hashes active:    249
+[appmc] [   23.45 ] bounded_sol_count looking for   73 solutions -- hashes active: 249
+[appmc] Explored:    7 ind set size:    256
+[appmc] hashes active:    248
+[appmc] [   26.01 ] bounded_sol_count looking for   73 solutions -- hashes active: 248
+[appmc] Explored:    0 ind set size:    256
+[appmc] hashes active:    249
+[appmc] [   28.52 ] bounded_sol_count looking for   73 solutions -- hashes active: 249
+[appmc] Explored:    7 ind set size:    256
+[appmc] hashes active:    248
+[appmc] [   31.20 ] bounded_sol_count looking for   73 solutions -- hashes active: 248
+[appmc] Explored:    0 ind set size:    256
+[appmc] hashes active:    249
+[appmc] [   33.97 ] bounded_sol_count looking for   73 solutions -- hashes active: 249
+[appmc] Explored:    7 ind set size:    256
+[appmc] hashes active:    248
+[appmc] [   36.91 ] bounded_sol_count looking for   73 solutions -- hashes active: 248
+[appmc] Explored:    0 ind set size:    256
+[appmc] hashes active:    249
+[appmc] [   39.79 ] bounded_sol_count looking for   73 solutions -- hashes active: 249
+[appmc] Explored:    7 ind set size:    256
+[appmc] hashes active:    248
+[appmc] [   42.81 ] bounded_sol_count looking for   73 solutions -- hashes active: 248
+[appmc] Explored:    0 ind set size:    256
+[appmc] hashes active:    249
+[appmc] [   45.78 ] bounded_sol_count looking for   73 solutions -- hashes active: 249
+[appmc] Explored:    7 ind set size:    256
+[appmc] hashes active:    248
+[appmc] [   48.89 ] bounded_sol_count looking for   73 solutions -- hashes active: 248
+[appmc] Explored:    0 ind set size:    256
+[appmc] hashes active:    249
+[appmc] [   51.99 ] bounded_sol_count looking for   73 solutions -- hashes active: 249
+[appmc] Explored:    7 ind set size:    256
+[appmc] hashes active:    248
+[appmc] [   55.19 ] bounded_sol_count looking for   73 solutions -- hashes active: 248
+[appmc] FINISHED ScalMC T: 58.18 s
+[appmc] Number of solutions is: 64 x 2^249
+Execution time was 58407088823 nanoseconds.

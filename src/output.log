@@ -1,0 +1,19 @@
+generate the XOR matrix
+[[0 0 0 0 0 1 1 0 1 0 1 1 1 1 0 0 1 1 1 0 1 1 1 0 0 1 0 1 0 0]
+ [1 1 1 0 0 1 1 1 1 0 1 0 1 0 1 1 1 1 1 1 1 0 1 1 0 0 1 0 1 1]
+ [0 0 0 1 1 1 0 1 0 0 1 1 1 0 1 1 1 1 1 0 1 0 1 1 1 1 1 0 1 1]
+ [1 0 0 1 0 1 1 0 0 1 1 1 1 1 1 1 0 0 0 0 1 1 0 1 0 0 1 1 1 0]
+ [1 0 0 0 0 1 1 0 0 1 1 0 0 0 0 0 1 0 1 1 1 1 0 1 1 0 1 1 0 0]
+ [0 1 0 1 0 1 0 0 0 0 1 1 0 1 1 1 0 1 0 0 0 0 1 1 1 0 0 1 1 0]
+ [0 0 0 0 1 1 0 0 1 0 0 0 0 1 0 0 0 0 1 1 1 1 0 0 0 1 0 0 1 0]
+ [0 0 0 0 0 0 0 0 1 0 0 1 0 1 1 0 0 1 0 0 1 0 1 1 1 1 0 0 1 1]
+ [0 1 0 0 0 1 1 0 0 0 1 0 1 0 0 1 1 1 1 1 0 1 0 0 1 0 0 1 1 0]
+ [0 0 0 0 0 1 0 1 0 1 1 1 0 1 1 1 0 0 1 1 0 0 0 0 1 0 0 0 0 0]]
+one XOR terms {y_13: False, y_6: False, y_27: False, y_16: False, y_25: False, y_12: False, y_10: False, y_17: False, y_18: False, y_8: False, y_22: False, y_5: False, y_20: False, y_11: False, y_21: True}
+time= 16.950639724731445
+two XOR terms {y_13: False, y_6: False, y_27: False, y_16: False, y_25: False, y_12: False, y_10: False, y_17: False, y_18: False, y_8: False, y_22: False, y_5: False, y_20: False, y_11: False, y_21: True}
+time=33.35553765296936
+three XOR terms {y_13: False, y_6: False, y_27: False, y_16: False, y_25: False, y_12: False, y_10: False, y_17: False, y_18: False, y_8: False, y_22: False, y_5: False, y_20: False, y_11: False, y_21: True}
+time=47.26403045654297
+four XOR terms {y_13: False, y_6: False, y_27: False, y_16: False, y_25: False, y_12: False, y_10: False, y_17: False, y_18: False, y_8: False, y_22: False, y_5: False, y_20: False, y_11: False, y_21: True}
+time=61.13149356842041
