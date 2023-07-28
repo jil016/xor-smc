@@ -8,11 +8,19 @@ import time
 
 
 def gen_XOR_constraints(var_list: list, K: int):
-    return True
+    n_var = len(var_list)
+    xor_assignments = np.random.randint(2, size=(K, n_var + 1))
 
-
-def export_CNF():
-    pass
+    list_of_xor_terms = []
+    for k in range(K):
+        temp = [xor_assignments[k,-1]] # add 0 or 1 for the negation
+        for i in range(n_var):
+            if xor_assignments[k, i] == 1:
+                temp.append(var_list[i])
+        list_of_xor_terms.append(Xor(*temp))
+    
+    res = And(*list_of_xor_terms)
+    return res
 
 
 def extract_variable_list(graph: Graph, x: list):
@@ -25,17 +33,47 @@ def extract_variable_list(graph: Graph, x: list):
     return var_list
 
 
-def shelter_design(phi, q_list, eta, c, N):
-    T = 5
-    m = 3
+# def shelter_design(phi, q_list, eta, c, N):
+#     T = 5
+#     m = 3
 
+#     var_list = []
+#     tgt = [Symbol(f't{i}') for i in range(N)]
+#     graph_list = []
+#     for i in range(N):
+#         graph = Graph(N, 'full')
+#         graph.forceBreakLoopsBFS(i)
+#         graph_list.append(graph)
+
+#     x_e_list = [[[Symbol(f'x{i}_{j}_{k}') 
+#                   for k in range(N)]
+#                   for j in range(N)]
+#                   for i in range(N)]
+    
+#     var_list = []
+#     for i in range(N):
+#         vars = extract_variable_list(graph_list[i], x_e_list[i])
+#         var_list.append(vars)
+
+#     psi_t_list = []
+#     for t in range(T):
+#         psi_i_list = []
+#         for i in range(N):
+#             psi_i = sl.pathIdentifierUltra(graph_list[i], x_e_list[i], i, tgt, m)
+#             const_xor = gen_XOR_constraints(var_list[i], q_list[i])
+#             psi_i = And(psi_i, const_xor)
+#             psi_i_list.append(psi_i)
+#         psi_t = And(*psi_i_list)
+#         psi_t_list.append(psi_t)
+    
+#     psi_star = majority(psi_t_list)
+#     print(psi_star)
+#     return psi_star, var_list, tgt
+
+
+def shelter_design_for_test(graph, phi, q_list, eta, c, N, T, m):
     var_list = []
     tgt = [Symbol(f't{i}') for i in range(N)]
-    graph_list = []
-    for i in range(N):
-        graph = Graph(N, 'full')
-        graph.forceBreakLoopsBFS(i)
-        graph_list.append(graph)
 
     x_e_list = [[[Symbol(f'x{i}_{j}_{k}') 
                   for k in range(N)]
@@ -44,14 +82,14 @@ def shelter_design(phi, q_list, eta, c, N):
     
     var_list = []
     for i in range(N):
-        vars = extract_variable_list(graph_list[i], x_e_list[i])
+        vars = extract_variable_list(graph, x_e_list[i])
         var_list.append(vars)
 
     psi_t_list = []
     for t in range(T):
         psi_i_list = []
         for i in range(N):
-            psi_i = sl.pathIdentifierUltra(graph_list[i], x_e_list[i], i, tgt, m)
+            psi_i = sl.pathIdentifierUltra(graph, x_e_list[i], i, tgt, m)
             const_xor = gen_XOR_constraints(var_list[i], q_list[i])
             psi_i = And(psi_i, const_xor)
             psi_i_list.append(psi_i)
@@ -63,28 +101,53 @@ def shelter_design(phi, q_list, eta, c, N):
     return psi_star, var_list, tgt
 
 
-def run_shelter_design():
-    tic = time.perf_counter()
-    N = 4
-    psi_star = q_list=[i for i in range(N)]
-    psi_star, var_list, tgt = shelter_design(True, q_list, 0, 0, N)
-    psi_star_cnf = to_cnf(psi_star)
-    toc = time.perf_counter()
-    print(f"N = {N}. Converted to SAT in {toc - tic:0.4f} seconds")
 
-    with open(f'psi_star_N{N}.txt', 'w') as f:
+def run_shelter_design_test(prefix = 'random'):
+    time0 = time.perf_counter()
+    N = 8
+    T = 1
+    m = 3
+    graph = Graph(N, prefix, 'false') # graph without loop
+    phi = True
+    eta = 0
+    c = 0
+    q_list=[1] * N
+
+    psi_star, var_list, tgt = shelter_design_for_test(graph, phi, q_list, eta, c, N, T, m)
+    time1 = time.perf_counter()
+
+    time_sat = time1 - time0
+    psi_star_cnf = None
+    # psi_star_cnf = to_cnf(psi_star)
+    time2 = time.perf_counter()
+    time_cnf = time2 - time1
+    
+    print(f"N = {N}. Converted to SAT problem in {time_sat:0.4f} seconds")
+    print(f"N = {N}. Converted to CNF in {time_cnf:0.4f} seconds")
+
+    with open(f'{prefix}_psi_star_N_{N}.txt', 'w') as f:
         f.write(str(psi_star))
     
-    with open(f'psi_star_cnf_N{N}.txt', 'w') as f:
+    with open(f'{prefix}_psi_star_cnf_N_{N}.txt', 'w') as f:
         f.write(str(psi_star_cnf))
     
-    with open(f'variables_N{N}.txt', 'w') as f:
+    with open(f'{prefix}_variables_N_{N}.txt', 'w') as f:
         f.write(str(var_list))
         f.write('\n')
         f.write(str(tgt))
+    
+    with open(f'{prefix}_params_N_{N}.txt', 'w') as f:
+        f.write("Graph: " + str(graph.Adj))
+        f.write('\n')
+        f.write(f"N = {N}, m = {m}, T = {T} \n")
+        f.write(f"phi = {str(phi)}, eta = {eta}, c = {c} \n")
+        f.write(f"q_list = {str(q_list)}")
 
+    with open(f'{prefix}_timer_N_{N}.txt', 'w') as f:
+        f.write(f"N = {N}. Converted to SAT problem in {time_sat:0.4f} seconds \n")
+        f.write(f"N = {N}. Converted to CNF in {time_cnf:0.4f} seconds")
     return
 
 
 if __name__ == '__main__':
-    run_shelter_design()
+    run_shelter_design_test('full')
