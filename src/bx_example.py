@@ -1,10 +1,8 @@
-import numpy as np
-import shelter_location as sl
-import supply_chain as sc
-from sympy import Symbol
-from sympy.logic import And, Not, Xor, Or
+import boolexpr as bx
+
+import shelter_location_bx as sl
 from graph import Graph
-from utils import *
+from utils_bx import majority
 import time
 
 
@@ -27,18 +25,19 @@ def extract_variable_list(graph: Graph, x: list):
 
 
 def shelter_design(phi, q_list, eta, c, N):
+    ctx = bx.Context()
     T = 1
     m = 3
 
     var_list = []
-    tgt = [Symbol(f't{i}') for i in range(N)]
+    tgt = [ctx.get_var(f't{i}') for i in range(N)]
     graph_list = []
     for i in range(N):
         graph = Graph(N, 'full')
         graph.forceBreakLoopsBFS(i)
         graph_list.append(graph)
 
-    x_e_list = [[[Symbol(f'x{i}_{j}_{k}')
+    x_e_list = [[[ctx.get_var(f'x{i}_{j}_{k}')
                   for k in range(N)]
                  for j in range(N)]
                 for i in range(N)]
@@ -54,35 +53,54 @@ def shelter_design(phi, q_list, eta, c, N):
         for i in range(N):
             psi_i = sl.pathIdentifierUltra(graph_list[i], x_e_list[i], i, tgt, m)
             const_xor = gen_XOR_constraints(var_list[i], q_list[i])
-            psi_i = And(psi_i, const_xor)
+            psi_i = psi_i & const_xor
             psi_i_list.append(psi_i)
-        psi_t = And(*psi_i_list)
+        psi_t = None
+        for x in psi_i_list:
+            if not psi_t:
+                psi_t=x
+            else:
+                psi_t=psi_t & x
         psi_t_list.append(psi_t)
 
-    psi_star = majority(psi_t_list)
-    print(psi_star)
-    return psi_star, var_list, tgt
+    # psi_star = majority(psi_t_list)
+    print(psi_t_list[0])
+    print("psi_star cnf")
+    psi_star_cnf = psi_t_list[0].to_cnf()
+    print(psi_star_cnf)
+    print("done")
+    return psi_t_list, var_list, tgt
 
 
 def run_shelter_design():
-    tic = time.perf_counter()
+    # tic = time.time()
     N = 4
-    psi_star = q_list = [i for i in range(N)]
+    q_list = [i for i in range(N)]
     psi_star, var_list, tgt = shelter_design(True, q_list, 0, 0, N)
-    psi_star_cnf = to_cnf(psi_star, simplify=False, force=True)
-    toc = time.perf_counter()
-    print(f"N = {N}. Converted to SAT in {toc - tic:0.4f} seconds")
 
-    with open(f'psi_star_N{N}.txt', 'w') as f:
-        f.write(str(psi_star))
+
+    # toc = time.time()
+    # print(f"N = {N}. Converted to SAT in {toc - tic:0.4f} seconds")
+
+    # with open(f'psi_star_N{N}.txt', 'w') as f:
+    #
+    #     # f.write(psi_star[0])
+    #     print("psi_star")
+    #     print(psi_star[0])
+    # print('done1')
 
     with open(f'psi_star_cnf_N{N}.txt', 'w') as f:
-        f.write(str(psi_star_cnf))
+        psi_star_cnf=psi_star[0].to_cnf()
+        print("psi_star cnf")
+        print(psi_star_cnf)
+        # f.write(psi_star_cnf)
+        # print('done2')
 
     with open(f'variables_N{N}.txt', 'w') as f:
         f.write(str(var_list))
         f.write('\n')
         f.write(str(tgt))
+        print('done3')
 
     return
 
