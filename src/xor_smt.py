@@ -65,14 +65,18 @@ def shelter_design(phi, q_list, eta, c, N):
 
 def run_shelter_design():
     tic = time.perf_counter()
-    N = 8
+    N = 4
     psi_star = q_list=[i for i in range(N)]
     psi_star, var_list, tgt = shelter_design(True, q_list, 0, 0, N)
+    psi_star_cnf = to_cnf(psi_star)
     toc = time.perf_counter()
     print(f"N = {N}. Converted to SAT in {toc - tic:0.4f} seconds")
 
     with open(f'psi_star_N{N}.txt', 'w') as f:
         f.write(str(psi_star))
+    
+    with open(f'psi_star_cnf_N{N}.txt', 'w') as f:
+        f.write(str(psi_star_cnf))
     
     with open(f'variables_N{N}.txt', 'w') as f:
         f.write(str(var_list))
