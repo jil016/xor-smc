@@ -68,13 +68,13 @@ def shelter_design(phi, q_list, eta, c, N):
     print("psi_star cnf")
     psi_star_cnf = psi_t_list[0].to_cnf()
     print(psi_star_cnf)
-    print("done")
+    print(psi_star_cnf.sat())
     return psi_t_list, var_list, tgt
 
 
 def run_shelter_design():
     # tic = time.time()
-    N = 4
+    N = 6
     q_list = [i for i in range(N)]
     psi_star, var_list, tgt = shelter_design(True, q_list, 0, 0, N)
 
