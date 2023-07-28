@@ -1,5 +1,6 @@
 import numpy as np
 from sympy import *
+from utils import *
 
 # np.random.seed(10086)
 
@@ -31,7 +32,6 @@ class Graph:
             self.M = np.sum(self.Adj)
 
     def loopFreeInit(self, mode):
-        # this is fully at random
         if(mode == 'full'):
             self.Adj = [[1 for j in range(self.N)] for i in range(self.N)]
             for i in range(self.N):
@@ -40,9 +40,29 @@ class Graph:
 
             self.M = np.sum(self.Adj)
         if(mode == 'random'):
+            self.Adj = [[0 for j in range(self.N)] for i in range(self.N)]
+
+            idx = [i for i in range(self.N)]
             n_hierarchy = np.random.randint(low=0, high=self.N)
-            
-        
+
+            perm = np.random.permutation(idx[:self.N-1])[:n_hierarchy]
+            perm = np.sort(perm)
+
+            hierarchies = []
+
+            l = 0
+            for p in perm:
+                hierarchies.append(idx[l:p+1])
+                l = p+1
+            hierarchies.append(idx[l:])
+
+            for hierarchy in hierarchies:
+                for u in hierarchy:
+                    if (hierarchy[-1] != self.N - 1):
+                        for v in idx[hierarchy[-1] + 1:]:
+                            self.Adj[u][v] = np.random.randint(low=0, high=2)
+
+            self.M =np.sum(self.Adj)
         return
 
     def addEdge(self, u, v):
@@ -58,12 +78,9 @@ class Graph:
         return
     
     def countLoopFreePathsDFS(self, s, d):
-        # Mark all the vertices
-        # as not visited
+        # Find all paths by DFS, loop allowed
         visited = [False] * self.N
  
-        # Call the recursive helper
-        # function to print all paths
         pathCount = 0
         queue = [s]
         visited_que = [visited]
@@ -72,14 +89,9 @@ class Graph:
             visited = visited_que.pop()
 
             visited[u] = True
-            # If current vertex is same as
-            # destination, then increment count
             if (u == d):
                 pathCount += 1
-            # If current vertex is not destination
             else: 
-                # Recur for all the vertices
-                # adjacent to current vertex
                 for v, value in enumerate(self.Adj[u]):
                     if (value == 1) & (not visited[v]):
                         queue.append(v)
@@ -89,31 +101,107 @@ class Graph:
 
 
 
-def pathIdentifier(graph: Graph, flow: list, hasloop = 'false'):
+def pathIdentifier(graph: Graph, flow: list, src: int, tgt: int):
     # return a logic formula that determine whether it is a valid path
-    return
+    # Assume the graph has **NO LOOP**!
+    # from node src to tgt
+
+    constraints = []
+    # include those constraints
+    # src & tgt should also be encoded
+    one = [1]
+    zero = [0]
+
+    src_out = [0]
+    src_in = [0]
+    for i in range(graph.N):
+        if(graph.Adj[src][i] == 1): # there is an edge from src to i
+            src_out = bin_add_int([flow[src][i]], src_out)
+        if(graph.Adj[i][src] == 1): # there is an edge from i to src
+            src_in = bin_add_int([flow[i][src]], src_in)
+    
+    const_src = And(bin_eq_int(src_out, one), bin_eq_int(src_in, zero))
+    constraints.append(const_src)
+
+    tgt_out = [0]
+    tgt_in = [0]
+    for i in range(graph.N):
+        if(graph.Adj[tgt][i] == 1): # there is an edge from tgt to i
+            tgt_out = bin_add_int([flow[tgt][i]], tgt_out)
+        if(graph.Adj[i][tgt] == 1): # there is an edge from i to tgt
+            tgt_in = bin_add_int([flow[i][tgt]], tgt_in)
+    
+    const_tgt = And(bin_eq_int(tgt_out, zero), bin_eq_int(tgt_in, one))
+    constraints.append(const_tgt)
+    
+    for i in range(graph.N):
+        if(i == src) or (i == tgt): # other nodes
+            continue
+        node_in = [0]
+        node_out = [0]
+        for j in range(graph.N):
+            if(graph.Adj[i][j] == 1):
+                node_out = bin_add_int([flow[i][j]], node_out)
+            if(graph.Adj[j][i] == 1):
+                node_in = bin_add_int([flow[j][i]], node_in)
+                
+        const_node_io = bin_eq_int(node_out, node_in)
+        const_node_once = bin_leq_int(node_out, one)
+
+        constraints.append(const_node_io)
+        constraints.append(const_node_once)
+
+    # how to recover the path?
+
+    res = And(*constraints)
+    return res
+
+
+def pathIdentifierUltra(graph: Graph, flow: list, src: int, tgt: list):
+    # tgt is also encoded as {0,1}^m symbol vector
+    pass
+
 
 
 def graphTester():
     # Create a graph given in the
     # above diagram
-    g = Graph(4, 'full', 'false')
+    N = 4
+    g = Graph(N, 'random', 'false')
     # g.addEdge(0, 1)
     # g.addEdge(1, 2)
     # g.addEdge(2, 3)
     # g.addEdge(3, 1)
     # g.addEdge(1, 4)
     s = 0
-    d = 3
+    d = N - 1
      
     # Function call
     print(g.countLoopFreePathsDFS(s, d))
-    print(g.N, g.M)
+    print("N: ", g.N, "; M: ", g.M)
     print(g.Adj)
     return
 
+
+def pathIdentifierTester():
+    N = 8
+    x_e = [[Symbol(f'x{i}_{j}') for j in range(N)] for i in range(N)]
+
+    graph = Graph(N, 'empty')
+    for i in range(N - 1):
+        graph.addEdge(i,i+1)
+    graph.addEdge(0,3)
+
+    # x_e = [[0,1,0,1],
+    #        [0,0,1,0],
+    #        [0,0,0,1],
+    #        [0,0,0,0]]
+
+    src = 0
+    tgt = N-1
+    print(pathIdentifier(graph, x_e, src, tgt))
+
+
 # Driver Code
 if __name__ == '__main__':
-    M = 10
-    x_e = [Symbol(f'x_e{i}') for i in range(M)]
-    graphTester()
+    pathIdentifierTester()

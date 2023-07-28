@@ -41,7 +41,7 @@ def crop_bits(a: list, a_min: int, out_min: int, n: int):
     return a[out_min - a_min:out_min - a_min + n]
 
 
-def bin_add_int(a: list, b: list, n: int) -> list:
+def bin_add_int(a: list, b: list, n = -1) -> list:
     #================ Input Numbers ===============#
     # a = [a_0, ..., a_k] representing (a_0 * 2^0 + ... + a_k * 2^k)
     # b = [b_0, ..., b_t] representing (b_0 * 2^0 + ... + b_t * 2^t)
@@ -203,6 +203,22 @@ def bin_geq_int(a: list, b: list):
     for i in range(max(len(a), len(b))):
         res = And(res, bit_eq(a[i], b[i]))
         res = Or(res, bit_g(a[i], b[i]))
+    return res
+
+def bin_leq_int(a: list, b: list):
+    # assume lowest digits are aligned already
+    # align the highest digit
+    return bin_geq_int(b, a)
+
+def bin_eq_int(a: list, b: list):
+    # assume lowest digits are aligned already
+    # align the highest digit
+    a = a + [0] * (len(b) - len(a))
+    b = b + [0] * (len(a) - len(b))
+
+    res = True
+    for i in range(max(len(a), len(b))):
+        res = And(res, bit_eq(a[i], b[i]))
     return res
 
 
