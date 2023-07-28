@@ -9,7 +9,7 @@ def calcProbability(theta: list):
     pass
 
 
-def pathIdentifier(graph: Graph, flow: list, src: int, tgt: int, theta: list):
+def weightedPathIdentifier(graph: Graph, flow: list, src: int, tgt: int, theta: list):
     # Return a logic formula that determine 
     # whether the flow represents a valid path from node src to tgt
     # some edges are blocked by theta
@@ -17,5 +17,5 @@ def pathIdentifier(graph: Graph, flow: list, src: int, tgt: int, theta: list):
     pass
 
 
-def pathIdentifierMax():
+def weightedPathIdentifierUltra():
     pass

@@ -16,6 +16,20 @@ def pathIdentifier(graph: Graph, flow: list, src: int, tgt: int):
     one = [1]
     zero = [0]
 
+    # what if src == tgt 
+    # then simply examine whether the rest are zero
+    const_s_eq_t = False
+    if(src == tgt):
+        for i in range(graph.N):
+            for j in range(graph.N):
+                if(graph.Adj[i][j] == 1):
+                    const_s_eq_t = Or(const_s_eq_t, flow[i][j])
+        
+        return Not(const_s_eq_t)
+                    
+
+
+
     src_out = [0]
     src_in = [0]
     for i in range(graph.N):
@@ -84,12 +98,18 @@ def pathIdentifierUltra(graph: Graph, flow: list, src: int, tgt: list, m_tgt: in
 
 def recoverPath(graph: Graph, flow: list, src: int, tgt: int):
     # recover a path from src to tgt
+
     assert(NotImplementedError)
+
 
 def detectLoop(graph: Graph, flow: list, src: int, tgt: int):
     # Given flow, detect loops.
     # Assume the flow already represents a valid path, 
     # but there could be unnecessary loops that are disjoint from path
+    assert(NotImplementedError)
+
+
+def hasPath(graph: Graph, flow: list, src: int, tgt: int):
     assert(NotImplementedError)
 
 
@@ -102,13 +122,21 @@ def pathIdentifierTester():
         graph.addEdge(i,i+1)
     graph.addEdge(0,3)
 
-    x_e = [[0,1,0,1],
+    x_e = [[0,1,0,0],
            [0,0,1,0],
            [0,0,0,1],
            [0,0,0,0]]
 
-    src = 0
+    src = 1
     tgt = N-1
+    print(pathIdentifier(graph, x_e, src, tgt))
+    
+    x_e = [[0,0,0,0],
+           [0,0,0,0],
+           [0,0,0,0],
+           [0,0,0,0]]
+    src = 0
+    tgt = 0
     print(pathIdentifier(graph, x_e, src, tgt))
 
 
@@ -138,9 +166,23 @@ def pathIdentifierUltraTester():
             [0,0,0,0],
             [0,0,0,0]] # flow from 0->3
     
+    src = 0
+    tgt = [0, 0, 1, 1]
+    m = 3
+    print(pathIdentifierUltra(graph, x_e, src, tgt, m))
+
+    x_e = [[0,0,0,0],
+            [0,0,0,0],
+            [0,0,0,0],
+            [0,0,0,0]] # flow from 0->3
+    
+    src = 0
+    tgt = [1, 0, 1, 1]
+    m = 3
     print(pathIdentifierUltra(graph, x_e, src, tgt, m))
 
 
 # Driver Code
 if __name__ == '__main__':
+    # pathIdentifierTester()
     pathIdentifierUltraTester()

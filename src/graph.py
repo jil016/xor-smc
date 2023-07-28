@@ -67,12 +67,19 @@ class Graph:
         self.M += 1
         self.Adj[u][v] = 1
         return
+    
+    def removeEdge(self, u, v):
+        # Add v to u’s list.
+        self.M -= 1
+        self.Adj[u][v] = 0
+        return
  
    
     def countEdgeOncePaths(self, ):
         # Count paths that pass each edge at most once.
         assert(NotImplementedError)
     
+
     def countLoopFreePathsDFS(self, s, d):
         # Find all paths by DFS, loop allowed, but each node visited at most once.
         visited = [False] * self.N
@@ -95,8 +102,25 @@ class Graph:
 
         return pathCount
     
-    def breakLoops(self, s):
-        assert(NotImplementedError)
+    def forceBreakLoopsBFS(self, s):
+        # run bfs, remove backward edges
+        # BFS build a tree, just remove all backward edges 
+        
+        visited = [False] * self.N
+        queue = [s]
+
+        while queue:
+            u = queue.pop(0)
+
+            visited[u] = True
+            for v, e in enumerate(self.Adj[u]):
+                if (e == 1) & (not visited[v]):
+                    queue.append(v)
+                elif (e == 1) & (visited[v]):
+                    self.removeEdge(u,v)
+
+        return
+    
     
 
 def graphTester():
@@ -119,5 +143,13 @@ def graphTester():
     return
 
 
+def breakLoopTester():
+    N = 4
+    g = Graph(N, 'full')
+    print(g.Adj)
+    g.forceBreakLoopsBFS(0)
+    print("After break: ", g.Adj)
+
 if __name__ == '__main__':
-    graphTester()
+    # graphTester()
+    breakLoopTester()
