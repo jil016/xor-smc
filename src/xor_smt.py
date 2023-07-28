@@ -4,6 +4,7 @@ import supply_chain as sc
 from sympy import *
 from graph import Graph
 from utils import *
+import time
 
 
 def gen_XOR_constraints(var_list: list, K: int):
@@ -58,13 +59,26 @@ def shelter_design(phi, q_list, eta, c, N):
         psi_t_list.append(psi_t)
     
     psi_star = majority(psi_t_list)
-    return var_list
+    print(psi_star)
+    return psi_star, var_list, tgt
 
 
 def run_shelter_design():
-    N = 4
-    q_list=[i for i in range(N)]
-    shelter_design(True, q_list, 0, 0, N)
+    tic = time.perf_counter()
+    N = 8
+    psi_star = q_list=[i for i in range(N)]
+    psi_star, var_list, tgt = shelter_design(True, q_list, 0, 0, N)
+    toc = time.perf_counter()
+    print(f"N = {N}. Converted to SAT in {toc - tic:0.4f} seconds")
+
+    with open(f'psi_star_N{N}.txt', 'w') as f:
+        f.write(str(psi_star))
+    
+    with open(f'variables_N{N}.txt', 'w') as f:
+        f.write(str(var_list))
+        f.write('\n')
+        f.write(str(tgt))
+
     return
 
 
