@@ -157,9 +157,21 @@ def pathIdentifier(graph: Graph, flow: list, src: int, tgt: int):
     return res
 
 
-def pathIdentifierUltra(graph: Graph, flow: list, src: int, tgt: list):
+def pathIdentifierUltra(graph: Graph, flow: list, src: int, tgt: list, m_tgt: int):
     # tgt is also encoded as {0,1}^m symbol vector
-    pass
+    # path can terminate at any one of those tgt
+    
+    # sum over all tgt <= m_tgt
+    m_binlist = int2binlist(m_tgt)
+    const_sum = bin_leq_int(m_binlist, m_binlist)
+    
+    res_list = []
+    for t_idx, t in enumerate(tgt):
+        res_t = And(t, pathIdentifier(graph, flow, src, t_idx))
+        res_list.append(res_t)
+    
+    res = And(const_sum, Or(*res_list))
+    return res
 
 
 
@@ -184,7 +196,7 @@ def graphTester():
 
 
 def pathIdentifierTester():
-    N = 8
+    N = 4
     x_e = [[Symbol(f'x{i}_{j}') for j in range(N)] for i in range(N)]
 
     graph = Graph(N, 'empty')
@@ -192,16 +204,47 @@ def pathIdentifierTester():
         graph.addEdge(i,i+1)
     graph.addEdge(0,3)
 
-    # x_e = [[0,1,0,1],
-    #        [0,0,1,0],
-    #        [0,0,0,1],
-    #        [0,0,0,0]]
+    x_e = [[0,1,0,1],
+           [0,0,1,0],
+           [0,0,0,1],
+           [0,0,0,0]]
 
     src = 0
     tgt = N-1
     print(pathIdentifier(graph, x_e, src, tgt))
 
 
+
+def pathIdentifierUltraTester():
+    N = 4
+    x_e = [[Symbol(f'x{i}_{j}') for j in range(N)] for i in range(N)]
+    tgt = [Symbol(f't{i}') for i in range(N)]
+
+    graph = Graph(N, 'empty')
+    for i in range(N - 1):
+        graph.addEdge(i,i+1)
+    graph.addEdge(0,3)
+
+    x_e = [[0,1,0,0],
+           [0,0,1,0],
+           [0,0,0,1],
+           [0,0,0,0]]
+
+    src = 0
+    tgt = [0, 0, 1, 1]
+    m = 3
+
+    print(pathIdentifierUltra(graph, x_e, src, tgt, m))
+
+    x_e = [[0,0,0,1],
+            [0,0,0,0],
+            [0,0,0,0],
+            [0,0,0,0]]
+    
+
+    print(pathIdentifierUltra(graph, x_e, src, tgt, m))
+
+
 # Driver Code
 if __name__ == '__main__':
-    pathIdentifierTester()
+    pathIdentifierUltraTester()

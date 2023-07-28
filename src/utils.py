@@ -15,6 +15,11 @@ def full_adder(a: Symbol, b: Symbol, c: Symbol):
     carry = Or(And(c, Or(a, b)), And(a, b))
     return save, carry
 
+def int2binlist(x: int):
+    x_list = [(int)(i) for i in str(bin(x))[2:]]
+    x_list = x_list[::-1]
+    return x_list
+
 
 def crop_bits(a: list, a_min: int, out_min: int, n: int):
     #================ Input Number ===============#
