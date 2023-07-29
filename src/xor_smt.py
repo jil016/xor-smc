@@ -112,9 +112,9 @@ def shelter_design_for_test(graph, phi, q_list, eta, c, N, T, m):
 
 
 
-def run_shelter_design_test(prefix = 'random'):
+def run_shelter_design_test(prefix = 'full'):
     time0 = time.perf_counter()
-    N = 4
+    N = 5
     T = 1
     m = 1
     graph = Graph(N, prefix, 'false') # graph without loop
@@ -132,7 +132,8 @@ def run_shelter_design_test(prefix = 'random'):
     time2 = time.perf_counter()
     time_cnf = time2 - time1
 
-    sat = satisfiable(psi_star)
+    sat = None
+    # sat = satisfiable(psi_star)
     time3 = time.perf_counter()
     time_solve = time3 - time2
     
@@ -170,4 +171,4 @@ def run_shelter_design_test(prefix = 'random'):
 
 
 if __name__ == '__main__':
-    run_shelter_design_test('full')
+    run_shelter_design_test()

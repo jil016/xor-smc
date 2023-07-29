@@ -1,0 +1,1 @@
+{t3: True, t1: True, x0_0_2: True, t2: True, x3_0_2: False, x3_2_3: False, x3_1_3: False, x2_2_3: False, x2_1_3: False, x2_0_2: False, x0_2_3: False, x0_1_3: False, x1_2_3: False, x1_1_3: False, x1_0_2: False, t0: False}

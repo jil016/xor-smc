@@ -1,0 +1,3 @@
+N = 4. Converted to SAT problem in 0.1010 seconds 
+N = 4. Converted to CNF in 6.2026 seconds 
+N = 4. Solve the SAT in 0.4426 seconds
