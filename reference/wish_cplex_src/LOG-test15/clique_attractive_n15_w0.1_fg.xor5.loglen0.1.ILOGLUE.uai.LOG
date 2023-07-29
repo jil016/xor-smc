@@ -1,0 +1,50 @@
+done reading CPTs
+here
+row echelon form:
+0,0,0,1,0,1,0,1,1,0,1,1,1,0,0,0,
+1,0,0,0,1,0,0,1,1,1,1,0,0,1,1,0,
+0,1,0,0,1,1,0,0,1,0,0,0,1,0,0,0,
+0,0,1,0,1,1,0,1,0,0,0,0,0,1,0,0,
+0,0,0,0,0,0,1,1,0,0,1,1,1,0,1,0,
+Bits saved: Initial # of bits: 31
+final # of bits: 27
+4 Initial # of bits: 27
+final # of bits: 27
+0 
+XOR minimum length: 5 . XOR maximum length: 6
+1 of 1 MIP starts provided solutions.
+MIP start 'm1' defined initial solution with objective -1.0359.
+Tried aggregator 1 time.
+MIP Presolve eliminated 467 rows and 40 columns.
+Reduced MIP has 516 rows, 506 columns, and 1542 nonzeros.
+Reduced MIP has 506 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.00 sec. (2.00 ticks)
+Probing time = 0.00 sec. (2.66 ticks)
+Tried aggregator 1 time.
+Reduced MIP has 516 rows, 506 columns, and 1542 nonzeros.
+Reduced MIP has 506 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.00 sec. (1.20 ticks)
+Probing time = 0.00 sec. (2.64 ticks)
+Clique table members: 1094.
+MIP emphasis: balance optimality and feasibility.
+MIP search method: dynamic search.
+Parallel mode: none, using 1 thread.
+Root relaxation solution time = 0.00 sec. (0.70 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0+    0                           -1.0359       -0.0000           100.00%
+*     0     0      integral     0        0.0000       -0.0000        0    0.00%
+Elapsed time = 0.01 sec. (11.36 ticks, tree = 0.00 MB, solutions = 2)
+
+Root node processing (before b&c):
+  Real time             =    0.01 sec. (11.39 ticks)
+Sequential b&c:
+  Real time             =    0.00 sec. (0.00 ticks)
+                          ------------
+Total (root+branch&cut) =    0.01 sec. (11.39 ticks)
+Solution status = Optimal
+Solution value log10lik = 0
+Values = [-0, -0, -0, -0, -0, -0, -0, -0, -0, -0,
+-0, -0, -0, -0, -0]

@@ -1,0 +1,81 @@
+done reading CPTs
+here
+row echelon form:
+0,0,0,1,0,0,0,0,0,0,0,1,0,1,0,1,
+1,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,
+0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,1,
+0,0,1,0,0,0,0,0,0,0,0,1,1,0,0,0,
+0,0,0,0,1,0,0,0,0,0,0,1,0,1,1,0,
+0,0,0,0,0,1,0,0,0,0,0,0,1,1,1,1,
+0,0,0,0,0,0,1,0,0,0,0,1,1,0,1,0,
+0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1,
+0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,1,
+0,0,0,0,0,0,0,0,0,1,0,0,1,1,0,0,
+0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,0,
+Bits saved: Initial # of bits: 40
+final # of bits: 31
+9 Initial # of bits: 31
+final # of bits: 31
+0 
+XOR minimum length: 2 . XOR maximum length: 3
+1 of 1 MIP starts provided solutions.
+MIP start 'm1' defined initial solution with objective -1.0275.
+Tried aggregator 3 times.
+MIP Presolve eliminated 487 rows and 48 columns.
+Aggregator did 54 substitutions.
+Reduced MIP has 428 rows, 418 columns, and 1270 nonzeros.
+Reduced MIP has 418 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.00 sec. (2.95 ticks)
+Probing fixed 1 vars, tightened 0 bounds.
+Probing time = 0.00 sec. (5.38 ticks)
+Tried aggregator 2 times.
+MIP Presolve eliminated 13 rows and 34 columns.
+Aggregator did 2 substitutions.
+Reduced MIP has 413 rows, 382 columns, and 1228 nonzeros.
+Reduced MIP has 382 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.00 sec. (2.19 ticks)
+Probing fixed 1 vars, tightened 0 bounds.
+Probing time = 0.00 sec. (4.53 ticks)
+Clique table members: 865.
+MIP emphasis: balance optimality and feasibility.
+MIP search method: dynamic search.
+Parallel mode: none, using 1 thread.
+Root relaxation solution time = 0.00 sec. (1.07 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0+    0                           -1.0275       -0.0620            93.96%
+      0     0       -0.2168   217       -1.0275       -0.2168       30   78.90%
+      0     0       -0.3394   217       -1.0275      Cuts: 91       61   66.97%
+*     0+    0                           -0.8402       -0.3394            59.60%
+      0     0       -0.4335   223       -0.8402      Cuts: 97      100   48.41%
+      0     0       -0.5087   259       -0.8402      Cuts: 48      126   39.45%
+      0     0       -0.5249   223       -0.8402      Cuts: 44      139   37.53%
+      0     0       -0.5663   219       -0.8402      Cuts: 69      165   32.60%
+      0     0       -0.5891   261       -0.8402      Cuts: 98      176   29.88%
+      0     0       -0.6255   261       -0.8402  ZeroHalf: 60      195   25.55%
+      0     0       -0.6734   303       -0.8402      Cuts: 87      219   19.86%
+      0     0       -0.7014   313       -0.8402  ZeroHalf: 58      240   16.52%
+      0     0       -0.7422   340       -0.8402  ZeroHalf: 81      278   11.67%
+      0     0       -0.7643   355       -0.8402  ZeroHalf: 77      322    9.04%
+      0     0       -0.8134   337       -0.8402      Cuts: 51      362    3.19%
+      0     0        cutoff             -0.8402                    390    0.00%
+Elapsed time = 0.06 sec. (91.51 ticks, tree = 0.01 MB, solutions = 2)
+
+Clique cuts applied:  6
+Flow cuts applied:  2
+Mixed integer rounding cuts applied:  1
+Zero-half cuts applied:  226
+Gomory fractional cuts applied:  2
+
+Root node processing (before b&c):
+  Real time             =    0.06 sec. (91.54 ticks)
+Sequential b&c:
+  Real time             =    0.00 sec. (0.00 ticks)
+                          ------------
+Total (root+branch&cut) =    0.06 sec. (91.54 ticks)
+Solution status = Optimal
+Solution value log10lik = -0.840201
+Values = [0, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+0, 1, 0, 0, 1]

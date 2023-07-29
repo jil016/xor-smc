@@ -1,0 +1,104 @@
+done reading CPTs
+here
+row echelon form:
+0,1,0,1,0,0,0,0,0,0,0,1,0,1,0,1,
+Bits saved: Initial # of bits: 5
+final # of bits: 5
+0 Initial # of bits: 5
+final # of bits: 5
+0 
+XOR minimum length: 5 . XOR maximum length: 5
+1 of 1 MIP starts provided solutions.
+MIP start 'm1' defined initial solution with objective -0.9809.
+Tried aggregator 2 times.
+MIP Presolve eliminated 427 rows and 6 columns.
+Aggregator did 1 substitutions.
+Reduced MIP has 437 rows, 447 columns, and 1307 nonzeros.
+Reduced MIP has 447 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.00 sec. (1.69 ticks)
+Probing fixed 1 vars, tightened 0 bounds.
+Probing changed sense of 2 constraints.
+Probing time = 0.00 sec. (2.92 ticks)
+Tried aggregator 1 time.
+MIP Presolve eliminated 7 rows and 3 columns.
+Reduced MIP has 430 rows, 444 columns, and 1290 nonzeros.
+Reduced MIP has 444 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.00 sec. (1.37 ticks)
+Probing time = 0.00 sec. (2.60 ticks)
+Clique table members: 958.
+MIP emphasis: balance optimality and feasibility.
+MIP search method: dynamic search.
+Parallel mode: none, using 1 thread.
+Root relaxation solution time = 0.00 sec. (0.62 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0+    0                           -0.9809       -0.0000           100.00%
+      0     0        0.0000   229       -0.9809       -0.0000       20  100.00%
+      0     0       -0.0004   230       -0.9809       Cuts: 4       25   99.96%
+*     0+    0                           -0.2406       -0.0004            99.85%
+      0     0       -0.0124   234       -0.2406       Cuts: 7       39   94.86%
+      0     0       -0.0370   236       -0.2406      Cuts: 28       59   84.60%
+      0     0       -0.0480   230       -0.2406  ZeroHalf: 35       72   80.03%
+      0     0       -0.0492   230       -0.2406  ZeroHalf: 71       78   79.54%
+      0     0       -0.0567   230       -0.2406  ZeroHalf: 54       90   76.45%
+      0     0       -0.0571   230       -0.2406  ZeroHalf: 15       94   76.29%
+      0     0       -0.0770   274       -0.2406  ZeroHalf: 29      147   68.00%
+      0     0       -0.0954   275       -0.2406  ZeroHalf: 18      175   60.36%
+      0     0       -0.0997   260       -0.2406  ZeroHalf: 20      189   58.57%
+      0     0       -0.1018   274       -0.2406  ZeroHalf: 18      198   57.71%
+      0     0       -0.1032   284       -0.2406  ZeroHalf: 44      209   57.12%
+      0     0       -0.1120   286       -0.2406  ZeroHalf: 36      232   53.45%
+      0     0       -0.1131   294       -0.2406  ZeroHalf: 36      246   53.00%
+      0     0       -0.1166   286       -0.2406  ZeroHalf: 26      266   51.55%
+      0     0       -0.1186   287       -0.2406  ZeroHalf: 42      279   50.71%
+      0     0       -0.1260   279       -0.2406  ZeroHalf: 21      311   47.61%
+      0     0       -0.1297   290       -0.2406  ZeroHalf: 32      336   46.07%
+      0     0       -0.1321   278       -0.2406  ZeroHalf: 27      363   45.11%
+      0     0       -0.1347   295       -0.2406  ZeroHalf: 26      387   44.03%
+      0     0       -0.1368   300       -0.2406      Cuts: 52      416   43.14%
+      0     0       -0.1384   306       -0.2406      Cuts: 22      438   42.47%
+      0     0       -0.1400   301       -0.2406  ZeroHalf: 33      462   41.82%
+      0     0       -0.1435   289       -0.2406  ZeroHalf: 29      484   40.37%
+      0     0       -0.1459   308       -0.2406  ZeroHalf: 32      508   39.35%
+      0     0       -0.1508   296       -0.2406  ZeroHalf: 22      531   37.31%
+      0     0       -0.1527   308       -0.2406  ZeroHalf: 31      553   36.53%
+      0     0       -0.1546   314       -0.2406      Cuts: 40      576   35.74%
+      0     0       -0.1568   316       -0.2406  ZeroHalf: 16      596   34.81%
+      0     0       -0.1608   292       -0.2406  ZeroHalf: 18      622   33.16%
+      0     0       -0.1651   290       -0.2406  ZeroHalf: 63      646   31.35%
+      0     0       -0.1687   301       -0.2406  ZeroHalf: 37      672   29.89%
+      0     0       -0.1728   313       -0.2406      Cuts: 49      699   28.17%
+      0     0       -0.1748   315       -0.2406  ZeroHalf: 36      716   27.33%
+      0     0       -0.1763   306       -0.2406  ZeroHalf: 27      743   26.72%
+      0     0       -0.1772   315       -0.2406      Cuts: 31      755   26.33%
+      0     0       -0.1820   305       -0.2406  ZeroHalf: 27      794   24.36%
+      0     0       -0.1862   319       -0.2406  ZeroHalf: 34      816   22.59%
+      0     0       -0.1873   324       -0.2406  ZeroHalf: 25      835   22.15%
+      0     0       -0.1933   314       -0.2406  ZeroHalf: 20      863   19.64%
+      0     0       -0.1959   319       -0.2406  ZeroHalf: 28      884   18.56%
+      0     0       -0.1999   322       -0.2406  ZeroHalf: 27      923   16.93%
+      0     0       -0.2036   326       -0.2406  ZeroHalf: 37      962   15.39%
+      0     0       -0.2076   321       -0.2406  ZeroHalf: 38      996   13.69%
+      0     0       -0.2086   330       -0.2406      Cuts: 55     1030   13.28%
+      0     0       -0.2104   333       -0.2406  ZeroHalf: 26     1058   12.53%
+      0     0       -0.2132   328       -0.2406  ZeroHalf: 44     1099   11.38%
+      0     0       -0.2253   320       -0.2406  ZeroHalf: 46     1157    6.35%
+      0     0       -0.2382   266       -0.2406  ZeroHalf: 44     1199    1.00%
+      0     0        cutoff             -0.2406                   1211    0.00%
+Elapsed time = 0.33 sec. (444.87 ticks, tree = 0.01 MB, solutions = 2)
+
+Clique cuts applied:  1
+Zero-half cuts applied:  69
+
+Root node processing (before b&c):
+  Real time             =    0.33 sec. (444.89 ticks)
+Sequential b&c:
+  Real time             =    0.00 sec. (0.00 ticks)
+                          ------------
+Total (root+branch&cut) =    0.33 sec. (444.89 ticks)
+Solution status = Optimal
+Solution value log10lik = -0.240577
+Values = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 1, 0]

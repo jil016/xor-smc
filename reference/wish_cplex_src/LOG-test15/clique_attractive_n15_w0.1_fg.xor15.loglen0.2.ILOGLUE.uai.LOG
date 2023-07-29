@@ -1,0 +1,35 @@
+done reading CPTs
+here
+row echelon form:
+0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,
+1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,
+0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,
+0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,1,
+0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,1,
+0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,
+0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,
+0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,1,
+0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,
+0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+Bits saved: Initial # of bits: 26
+final # of bits: 20
+6 Initial # of bits: 20
+final # of bits: 20
+0 
+XOR minimum length: 1 . XOR maximum length: 2
+Retaining values of one MIP start for possible repair.
+Infeasibility row 'c926':  0  = -1.
+Presolve time = 0.00 sec. (0.15 ticks)
+
+Root node processing (before b&c):
+  Real time             =    0.00 sec. (0.53 ticks)
+Sequential b&c:
+  Real time             =    0.00 sec. (0.00 ticks)
+                          ------------
+Total (root+branch&cut) =    0.00 sec. (0.53 ticks)
+Failed to optimize LP.

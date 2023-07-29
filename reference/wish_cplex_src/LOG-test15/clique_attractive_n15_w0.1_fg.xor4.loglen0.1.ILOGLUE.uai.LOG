@@ -1,0 +1,140 @@
+done reading CPTs
+here
+row echelon form:
+0,0,0,0,0,1,0,1,0,1,1,0,1,1,1,1,
+1,0,0,0,0,0,1,0,1,0,1,1,0,1,1,0,
+0,1,0,0,0,0,1,1,1,1,1,0,1,1,0,0,
+0,0,1,0,0,0,1,1,0,1,0,0,0,0,0,0,
+Bits saved: Initial # of bits: 27
+final # of bits: 24
+3 Initial # of bits: 24
+final # of bits: 23
+1 
+XOR minimum length: 4 . XOR maximum length: 7
+1 of 1 MIP starts provided solutions.
+MIP start 'm1' defined initial solution with objective -1.1705.
+Tried aggregator 1 time.
+MIP Presolve eliminated 467 rows and 40 columns.
+Reduced MIP has 504 rows, 499 columns, and 1516 nonzeros.
+Reduced MIP has 499 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.00 sec. (1.98 ticks)
+Probing fixed 2 vars, tightened 0 bounds.
+Probing changed sense of 5 constraints.
+Probing time = 0.00 sec. (3.78 ticks)
+Tried aggregator 2 times.
+MIP Presolve eliminated 18 rows and 7 columns.
+Aggregator did 2 substitutions.
+Reduced MIP has 484 rows, 490 columns, and 1467 nonzeros.
+Reduced MIP has 490 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.00 sec. (2.07 ticks)
+Probing time = 0.00 sec. (2.63 ticks)
+Clique table members: 1077.
+MIP emphasis: balance optimality and feasibility.
+MIP search method: dynamic search.
+Parallel mode: none, using 1 thread.
+Root relaxation solution time = 0.00 sec. (1.09 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0+    0                           -1.1705       -0.0000           100.00%
+      0     0        0.0000   250       -1.1705       -0.0000       21  100.00%
+*     0+    0                           -0.4895       -0.0000           100.00%
+      0     0       -0.0009   250       -0.4895      Cuts: 10       59   99.82%
+      0     0       -0.0348   260       -0.4895      Cuts: 12       92   92.88%
+      0     0       -0.0390   269       -0.4895  ZeroHalf: 20      106   92.03%
+      0     0       -0.0419   256       -0.4895      Cuts: 25      139   91.43%
+*     0+    0                           -0.4832       -0.0419            91.32%
+      0     0       -0.0448   257       -0.4832      Cuts: 19      158   90.73%
+      0     0       -0.0450   280       -0.4832  ZeroHalf: 13      172   90.70%
+      0     0       -0.0481   283       -0.4832      Cuts: 14      206   90.05%
+      0     0       -0.0534   289       -0.4832      Cuts: 19      242   88.95%
+      0     0       -0.0592   277       -0.4832      Cuts: 27      285   87.74%
+      0     0       -0.0593   290       -0.4832  ZeroHalf: 15      296   87.74%
+      0     0       -0.0618   259       -0.4832  ZeroHalf: 14      312   87.22%
+      0     0       -0.0627   271       -0.4832      Cuts: 80      319   87.02%
+      0     0       -0.0645   284       -0.4832  ZeroHalf: 21      330   86.65%
+      0     0       -0.0650   294       -0.4832      Cuts: 38      358   86.55%
+      0     0       -0.0675   288       -0.4832      Cuts: 31      380   86.03%
+      0     0       -0.0727   286       -0.4832      Cuts: 25      398   84.97%
+      0     0       -0.0744   292       -0.4832  ZeroHalf: 26      426   84.61%
+      0     0       -0.0819   293       -0.4832      Cuts: 64      465   83.06%
+      0     0       -0.0840   310       -0.4832  ZeroHalf: 24      486   82.62%
+      0     0       -0.0859   313       -0.4832  ZeroHalf: 19      501   82.23%
+      0     0       -0.0881   311       -0.4832      Cuts: 33      525   81.76%
+      0     0       -0.0943   306       -0.4832  ZeroHalf: 38      585   80.49%
+      0     0       -0.0968   305       -0.4832      Cuts: 38      610   79.96%
+*     0+    0                           -0.2432       -0.0968            60.18%
+      0     0       -0.1017   304       -0.2432  ZeroHalf: 27      651   58.20%
+      0     0       -0.1024   312       -0.2432      Cuts: 41      677   57.88%
+      0     0       -0.1029   305       -0.2432      Cuts: 31      697   57.70%
+      0     0       -0.1046   316       -0.2432  ZeroHalf: 28      727   56.97%
+      0     0       -0.1079   313       -0.2432      Cuts: 32      757   55.62%
+      0     0       -0.1095   319       -0.2432  ZeroHalf: 24      787   54.97%
+      0     0       -0.1102   323       -0.2432      Cuts: 21      808   54.69%
+      0     0       -0.1137   310       -0.2432      Cuts: 42      840   53.24%
+      0     0       -0.1157   318       -0.2432      Cuts: 26      877   52.43%
+      0     0       -0.1175   324       -0.2432  ZeroHalf: 48      914   51.70%
+      0     0       -0.1190   326       -0.2432      Cuts: 38      949   51.05%
+      0     0       -0.1243   331       -0.2432  ZeroHalf: 45      987   48.87%
+      0     0       -0.1310   331       -0.2432  ZeroHalf: 26     1027   46.11%
+      0     0       -0.1370   315       -0.2432      Cuts: 48     1068   43.67%
+      0     0       -0.1394   328       -0.2432      Cuts: 60     1100   42.70%
+      0     0       -0.1444   319       -0.2432      Cuts: 47     1154   40.63%
+      0     0       -0.1472   340       -0.2432      Cuts: 54     1191   39.47%
+      0     0       -0.1540   335       -0.2432      Cuts: 54     1232   36.67%
+      0     0       -0.1549   336       -0.2432  ZeroHalf: 54     1255   36.29%
+      0     0       -0.1569   343       -0.2432      Cuts: 50     1295   35.47%
+      0     0       -0.1593   342       -0.2432      Cuts: 39     1330   34.50%
+      0     0       -0.1614   340       -0.2432      Cuts: 78     1370   33.62%
+      0     0       -0.1645   340       -0.2432      Cuts: 45     1414   32.36%
+      0     0       -0.1674   339       -0.2432      Cuts: 46     1462   31.18%
+      0     0       -0.1681   344       -0.2432      Cuts: 48     1494   30.89%
+      0     0       -0.1690   336       -0.2432      Cuts: 40     1545   30.49%
+      0     0       -0.1695   348       -0.2432      Cuts: 25     1559   30.29%
+      0     0       -0.1720   344       -0.2432      Cuts: 30     1596   29.26%
+      0     0       -0.1757   342       -0.2432      Cuts: 78     1640   27.74%
+      0     0       -0.1777   339       -0.2432      Cuts: 38     1685   26.95%
+      0     0       -0.1781   351       -0.2432      Cuts: 54     1711   26.76%
+      0     0       -0.1802   356       -0.2432      Cuts: 43     1756   25.88%
+      0     0       -0.1828   355       -0.2432  ZeroHalf: 61     1805   24.83%
+      0     0       -0.1858   347       -0.2432      Cuts: 36     1855   23.59%
+      0     0       -0.1868   362       -0.2432      Cuts: 40     1881   23.19%
+      0     0       -0.1886   349       -0.2432  ZeroHalf: 31     1922   22.46%
+      0     0       -0.1900   359       -0.2432      Cuts: 37     1959   21.87%
+      0     0       -0.1934   367       -0.2432      Cuts: 49     2006   20.48%
+      0     0       -0.1956   361       -0.2432      Cuts: 40     2041   19.56%
+      0     0       -0.1976   369       -0.2432  ZeroHalf: 53     2117   18.75%
+      0     0       -0.1982   377       -0.2432      Cuts: 45     2147   18.49%
+      0     0       -0.2001   370       -0.2432  ZeroHalf: 46     2206   17.71%
+      0     0       -0.2012   370       -0.2432      Cuts: 41     2244   17.26%
+      0     0       -0.2027   368       -0.2432  ZeroHalf: 46     2293   16.66%
+      0     0       -0.2038   367       -0.2432      Cuts: 49     2335   16.21%
+      0     0       -0.2061   374       -0.2432  ZeroHalf: 55     2384   15.23%
+      0     0       -0.2097   371       -0.2432      Cuts: 41     2462   13.79%
+      0     0       -0.2129   364       -0.2432      Cuts: 60     2526   12.45%
+      0     0       -0.2139   379       -0.2432      Cuts: 73     2558   12.05%
+      0     0       -0.2169   373       -0.2432  ZeroHalf: 34     2582   10.80%
+      0     0       -0.2196   386       -0.2432      Cuts: 38     2632    9.70%
+      0     0       -0.2251   365       -0.2432  ZeroHalf: 46     2721    7.45%
+      0     0       -0.2276   381       -0.2432  ZeroHalf: 44     2774    6.39%
+      0     0       -0.2336   375       -0.2432      Cuts: 31     2830    3.94%
+      0     0       -0.2366   356       -0.2432      Cuts: 42     2877    2.72%
+      0     0       -0.2403   381       -0.2432      Cuts: 46     2921    1.20%
+      0     0        cutoff             -0.2432                   2927    0.00%
+Elapsed time = 0.51 sec. (692.73 ticks, tree = 0.01 MB, solutions = 4)
+
+Clique cuts applied:  3
+Flow cuts applied:  1
+Zero-half cuts applied:  101
+
+Root node processing (before b&c):
+  Real time             =    0.52 sec. (692.76 ticks)
+Sequential b&c:
+  Real time             =    0.00 sec. (0.00 ticks)
+                          ------------
+Total (root+branch&cut) =    0.52 sec. (692.76 ticks)
+Solution status = Optimal
+Solution value log10lik = -0.243185
+Values = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+1, 0, 1, 1, 1]
