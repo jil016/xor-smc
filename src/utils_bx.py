@@ -1,12 +1,12 @@
 import numpy as np
-from boolexpr import *
+
 import boolexpr as bx
 import itertools
 
 
 def half_adder(a, b):
-    save = Xor(a, b)
-    carry = And(a, b)
+    save = bx.xor(a, b)
+    carry = bx.and_(a, b)
     return save, carry
 
 
@@ -19,13 +19,7 @@ def full_adder(a, b, c):
 def int2binlist(x: int):
     x_list = [(int)(i) for i in str(bin(x))[2:]]
     x_list = x_list[::-1]
-    ret = []
-    for x in x_list:
-        if x == 1:
-            ret.append(bx.ONE)
-        else:
-            ret.append(bx.ZERO)
-    return ret
+    return x_list
 
 
 def crop_bits(a: list, a_min: int, out_min: int, n: int):
@@ -61,13 +55,13 @@ def bin_add_int(a: list, b: list, n=-1) -> list:
 
     if (n < 0):
         n = max([len(a), len(b)]) + 1
-    carries = [bx.ZERO]
+    carries = [0]
     saves = []
 
     if (n > len(a)):
-        a = a + [bx.ZERO] * (n - len(a))
+        a = a + [0] * (n - len(a))
     if (n > len(b)):
-        b = b + [bx.ZERO] * (n - len(b))
+        b = b + [0] * (n - len(b))
 
     for k in range(n):
         s, c = full_adder(a[k], b[k], carries[k])
@@ -114,7 +108,7 @@ def bin_mul_int(a: list, b: list, n: int):
     # pairwise_terms_symbols = []
 
     for i, ai in enumerate(a):
-        pairwise_terms.append([And(ai, bj) for bj in b])
+        pairwise_terms.append([bx.and_(ai, bj) for bj in b])
         # pairwise_terms_symbols.append([Symbol(f"p{i}_{j}") for j in range(len(b))])  
 
     ### TODO: add them up
@@ -189,24 +183,24 @@ def bin_mat_mul(a: list, b: list,
 
 def bit_g(a, b):
     # whether a > b
-    return bx.and_(a, ~b)
+    return bx.and_(a,bx.not_(b))
 
 
 def bit_l(a, b):
     # whether a < b
-    return ~bx.and_(a, b)
+    return bit_g(b, a)
 
 
 def bit_geq(a, b):
-    return ~bit_l(a, b)
+    return bx.not_(bit_l(a, b))
 
 
 def bit_leq(a, b):
-    return bit_g(a, b)
+    return bit_geq(b, a)
 
 
 def bit_eq(a, b):
-    return ~(a ^ b)
+    return bx.not_(bx.xor(a, b))
 
 
 def bin_geq_int(a: list, b: list):
@@ -237,25 +231,6 @@ def bin_eq_int(a: list, b: list):
     res = True
     for i in range(max(len(a), len(b))):
         res = res & bit_eq(a[i], b[i])
-    return res
-
-
-def majority(p: list):
-    # p=[p_0, ..., p_{n-1}] list of n logic formulas
-    # add them up, should be larger or equal to ceil(n/2)
-
-    n_half = (int)(np.ceil(len(p) / 2))
-    # convert n_half into a binary list
-    half_list = [(int)(i) for i in str(bin(n_half))[2:]]
-    half_list = half_list[::-1]
-
-    # sum up p_i
-    sum_p = [p[0]]
-    for i in range(1, len(p)):
-        sum_p = bin_add_int(sum_p, [p[i]], -1)
-
-    # compare sum_p with half_list
-    res = bin_geq_int(sum_p, half_list)
     return res
 
 
@@ -330,9 +305,11 @@ def test_bin_compare():
 
 
 def test_majority():
-    p = np.random.randint(2, size=7).tolist()
+    ctx = bx.Context()
+    p = np.random.randint(2, size=7,dtype=bool).tolist()
+    p += [ctx.get_var(f't')]
     print("p: ", p)
-    print("Majority of p is 1: ", majority(p))
+    print("Majority of p is 1: ", bx.majority(*p).sat())
 
 
 if __name__ == '__main__':

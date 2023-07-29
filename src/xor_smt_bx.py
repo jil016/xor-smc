@@ -1,12 +1,13 @@
-import numpy as np
-import shelter_location as sl
-import supply_chain as sc
-from sympy import *
-from graph import Graph
-from utils import *
 import time
+import numpy as np
 
-from sympy.logic.inference import satisfiable
+import boolexpr as bx
+
+import shelter_location_bx as sl
+
+from graph import Graph
+from utils_bx import *
+
 
 
 def gen_XOR_constraints(var_list: list, K: int):
@@ -87,26 +88,18 @@ def shelter_design_for_test(graph, phi, q_list, eta, c, N, T, m):
         vars = extract_variable_list(graph, x_e_list[i])
         var_list.append(vars)
 
-    # number of shelter targets <= m
-    m_binlist = int2binlist(m)
-    tgt_sum = [0]
-    for i in range(N):
-        tgt_sum = bin_add_int(tgt_sum, [tgt[i]])
-
-    const_sum = bin_leq_int(tgt_sum, m_binlist)
-
     psi_t_list = []
     for t in range(T):
         psi_i_list = []
         for i in range(N):
-            psi_i = sl.pathIdentifierUltra(graph, x_e_list[i], i, tgt)
+            psi_i = sl.pathIdentifierUltra(graph, x_e_list[i], i, tgt, m)
             const_xor = gen_XOR_constraints(var_list[i], q_list[i])
             psi_i = And(psi_i, const_xor)
             psi_i_list.append(psi_i)
         psi_t = And(*psi_i_list)
         psi_t_list.append(psi_t)
     
-    psi_star = And(phi, const_sum, majority(psi_t_list))
+    psi_star = majority(psi_t_list)
     print(psi_star)
     return psi_star, var_list, tgt
 
@@ -116,25 +109,20 @@ def run_shelter_design_test(prefix = 'random'):
     time0 = time.perf_counter()
     N = 4
     T = 1
-    m = 1
+    m = 3
     graph = Graph(N, prefix, 'false') # graph without loop
     phi = True
     eta = 0
     c = 0
-    q_list=[0] * N
+    q_list=[1] * N
 
     psi_star, var_list, tgt = shelter_design_for_test(graph, phi, q_list, eta, c, N, T, m)
     time1 = time.perf_counter()
 
     time_sat = time1 - time0
     psi_star_cnf = None
-    psi_star_cnf = to_cnf(psi_star)
     time2 = time.perf_counter()
     time_cnf = time2 - time1
-
-    sat = satisfiable(psi_star)
-    time3 = time.perf_counter()
-    time_solve = time3 - time2
     
     print(f"N = {N}. Converted to SAT problem in {time_sat:0.4f} seconds")
     print(f"N = {N}. Converted to CNF in {time_cnf:0.4f} seconds")
@@ -159,13 +147,7 @@ def run_shelter_design_test(prefix = 'random'):
 
     with open(f'{prefix}_timer_N_{N}.txt', 'w') as f:
         f.write(f"N = {N}. Converted to SAT problem in {time_sat:0.4f} seconds \n")
-        f.write(f"N = {N}. Converted to CNF in {time_cnf:0.4f} seconds \n")
-        f.write(f"N = {N}. Solve the SAT in {time_solve:0.4f} seconds")
-    
-    with open(f'{prefix}_satisfiability_N_{N}.txt', 'w') as f:
-        f.write(str(sat))
-    
-
+        f.write(f"N = {N}. Converted to CNF in {time_cnf:0.4f} seconds")
     return
 
 

@@ -79,20 +79,16 @@ def pathIdentifier(graph: Graph, flow: list, src: int, tgt: int):
     return res
 
 
-def pathIdentifierUltra(graph: Graph, flow: list, src: int, tgt: list, m_tgt: int):
+def pathIdentifierUltra(graph: Graph, flow: list, src: int, tgt: list):
     # tgt is also encoded as {0,1}^N symbol vector
     # path can terminate at any one of those target node in tgt
-    
-    # sum over all tgt <= m_tgt
-    m_binlist = int2binlist(m_tgt)
-    const_sum = bin_leq_int(m_binlist, m_binlist)
-    
+   
     res_list = []
     for t_idx, t in enumerate(tgt):
         res_t = And(t, pathIdentifier(graph, flow, src, t_idx))
         res_list.append(res_t)
     
-    res = And(const_sum, Or(*res_list))
+    res = Or(*res_list)
     return res
 
 
