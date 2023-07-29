@@ -113,12 +113,15 @@ def shelter_design_for_test(graph, phi, q_list, eta, c, N, T, m):
 
 
 
-def run_shelter_design_test(prefix = 'random', suffix = ''):
+def run_shelter_design_test(prefix = 'empty', suffix = ''):
     time0 = time.perf_counter()
     N = 5
     T = 1
     m = 3
     graph = Graph(N, prefix, 'false') # graph without loop
+    graph.addEdge(0,4)
+    graph.addEdge(0,3)
+    graph.addEdge(1,3)
     phi = True
     eta = 0
     c = 0
@@ -131,25 +134,9 @@ def run_shelter_design_test(prefix = 'random', suffix = ''):
     time_sat = time1 - time0
     print(f"N = {N}. Converted to SAT problem in {time_sat:0.4f} seconds")
 
-    sat = None
-    sat = satisfiable(psi_star)
-    time2 = time.perf_counter()
-    time_solve = time2 - time1
-    print(f"N = {N}. SAT solved in {time_solve:0.4f} seconds")
-    
-
-    psi_star_cnf = None
-    psi_star_cnf = to_cnf(psi_star)
-    time3 = time.perf_counter()
-    time_cnf = time3 - time2
-    print(f"N = {N}. Converted to CNF in {time_cnf:0.4f} seconds")
-    
-
     with open(f'{prefix}_psi_star_N_{N}_{suffix}.txt', 'w') as f:
         f.write(str(psi_star))
-    
-    with open(f'{prefix}_psi_star_cnf_N_{N}_{suffix}.txt', 'w') as f:
-        f.write(str(psi_star_cnf))
+
     
     with open(f'{prefix}_variables_N_{N}_{suffix}.txt', 'w') as f:
         f.write(str(var_list))
@@ -163,14 +150,32 @@ def run_shelter_design_test(prefix = 'random', suffix = ''):
         f.write(f"phi = {str(phi)}, eta = {eta}, c = {c} \n")
         f.write(f"q_list = {str(q_list)}")
 
+    sat = None
+    sat = satisfiable(psi_star)
+    time2 = time.perf_counter()
+    time_solve = time2 - time1
+    print(f"N = {N}. SAT solved in {time_solve:0.4f} seconds")
+    
+    with open(f'{prefix}_satisfiability_N_{N}_{suffix}.txt', 'w') as f:
+        f.write(str(sat))
+    
+
+    psi_star_cnf = None
+    psi_star_cnf = to_cnf(psi_star)
+    time3 = time.perf_counter()
+    time_cnf = time3 - time2
+    print(f"N = {N}. Converted to CNF in {time_cnf:0.4f} seconds")
+
+    with open(f'{prefix}_psi_star_cnf_N_{N}_{suffix}.txt', 'w') as f:
+        f.write(str(psi_star_cnf))
+
+
     with open(f'{prefix}_timer_N_{N}_{suffix}.txt', 'w') as f:
         f.write(f"N = {N}. Converted to SAT problem in {time_sat:0.4f} seconds \n")
         f.write(f"N = {N}. Converted to CNF in {time_cnf:0.4f} seconds \n")
         f.write(f"N = {N}. Solve the SAT in {time_solve:0.4f} seconds")
     
-    with open(f'{prefix}_satisfiability_N_{N}_{suffix}.txt', 'w') as f:
-        f.write(str(sat))
-    
+
     return
 
 
