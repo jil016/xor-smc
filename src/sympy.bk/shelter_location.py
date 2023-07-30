@@ -25,8 +25,11 @@ def pathIdentifier(graph: Graph, flow: list, src: int, tgt: int):
                 if(graph.Adj[i][j] == 1):
                     const_s_eq_t = Or(const_s_eq_t, flow[i][j])
         
-        return to_cnf(Not(const_s_eq_t))
+        return Not(const_s_eq_t)
                     
+
+
+
     src_out = [0]
     src_in = [0]
     for i in range(graph.N):
@@ -88,13 +91,6 @@ def pathIdentifierUltra(graph: Graph, flow: list, src: int, tgt: list):
     res = Or(*res_list)
     return res
 
-
-def pathIdentifierUltraPro(graph: Graph, flow: list, src: int, tgt: list):
-    # output should be CNF
-    # each node in&out should be less or equal to zero
-
-
-    return 
 
 def recoverPath(graph: Graph, flow: list, src: int, tgt: int):
     # recover a path from src to tgt

@@ -22,6 +22,11 @@
 4. Running in Parallel
 
 ---------------------------------------------------------------------
+0. Quick Running
+
+Change ILOGBASE in Makefile to your owen CPLEX path.
+
+---------------------------------------------------------------------
 
 1. WISH
 

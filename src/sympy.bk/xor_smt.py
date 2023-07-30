@@ -1,5 +1,6 @@
 import numpy as np
 import shelter_location as sl
+import supply_chain as sc
 from sympy import *
 from graph import Graph
 from utils import *
@@ -33,6 +34,44 @@ def extract_variable_list(graph: Graph, x: list):
                 var_list.append(x[i][j])
 
     return var_list
+
+
+# def shelter_design(phi, q_list, eta, c, N):
+#     T = 5
+#     m = 3
+
+#     var_list = []
+#     tgt = [Symbol(f't{i}') for i in range(N)]
+#     graph_list = []
+#     for i in range(N):
+#         graph = Graph(N, 'full')
+#         graph.forceBreakLoopsBFS(i)
+#         graph_list.append(graph)
+
+#     x_e_list = [[[Symbol(f'x{i}_{j}_{k}') 
+#                   for k in range(N)]
+#                   for j in range(N)]
+#                   for i in range(N)]
+    
+#     var_list = []
+#     for i in range(N):
+#         vars = extract_variable_list(graph_list[i], x_e_list[i])
+#         var_list.append(vars)
+
+#     psi_t_list = []
+#     for t in range(T):
+#         psi_i_list = []
+#         for i in range(N):
+#             psi_i = sl.pathIdentifierUltra(graph_list[i], x_e_list[i], i, tgt, m)
+#             const_xor = gen_XOR_constraints(var_list[i], q_list[i])
+#             psi_i = And(psi_i, const_xor)
+#             psi_i_list.append(psi_i)
+#         psi_t = And(*psi_i_list)
+#         psi_t_list.append(psi_t)
+    
+#     psi_star = majority(psi_t_list)
+#     print(psi_star)
+#     return psi_star, var_list, tgt
 
 
 def shelter_design_for_test(graph, phi, q_list, eta, c, N, T, m):
@@ -76,7 +115,7 @@ def shelter_design_for_test(graph, phi, q_list, eta, c, N, T, m):
 
 def run_shelter_design_test(prefix = 'full', suffix = ''):
     time0 = time.perf_counter()
-    N = 8
+    N = 5
     T = 1
     m = 3
     graph = Graph(N, prefix, 'false') # graph without loop

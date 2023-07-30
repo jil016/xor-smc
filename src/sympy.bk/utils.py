@@ -1,7 +1,6 @@
 import numpy as np
 from sympy import *
 from sympy.logic import And, Not, Xor, Or
-from sympy.logic.boolalg import is_cnf, is_dnf
 import itertools
 
 
@@ -246,114 +245,9 @@ def majority(p: list):
     res = bin_geq_int(sum_p, half_list)
     return res
 
-
-def clausesDNF(expr) -> tuple:    # for sympy DNFs only
-    if not isinstance(expr, Or):
-        return expr,
-    return expr.args
-
-def clausesCNF(expr) -> tuple:    # for sympy CNFs only
-    if not isinstance(expr, And):
-        return expr,
-    return expr.args
-
-
-def mergCNFclauses(c1, c2):
-    c_new = []
-    for i in c1:
-        for j in c2:
-            c_new.append(And(i,j))
-    return c_new
-
-def mergeDNFclauses(c1, c2):
-    c_new = []
-    for i in c1:
-        for j in c2:
-            c_new.append(Or(i,j))
-    return c_new
-
-def CNF2DNF(expr):
-    clauses = clausesCNF(expr)
-    n_clauses = len(clauses)
-
-    clauses_list = []
-    for c in clauses:
-        c_dnf = list(clausesDNF(c))
-        clauses_list.append(c_dnf)
-
-    res = clauses_list[0]
-    for i in range(n_clauses - 1):
-        res = mergCNFclauses(res, clauses_list[i+1])
-
-    res_dnf = Or(*res)
-    return res_dnf
-
-def DNF2CNF(expr):
-    clauses = clausesDNF(expr)
-    n_clauses = len(clauses)
-
-    clauses_list = []
-    for c in clauses:
-        c_dnf = list(clausesCNF(c))
-        clauses_list.append(c_dnf)
-
-    res = clauses_list[0]
-    for i in range(n_clauses - 1):
-        res = mergeDNFclauses(res, clauses_list[i+1])
-
-    res_cnf = And(*res)
-    return res_cnf
-
-
-
-
 # =============================================================== #
 # =========================== Testers =========================== #
 # =============================================================== #
-
-def test_CNF2DNF():
-    N = 3
-    aa = [Symbol(f'x{i}') for i in range(N)]
-    bb = [Symbol(f'y{i}') for i in range(N)]
-    cc = [Symbol(f'z{i}') for i in range(N)]
-    res_a = False
-    res_b = False
-    res_c = False
-    for i in range(N):
-        rand_bin = np.random.randint(low=0, high=2)
-        if(rand_bin == 1):
-            res_a = Or(res_a, aa[i])
-        else:
-            res_a = Or(res_a, Not(aa[i]))
-        res_b = Or(res_b, bb[i])
-        res_c = Or(res_c, cc[i])
-
-    res_cnf = And(res_a,res_b, res_c)
-    print(res_cnf)
-    print("is_cnf: ", is_cnf(res_cnf))
-    print(CNF2DNF(res_cnf))
-
-
-    res_a = True
-    res_b = True
-    res_c = True
-    for i in range(N):
-        rand_bin = np.random.randint(low=0, high=2)
-        if(rand_bin == 1):
-            res_a = And(res_a, aa[i])
-        else:
-            res_a = And(res_a, Not(aa[i]))
-        res_b = And(res_b, bb[i])
-        res_c = And(res_c, cc[i])
-
-    res_dnf = Or(res_a,res_b, res_c)
-    print(res_dnf)
-    print("is_dnf: ", is_dnf(res_dnf))
-    print(DNF2CNF(res_dnf))
-
-    print(DNF2CNF(res_a))
-    return
-
 
 def test_bin_add():
     n = 4
@@ -419,4 +313,4 @@ def test_majority():
     print("Majority of p is 1: ", majority(p))
 
 if __name__ == '__main__':
-    test_CNF2DNF()
+    test_majority()
