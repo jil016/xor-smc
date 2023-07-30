@@ -9,11 +9,14 @@ import time
 
 
 if __name__ == '__main__':
-    N = 5
+    N = 8
     M = 1
-    g = Graph(N, 'full', 'false')
+    # g = Graph(N, 'full', 'false')
+    g = Graph(8, '2', 'false')
 
     x_e = [[Symbol(f'x{i}_{j}') for j in range(N)] for i in range(N)]
+
+    print(g.Adj)
 
     # x_e = [[0,0,0,0],
     #         [0,0,1,0],
@@ -128,7 +131,7 @@ if __name__ == '__main__':
         const_snk_number.append(And(*temp))
     
     const_snk_number = Or(*const_snk_number)
-
+    print(const_snk_number)
     
     sat_problem = And(const_src_in, const_src_out)
     sat_problem = And(sat_problem, *const_mid)
@@ -146,20 +149,34 @@ if __name__ == '__main__':
     time_list.append(time.perf_counter())
     print(f"const_src_out to CNF:{time_list[-1] - time_list[-2]:0.4f}")
 
+    to_cnf(const_mid[0]) 
+    time_list.append(time.perf_counter())
+    print(f"const_mid[0] to CNF:{time_list[-1] - time_list[-2]:0.4f}")
+
+
     to_cnf(const_mid[1]) 
     time_list.append(time.perf_counter())
     print(f"const_mid[1] to CNF:{time_list[-1] - time_list[-2]:0.4f}")
+
+    to_cnf(const_mid[2]) 
+    time_list.append(time.perf_counter())
+    print(f"const_mid[2] to CNF:{time_list[-1] - time_list[-2]:0.4f}")
     
-    to_dnf(const_snk_io) 
+    mid_cnf = to_cnf(And(*const_mid)) 
+    time_list.append(time.perf_counter())
+    print(f"*const_mid to CNF:{time_list[-1] - time_list[-2]:0.4f}")
+    
+    print("number of clauses in And(*const_mid)")
+    print(len(clausesCNF(mid_cnf)))
+
+    snk_io_dnf = to_dnf(const_snk_io) 
     time_list.append(time.perf_counter())
     print(f"const_snk_io to DNF:{time_list[-1] - time_list[-2]:0.4f}")
+    print(snk_io_dnf)
 
-    dnf = clausesDNF(to_dnf(const_snk_io))
-    print(dnf)
-    print(len(dnf))
-    # to_cnf(const_snk_io) 
-    # time_list.append(time.perf_counter())
-    # print(f"const_snk_io to CNF:{time_list[-1] - time_list[-2]:0.4f}")
+    to_cnf(const_snk_io) 
+    time_list.append(time.perf_counter())
+    print(f"const_snk_io to CNF:{time_list[-1] - time_list[-2]:0.4f}")
 
 
     # to_cnf(const_snk_number) 

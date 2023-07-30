@@ -60,6 +60,20 @@ class Graph:
                             self.Adj[u][v] = np.random.randint(low=0, high=2)
 
             self.M =np.sum(self.Adj)
+        else: # mode in a form of "4"
+            max_degree = int(mode)
+            self.Adj = [[1 for j in range(self.N)] for i in range(self.N)]
+            for i in range(self.N):
+                for j in range(i + 1):
+                    self.Adj[i][j] = 0 # no self loop
+
+            # limit max_degree
+            for i in range(0, self.N - max_degree - 1):
+                for j in range(1, self.N - max_degree - i):
+                    self.Adj[i][-j] = 0
+
+            self.M = np.sum(self.Adj)
+
         return
 
     def addEdge(self, u, v):
