@@ -22,11 +22,13 @@ class Graph:
 
             self.M = np.sum(self.Adj)
         
-        if(mode == 'random'):
+        elif(mode == 'random'):
             self.Adj = np.random.randint(low=0, high=2, 
                                          size=(self.N,self.N),
                                          dtype=int).tolist()
             self.M = np.sum(self.Adj)
+        else:
+            assert("Invalid Mode!")
 
     def loopFreeInit(self, mode):
         if(mode == 'full'):
@@ -36,7 +38,7 @@ class Graph:
                     self.Adj[i][j] = 0 # no self loop
 
             self.M = np.sum(self.Adj)
-        if(mode == 'random'):
+        elif(mode == 'random'):
             self.Adj = [[0 for j in range(self.N)] for i in range(self.N)]
 
             idx = [i for i in range(self.N)]

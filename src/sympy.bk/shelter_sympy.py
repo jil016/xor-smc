@@ -149,29 +149,17 @@ if __name__ == '__main__':
     time_list.append(time.perf_counter())
     print(f"const_src_out to CNF:{time_list[-1] - time_list[-2]:0.4f}")
 
-    to_cnf(const_mid[0]) 
-    time_list.append(time.perf_counter())
-    print(f"const_mid[0] to CNF:{time_list[-1] - time_list[-2]:0.4f}")
 
-
-    to_cnf(const_mid[1]) 
-    time_list.append(time.perf_counter())
-    print(f"const_mid[1] to CNF:{time_list[-1] - time_list[-2]:0.4f}")
-
-    to_cnf(const_mid[2]) 
-    time_list.append(time.perf_counter())
-    print(f"const_mid[2] to CNF:{time_list[-1] - time_list[-2]:0.4f}")
-    
     mid_cnf = to_cnf(And(*const_mid)) 
     time_list.append(time.perf_counter())
-    print(f"*const_mid to CNF:{time_list[-1] - time_list[-2]:0.4f}")
+    print(f"All const_mid to CNF:{time_list[-1] - time_list[-2]:0.4f}")
     
     print("number of clauses in And(*const_mid)")
     print(len(clausesCNF(mid_cnf)))
 
     snk_io_dnf = to_dnf(const_snk_io) 
     time_list.append(time.perf_counter())
-    print(f"const_snk_io to DNF:{time_list[-1] - time_list[-2]:0.4f}")
+    print(f"(easy) const_snk_io to DNF:{time_list[-1] - time_list[-2]:0.4f}")
     print(snk_io_dnf)
 
     to_cnf(const_snk_io) 
