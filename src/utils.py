@@ -272,39 +272,6 @@ def mergeDNFclauses(c1, c2):
             c_new.append(Or(i,j))
     return c_new
 
-def CNF2DNF(expr):
-    clauses = clausesCNF(expr)
-    n_clauses = len(clauses)
-
-    clauses_list = []
-    for c in clauses:
-        c_dnf = list(clausesDNF(c))
-        clauses_list.append(c_dnf)
-
-    res = clauses_list[0]
-    for i in range(n_clauses - 1):
-        res = mergCNFclauses(res, clauses_list[i+1])
-
-    res_dnf = Or(*res)
-    return res_dnf
-
-def DNF2CNF(expr):
-    clauses = clausesDNF(expr)
-    n_clauses = len(clauses)
-
-    clauses_list = []
-    for c in clauses:
-        c_dnf = list(clausesCNF(c))
-        clauses_list.append(c_dnf)
-
-    res = clauses_list[0]
-    for i in range(n_clauses - 1):
-        res = mergeDNFclauses(res, clauses_list[i+1])
-
-    res_cnf = And(*res)
-    return res_cnf
-
-
 
 
 # =============================================================== #
