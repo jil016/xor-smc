@@ -7,48 +7,89 @@ from utils_bx import *
 import time
 
 
-def expandCNF(cnf_expr, clause):
-    new_expr = []
-    clause = clause.to_cnf()
-    if isinstance(cnf_expr, bx.Or) or isinstance(clause, bx.Or):
-        return bx.and_s(cnf_expr, clause)
-    elif isinstance(clause, bx.And):
-        for e in cnf_expr.args:
-            for c in clause.args:
-                new_expr.append(bx.or_s(e, c))
+# def expandCNF(cnf_expr, clause):
+#     new_expr = []
+#     clause = clause.to_cnf()
+#     if isinstance(cnf_expr, bx.Or) or isinstance(clause, bx.Or):
+#         return bx.and_s(cnf_expr, clause)
+#     elif isinstance(clause, bx.And):
+#         for e in cnf_expr.args:
+#             for c in clause.args:
+#                 new_expr.append(bx.or_s(e, c))
     
-    res = bx.and_s(*new_expr)
-    return res
+#     res = bx.and_s(*new_expr)
+#     return res
 
-def expandCNFwSimplify(cnf_expr, clause):
-    new_expr = []
-    clause = clause.to_cnf()
-    if isinstance(cnf_expr, bx.Or) or isinstance(clause, bx.Or):
-        return bx.and_s(cnf_expr, clause)
-    elif isinstance(clause, bx.And):
-        for e in cnf_expr.args:
-            for c in clause.args:
-                new_expr.append(bx.or_s(e, c))
+# def expandCNFwSimplify(cnf_expr, clause):
+#     new_expr = []
+#     clause = clause.to_cnf()
+#     if isinstance(cnf_expr, bx.Or) or isinstance(clause, bx.Or):
+#         return bx.and_s(cnf_expr, clause)
+#     elif isinstance(clause, bx.And):
+#         for e in cnf_expr.args:
+#             for c in clause.args:
+#                 new_expr.append(bx.or_s(e, c))
     
-    res = bx.and_s(*new_expr)
-    return res.to_cnf()
+#     res = bx.and_s(*new_expr)
+#     return res.to_cnf()
 
 
-def shelterNumberIdentifier(sink_assign: list, M: int):
-    # limit the number of assigned shelters -- DNF
-    # sum of sink_assign <= 2^M
+def shelterNumberIdentifier(sink_assign: list, registers: list, M: int):
+    # Alan M. Frisch and Paul A. Giannaros. 
+    # SAT Encodings of the At-Most-k Constraint - ModRef 2010
+    eq1 = []
+    N = len(sink_assign)
+    for i in range(N - 1):
+        eq1.append(bx.or_s(bx.not_(sink_assign[i]), registers[i][0]))
 
-    const_list = []
-    sum_to_i = [sink_assign[0]]
+    eq1 = bx.and_s(*eq1)
 
-    for i in range(50):
-        sum_to_i = bin_add_int([sink_assign[i]], sum_to_i)
-        if (len(sum_to_i) > M):
-            sum_to_i = sum_to_i[:M+1]
-            const_list.append(bx.not_(sum_to_i[M]).to_cnf())
+    eq2 = []
+    for j in range(1, M):
+        eq2.append(bx.not_(registers[0][j]))
+
+    eq2 = bx.and_s(*eq2)
+
+    eq3 = []
+    for i in range(1, N-1):
+        for j in range(M):
+            eq3.append(bx.or_s(bx.not_(registers[i-1][j]), registers[i][j]))
+    
+    eq3 = bx.and_s(*eq3)
+
+    eq4 = []
+    for i in range(1, N-1):
+        for j in range(1, M):
+            eq4.append(bx.or_s(bx.not_(sink_assign[i]),
+                               bx.not_(registers[i-1][j-1]), 
+                               registers[i][j]))
+    
+    eq4 = bx.and_s(*eq4)
+
+    eq5 = []
+    for i in range(N):
+        eq5.append(bx.or_s(bx.not_(sink_assign[i]), registers[i-1][-1]))
+
+    eq5 = bx.and_s(*eq5)
+
+    return bx.and_(eq1, eq2, eq3, eq4, eq5).to_cnf()
+
+
+# def shelterNumberIdentifier(sink_assign: list, M: int):
+#     # limit the number of assigned shelters -- DNF
+#     # sum of sink_assign <= 2^M
+
+#     const_list = []
+#     sum_to_i = [sink_assign[0]]
+
+#     for i in range(50):
+#         sum_to_i = bin_add_int([sink_assign[i]], sum_to_i)
+#         if (len(sum_to_i) > M):
+#             sum_to_i = sum_to_i[:M+1]
+#             const_list.append(bx.not_(sum_to_i[M]).to_cnf())
         
-        if(i % 10 == 0):
-            print(i)
+#         if(i % 10 == 0):
+#             print(i)
 
     # const_sink_number = []
     # for selected_sink in itertools.combinations(sink_assign, len(sink_assign) - M):
@@ -228,17 +269,20 @@ def pathIdentifier(graph: Graph, flow: list, src: int, sink: list):
 
 
 def test_pathIdentifier():
-    N = 50
+    N = 100
     M = 1
     ctx = bx.Context()
 
     # g = Graph(N, 'full', 'false')
-    g = Graph(N, '3', 'false')
+    g = Graph(N, '2', 'false')
     print(g.Adj)
 
 
     sink_assign = [ctx.get_var(f't{i}') for i in range(N)]
-    src = [0,1,2,3,4]
+    # sink_assign = [bx.ZERO for i in range(N - 1)]
+    # sink_assign.append(ctx.get_var(f't{0}'))
+    src = [0,1,2,99]
+
     flow = []
     for i_f in range(len(src)):
         flow.append([[ctx.get_var(f'x{i_f}_{i}_{j}') for j in range(N)] for i in range(N)])
@@ -247,10 +291,12 @@ def test_pathIdentifier():
     for i_s in range(len(src)):
         sink.append([ctx.get_var(f's{i_s}_{i}') for i in range(N)])
 
+    # registers that count to M
+    registers = [[ctx.get_var(f'r{i}_{j}') for j in range(M)] for i in range(N)]
 
     sat_problems = []
 
-    const_sink_number = shelterNumberIdentifier(sink_assign, M)
+    const_sink_number = shelterNumberIdentifier(sink_assign, registers, M)
     sat_problems.append(const_sink_number)
 
     for i, s in enumerate(src):
