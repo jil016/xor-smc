@@ -269,8 +269,10 @@ def pathIdentifier(graph: Graph, flow: list, src: int, sink: list):
 
 
 def test_pathIdentifier():
-    N = 100
+    N = 500
     M = 1
+    T = 1 # repeat T times
+
     ctx = bx.Context()
 
     # g = Graph(N, 'full', 'false')
@@ -307,6 +309,13 @@ def test_pathIdentifier():
 
     
     all_sat_problems = bx.and_s(*sat_problems)
+
+    c_length = [0] * 10
+    for c in all_sat_problems.args:
+        if isinstance(c, bx.Or):
+            c_length[len(c.args)] += 1
+        else:
+            c_length[1] += 1
     if_sat = all_sat_problems.sat()
     print(if_sat)
 
