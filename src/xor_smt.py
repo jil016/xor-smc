@@ -1,12 +1,9 @@
 import numpy as np
 import shelter_location as sl
-from sympy import *
 from graph import Graph
 from utils import *
 import time
 from datetime import datetime
-
-from sympy.logic.inference import satisfiable
 
 
 def gen_XOR_constraints(var_list: list, K: int):
