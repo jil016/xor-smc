@@ -18,10 +18,15 @@ def gen_XOR_constraints(var_list: list, K: int):
         for i in range(n_var):
             if xor_assignments[k, i] == 1:
                 temp.append(var_list[i])
-        list_of_xor_terms.append(bx.xor_s(*temp))
+        list_of_xor_terms.append(bx.xor(*temp))
     
     res = bx.and_s(*list_of_xor_terms)
     return res
+
+
+def gen_XOR_constraints_sat(var_list: list, K: int):
+    # generate XOR constraints that are not self-conflict
+    return
 
 
 def extract_variable_list(graph: Graph, x: list):
@@ -41,6 +46,7 @@ def shelter_design(graph, src, q_list, N, T, M):
     shelter_assign = [ctx.get_var(f'a{i}') for i in range(N)]
 
     sat_problems_T = []
+    xor_const_T = []
 
     for t in range(T):
         flow = []
@@ -65,13 +71,15 @@ def shelter_design(graph, src, q_list, N, T, M):
             const_valid_flow, _ = sl.pathIdentifier(graph, flow[i], s, reached_shelter[i])
             const_valid_shelter = sl.sinkIdentifier(shelter_assign, reached_shelter[i])
             # add XOR here (raw XOR without encoding for now) 
+            # XOR constraints should satisfy: (1) Toeplitz matrix; (2) No self-conflict -- satisfiable
             var_list = extract_variable_list(graph, flow[i])
             var_list = var_list + reached_shelter[i]
             const_xor = gen_XOR_constraints(var_list, q_list[i])
             
             sat_problems_t.append(const_valid_shelter)
             sat_problems_t.append(const_valid_flow)
-            sat_problems_t.append(const_xor)
+
+            xor_const_T.append(const_xor)
 
         
         sat_problems_t = bx.and_s(*sat_problems_t)
@@ -79,6 +87,9 @@ def shelter_design(graph, src, q_list, N, T, M):
 
 
     # add majority here among sat_problems_T
+    # majority should be in a form of CNF, 
+    # XORs are standalone
+    # crypto can do well!
     all_sat_problems = bx.and_(*sat_problems_T)
     if_sat = all_sat_problems.sat()
 

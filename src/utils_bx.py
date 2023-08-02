@@ -65,3 +65,7 @@ def bin_add_int(a: list, b: list, n = -1) -> list:
         carries.append(c)
 
     return saves
+
+
+def majority():
+    pass
