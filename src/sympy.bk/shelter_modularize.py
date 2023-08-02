@@ -1,6 +1,6 @@
 import numpy as np
 from sympy import *
-from utils import *
+from utils_spy import *
 from graph import Graph
 
 

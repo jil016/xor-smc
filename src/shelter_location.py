@@ -36,7 +36,8 @@ import time
 
 def shelterNumberIdentifier(sink_assign: list, registers: list, M: int):
     # Alan M. Frisch and Paul A. Giannaros. 
-    # SAT Encodings of the At-Most-k Constraint - ModRef 2010
+    # SAT Encodings of the At-Most-k Constraint: Some Old, Some New, Some Fast, Some Slow
+    # Sequential Method
     eq1 = []
     N = len(sink_assign)
     for i in range(N - 1):
@@ -312,15 +313,18 @@ def test_pathIdentifier():
     
     all_sat_problems = bx.and_s(*sat_problems)
 
+    # stats of the clauses
     c_length = [0] * 10
     for c in all_sat_problems.args:
         if isinstance(c, bx.Or):
             c_length[len(c.args)] += 1
         else:
             c_length[1] += 1
+
     if_sat = all_sat_problems.sat()
     print(if_sat)
 
+    # print one valid assignment
     if if_sat[0]:
         print("Shelter locations:")
         for i, s in enumerate(sink_assign):

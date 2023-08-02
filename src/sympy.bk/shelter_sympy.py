@@ -1,7 +1,7 @@
 from sympy import *
 from graph import Graph
 from sympy.logic.boolalg import is_cnf, is_dnf
-from utils import *
+from utils_spy import *
 from sympy.logic.inference import satisfiable
 import itertools
 
