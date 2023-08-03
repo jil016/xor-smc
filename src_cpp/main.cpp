@@ -19,18 +19,21 @@ int main(int argc, char **argv)
     // source node
     // params: graph, src, q_list, N, T, M
     int N = 10;
-    int T = 3;
+    int T = 1;
+    IloEnv env;
 
    
-    vector<int> src{ 0, 1, 2 };
-    vector<int> q_vect(N, 2);
+    vector<int> src{0};
+    vector<int> q_vect(N, 0);
     ShelterLocation  sl;
-    sl.loadParameters(N, T, 3, src, q_vect);
+
+    sl.loadParameters(N, T, 1, src, q_vect);
     sl.addFlowConstraints();
 
-    IloEnv env;
-    IloModel model(env);
-    IloCplex cplex(env);
+    IloModel model;
+    model = IloModel(env);
+    IloCplex cplex;
+    cplex = IloCplex(env);
 
     IloBoolVarArray bvars(env, 3);
     IloConstraintArray cons(env);
@@ -73,8 +76,8 @@ int main(int argc, char **argv)
         }
     }
 
-    cons.add(flows[0][0][0] == true);
-    cons.add(flows[0][0][0] + flows[0][0][1] + flows[0][1][0] == 3);
+    cons.add(flows[0][0][0] - flows[0][0][1] - flows[0][1][0] == -1);
+    cons.add(flows[0][0][0] + flows[0][0][1] - flows[0][1][0] == -1);
 
     model.add(cons);
 

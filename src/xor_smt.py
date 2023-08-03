@@ -72,14 +72,14 @@ def shelter_design(graph, src, q_list, N, T, M):
             const_valid_shelter = sl.sinkIdentifier(shelter_assign, reached_shelter[i])
             # add XOR here (raw XOR without encoding for now) 
             # XOR constraints should satisfy: (1) Toeplitz matrix; (2) No self-conflict -- satisfiable
-            var_list = extract_variable_list(graph, flow[i])
-            var_list = var_list + reached_shelter[i]
-            const_xor = gen_XOR_constraints(var_list, q_list[i])
+            # var_list = extract_variable_list(graph, flow[i])
+            # var_list = var_list + reached_shelter[i]
+            # const_xor = gen_XOR_constraints(var_list, q_list[i])
             
             sat_problems_t.append(const_valid_shelter)
             sat_problems_t.append(const_valid_flow)
 
-            xor_const_T.append(const_xor)
+            # xor_const_T.append(const_xor)
 
         
         sat_problems_t = bx.and_s(*sat_problems_t)
@@ -109,14 +109,14 @@ def shelter_location_exact():
 
 def run_shelter_design(save_to = ''):
     time0 = time.perf_counter()
-    N = 100
-    T = 2
+    N = 1000
+    T = 1
     M = 3
     map_type = '2'  # max in-degree = max out-degree = 2
     allow_loop = 'false' # graph without loop
     graph = Graph(N, map_type, allow_loop) 
 
-    src = [0,1,2]
+    src = [0]
 
     eta = 0
     c = 0

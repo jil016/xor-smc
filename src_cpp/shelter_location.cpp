@@ -8,10 +8,11 @@ typedef std::set<set_type> powerset_type;
 
 ShelterLocation::ShelterLocation(){
   // Initialize
-  timer = new IloTimer(env);
-  model = new IloModel(env);
-  cplex = new IloCplex(env);
-
+  //   timer = new IloTimer(env);
+  //   model = new IloModel(env);
+  //   cplex = new IloCplex(env);
+  model = IloModel(env);
+  cplex = IloCplex(env);
   
   sparsify_coeff = true;
   n_vars = 0;
@@ -36,21 +37,21 @@ void ShelterLocation::loadParameters(int N, int T, int M, vector<int> src, vecto
 
 void ShelterLocation::addFlowConstraints(){
     // There will be T * n_src complete flows
-
-    // T ...
-    IloBoolVarArray shelter_assign(env);
-    vector<vector<IloBoolVarArray>> bvars;
-    
-    // The following variables appears in the optimization
-    vector<vector<vector<vector<int>>>> flows;
-    vector<vector<vector<int>>> shelters;
-
-    IloConstraintArray constraints(env); 
+    shelter_assign = IloBoolVarArray(env, _N);
 
     bvars.resize(_T);
     flows.resize(_T);
     shelters.resize(_T);
 
+    // One-hot encoding for source nodes
+    // Save it to the instance if necessary
+    vector<vector<IloBool>> sources(_src.size(), vector<IloBool> (_N, 0));
+
+    for (int s = 0; s< _src.size(); s++){
+        sources[s][_src[s]] = 1;
+    } 
+
+    // Preprocess
     for (int t = 0; t< _T; t++){
         flows[t].resize(_src.size());
         shelters[t].resize(_src.size());
@@ -78,81 +79,122 @@ void ShelterLocation::addFlowConstraints(){
         }
     }
 
+    // Extract flow constraints
     vector<vector<IloConstraintArray>> const_flow;
     const_flow.resize(_T);
 
-    
 
     for (int t = 0; t < _T; t++){
         for (int s = 0; s < _src.size(); s++){
-            int src = _src[s];
-
             IloConstraintArray const_flow_t_s(env);
-            // // for the source node
-            // // source in == 0
-            // IloNumExpr const_src_in(env);
-            // for (int i = 0; i< _N; i++){
-            //     if(graph->Adj[i][src] == 1){
-            //         int var_idx = flows[t][s][i][src];
-            //         const_src_in = const_src_in + bvars[t][s][var_idx];
-            //     }
-            // }
-            // const_flow_t_s.add(const_src_in == 0);
-
-            // // source out == 1
-            // IloNumExpr const_src_out(env);
-            // for (int i = 0; i< _N; i++){
-            //     if(graph->Adj[src][i] == 1){
-            //         int var_idx = flows[t][s][src][i];
-            //         const_src_out = const_src_out + bvars[t][s][var_idx];
-            //     }
-            // }
-            // const_flow_t_s.add(const_src_out == 1);
+            if (const_flow_t_s.getSize() != 0)
+                cout << "Wrong!" << endl;
 
             // all nodes
             for (int i = 0; i< _N; i++){
-                // node i
-
+                // consider node i
                 // in & out
-                IloNumExpr const_mid_in(env);
-                IloNumExpr const_mid_out(env);
+                IloNumExpr degree_abs(env);
                 for (int j = 0; j< _N; j++){
                     if(graph->Adj[j][i] == 1){
                         // in 
                         int var_idx = flows[t][s][j][i];
-                        const_mid_in = const_mid_in + bvars[t][s][var_idx];
+                        degree_abs += bvars[t][s][var_idx];
                     }
                     if(graph->Adj[i][j] == 1){
                         // out 
                         int var_idx = flows[t][s][i][j];
-                        const_mid_out = const_mid_out + bvars[t][s][var_idx];
+                        degree_abs -= bvars[t][s][var_idx];
                     }
                 }
-                const_flow_t_s.add(const_mid_in == const_mid_out);
+                int var_idx = shelters[t][s][i]; 
+                const_flow_t_s.add(degree_abs == (bvars[t][s][var_idx] - sources[s][i]));
             }
 
+            const_flow[t].push_back(const_flow_t_s);
         }
     }
-    // Add 
-    // IloNumExpr constr_expr(env);
 
-    // process graph
+    // Extract the shelter
+    ////////////////////////////////////////
+    vector<vector<IloConstraintArray>> const_is_shelter;
+    const_is_shelter.resize(_T);
+    
+    for (int t = 0; t < _T; t++){
+        for (int s = 0; s < _src.size(); s++){
+            // shelters[t][s] = N dimensional (0,0,0,1,0,0,0,...)
+            IloConstraintArray const_number_t_s(env);
+            
+            for (int i = 0; i< _N; i++){
+                int var_idx = shelters[t][s][i];
+                const_number_t_s.add((shelter_assign[i] - bvars[t][s][var_idx]) >= 0);
+            }
+            const_is_shelter[t].push_back(const_number_t_s);
+        }
+    }
+
+    // Extract the number constraint
+    ////////////////////////////////////////
+    IloConstraintArray const_max_shelter(env);
+    IloNumExpr count_shelters(env);
+    for(int i = 0; i < _N; i++){
+        count_shelters = count_shelters + shelter_assign[i];
+    }
+    const_max_shelter.add(count_shelters < _M + 1); 
+
+
+    ////////////////////////////////////////
+    model.add(shelter_assign);
+
+    for (int t = 0; t< _T; t++){
+        for (int s = 0; s< _src.size(); s++){
+            model.add(bvars[t][s]);
+        }
+    }
+    for (int t = 0; t< _T; t++){
+        for (int s = 0; s< _src.size(); s++){
+            model.add(const_flow[t][s]);
+            model.add(const_is_shelter[t][s]);
+        }
+    }
+    model.add(const_max_shelter);
+    
+
+    cplex.clearModel();  // clear existing model
+    cplex.extract(model);
+    cplex.setParam(IloCplex::Threads, 1);    // number of parallel threads
+    cplex.solve();
+    cplex.exportModel("model.lp");
+    // env.out() << "Solution status = " << cplex.getStatus() << endl;
+    env.out() << "Solution value = " << cplex.getCplexStatus() << endl; 
+    for(int i = 0; i<shelter_assign.getSize(); i++){
+        env.out() << "shelter_assign = " << cplex.getValue(shelter_assign[i]) << endl; 
+    }
+    for(int i = 0; i<bvars[0][0].getSize(); i++){
+        env.out() << "bvars = " << cplex.getValue(bvars[0][0][i]) << endl; 
+    }
+
 }
 
 
-void addShelterConstraints(){
+void ShelterLocation::addXORConstraints(){
+
+}
+
+
+void ShelterLocation::parseAllConstraints(){
 
 }
 
 
 bool ShelterLocation::solveInstance() {
-    cplex->clearModel();  // clear existing model
-    cplex->extract(*model);
+    // cplex->clearModel();  // clear existing model
+    // cplex->extract(*model);
 
-    if (timelimit > 0)
-        cplex->setParam(IloCplex::TiLim, timelimit);
+    // if (timelimit > 0)
+    //     cplex->setParam(IloCplex::TiLim, timelimit);
 
-    cplex->setParam(IloCplex::Threads, 1);    // number of parallel threads
+    // cplex->setParam(IloCplex::Threads, 1);    // number of parallel threads
 
     // if (!coeffA.empty()) {
     //     IloNumArray feasibleinit(env);

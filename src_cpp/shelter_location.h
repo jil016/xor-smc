@@ -35,18 +35,24 @@ class ShelterLocation {
         vector<int> _q;
 
         // CPLEX SOLVER
+        // IloEnv env;
+        // IloModel *model;
+        // IloTimer *timer;
+        // IloCplex *cplex;
+        // IloInt timelimit;
+        // IloNumExpr *objexpr;
         IloEnv env;
-        IloModel *model;
-        IloTimer *timer;
-        IloCplex *cplex;
+        IloModel model;
+        IloCplex cplex;
         IloInt timelimit;
-        IloNumExpr *objexpr;
 
 
         // Variables       
-        // IloBoolVarArray *shelter_assign;
-        // IloBoolVarArray *flows;
-        // IloBoolVarArray *shelter_visit;
+        // The following variables appears in the optimization
+        IloBoolVarArray shelter_assign;
+        vector<vector<IloBoolVarArray>> bvars;
+        vector<vector<vector<vector<int>>>> flows;
+        vector<vector<vector<int>>> shelters;
 
 
         // Generate XOR  
@@ -69,6 +75,7 @@ class ShelterLocation {
         void addFlowConstraints();
         void addShelterConstraints();
         void addXORConstraints();
+        void parseAllConstraints();
         bool solveInstance();
 
 };
