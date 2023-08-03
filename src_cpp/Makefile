@@ -63,8 +63,8 @@ default: PAWS
 	$(CC) $(OFLAGS) $(CFLAGS) $(LIBFLAGS) -c -o $@  $< $(PFLAGS)
 
 
-PAWS: main.cpp wish.o wish.h paws.o paws.h
-	$(CC) $(OFLAGS) $(CFLAGS) -o $@ $< wish.o paws.o $(ILOGLIBS) -L. -lgmp -ldl -no-pie
+PAWS: main.cpp graph.o graph.h utils.o utils.h shelter_location.o shelter_location.h
+	$(CC) $(OFLAGS) $(CFLAGS) -o $@ $< graph.o utils.o shelter_location.o $(ILOGLIBS) -L. -lgmp -ldl -no-pie
 
 clean:
 	rm PAWS *.o
