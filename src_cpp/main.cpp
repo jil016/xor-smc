@@ -18,7 +18,7 @@ int main(int argc, char **argv)
     // Need to specify type of graph, 
     // source node
     // params: graph, src, q_list, N, T, M
-    int N = 10;
+    int N = 5;
     int T = 1;
     IloEnv env;
 

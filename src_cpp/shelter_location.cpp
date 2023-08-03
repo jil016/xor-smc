@@ -43,6 +43,8 @@ void ShelterLocation::addFlowConstraints(){
     flows.resize(_T);
     shelters.resize(_T);
 
+    IloBoolVar maj(env);
+
     // One-hot encoding for source nodes
     // Save it to the instance if necessary
     vector<vector<IloBool>> sources(_src.size(), vector<IloBool> (_N, 0));
@@ -108,7 +110,7 @@ void ShelterLocation::addFlowConstraints(){
                     }
                 }
                 int var_idx = shelters[t][s][i]; 
-                const_flow_t_s.add(degree_abs == (bvars[t][s][var_idx] - sources[s][i]));
+                const_flow_t_s.add((degree_abs == (bvars[t][s][var_idx] - sources[s][i])) || (maj == 0));
             }
 
             const_flow[t].push_back(const_flow_t_s);
@@ -127,7 +129,7 @@ void ShelterLocation::addFlowConstraints(){
             
             for (int i = 0; i< _N; i++){
                 int var_idx = shelters[t][s][i];
-                const_number_t_s.add((shelter_assign[i] - bvars[t][s][var_idx]) >= 0);
+                const_number_t_s.add(((shelter_assign[i] - bvars[t][s][var_idx]) >= 0) || (maj == 0));
             }
             const_is_shelter[t].push_back(const_number_t_s);
         }
@@ -143,7 +145,10 @@ void ShelterLocation::addFlowConstraints(){
     const_max_shelter.add(count_shelters < _M + 1); 
 
 
+    // Try to solve
     ////////////////////////////////////////
+    model.add(maj);
+    model.add(maj == 0);
     model.add(shelter_assign);
 
     for (int t = 0; t< _T; t++){

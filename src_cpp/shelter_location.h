@@ -51,8 +51,10 @@ class ShelterLocation {
         // The following variables appears in the optimization
         IloBoolVarArray shelter_assign;
         vector<vector<IloBoolVarArray>> bvars;
-        vector<vector<vector<vector<int>>>> flows;
-        vector<vector<vector<int>>> shelters;
+        vector<vector<vector<vector<int>>>> flows;  // index of flow[t][s][i][j] in bvars[t][s]
+        vector<vector<vector<int>>> shelters;   // index of shelters[t][s][i][j] in bvars[t][s]
+
+        // Constraints
 
 
         // Generate XOR  
