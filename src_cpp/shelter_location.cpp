@@ -275,18 +275,33 @@ bool ShelterLocation::solveInstance() {
 
     filesystem::path result_log_path(log_folder);
     filesystem::path cplex_log_path(log_folder);
+    filesystem::path params_log_path(log_folder);
 
     result_log_path = log_folder / "SL_result.log";
     cplex_log_path = log_folder / "SL_cplex.log";
+    params_log_path = log_folder / "SL_params.log";
 
     cout << "log file path:"<< endl;
     cout << result_log_path << endl;
 
     ofstream fs_res(result_log_path);
     ofstream fs_cplex(cplex_log_path);
+    ofstream fs_params(params_log_path);
     env.setOut(fs_res);
     cplex.setOut(fs_cplex);
     cout << "\n======================================================\n" << endl;
+
+    fs_params << "N: " << _N << "\n"
+              << "T: " << _T << "\n"
+              << "M: " << _M << "\n"
+              << "Graph size: " << graph->Adj.size()  << endl;
+
+    ostream_iterator<int> output_iterator(fs_params, ", ");
+
+    fs_params << "\nsources: " << endl;
+    std::copy(_src.begin(), _src.end(), output_iterator);    
+    fs_params << "\nqlist: " << endl;
+    std::copy(_q.begin(), _q.end(), output_iterator);
     
 
     prepareModel();
