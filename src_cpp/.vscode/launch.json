@@ -8,11 +8,18 @@
             "name": "g++ - Build and debug active file",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${fileDirname}/PAWS",
+            "program": "${fileDirname}/SMC",
             "args": [
-                "-seed",
-                "10",
-                "testInstances/sampling_paws_4_-1.uai"
+                "-N",
+                "50",
+                "-T",
+                "2",
+                "-M",
+                "3",
+                "-source",
+                "0,25,2",
+                "-qlist",
+                "4,4,4"
             ],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",

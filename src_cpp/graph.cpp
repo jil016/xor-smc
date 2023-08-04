@@ -72,6 +72,11 @@ void Graph::loopFreeInit(){
     }
 }
 
+void Graph::readFromFile(){
+
+}
+
+
 void Graph::addEdge(int u, int v){
 
 }

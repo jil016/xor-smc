@@ -8,21 +8,26 @@ typedef std::set<set_type> powerset_type;
 
 
 ShelterLocation::ShelterLocation(){
-  // Initialize
-  //   timer = new IloTimer(env);
-  //   model = new IloModel(env);
-  //   cplex = new IloCplex(env);
-  model = IloModel(env);
-  cplex = IloCplex(env);
-  
-  sparsify_coeff = true;
-  yannakis =true;
+    // Initialize
+    //   timer = IloTimer(env);
+    //   model = IloModel(env);
+    //   cplex = IloCplex(env);
+	env.end();
+	
+	env = IloEnv();
+	model = IloModel(env);
+	cplex = IloCplex(model);
+    
+    sparsify_coeff = true;
+    yannakis =true;
 
-  // global parameters, etc.
-  timelimit = -1;
+    // global parameters, etc.
+    timelimit = -1;
 }
 
-ShelterLocation::~ShelterLocation(){}
+ShelterLocation::~ShelterLocation(){
+    env.end();
+}
 
 void ShelterLocation::loadParameters(int N, int T, int M, vector<int> src, vector<int> q){
     graph = new Graph(N, 1, 2);
@@ -255,9 +260,7 @@ void ShelterLocation::prepareModel(){
 
 
 bool ShelterLocation::solveInstance() {
-    prepareModel();
-    cout << "\n=====================================\n" << endl;
-
+    cout << "\n================== Set Output Path ===================\n" << endl;
     time_t now = time(0);
     char* date_time = ctime(&now);
     char log_folder_name[100] = "LOG-Shelter_";
@@ -270,21 +273,27 @@ bool ShelterLocation::solveInstance() {
         filesystem::create_directory(log_folder); // create src folder
     }
 
-
     filesystem::path result_log_path(log_folder);
+    filesystem::path cplex_log_path(log_folder);
 
     result_log_path = log_folder / "SL_result.log";
+    cplex_log_path = log_folder / "SL_cplex.log";
 
     cout << "log file path:"<< endl;
     cout << result_log_path << endl;
 
-    ofstream fs(result_log_path);
-    env.setOut(fs);
-
+    ofstream fs_res(result_log_path);
+    ofstream fs_cplex(cplex_log_path);
+    env.setOut(fs_res);
+    cplex.setOut(fs_cplex);
+    cout << "\n======================================================\n" << endl;
     
-    cplex.clearModel();  // clear existing model
-    cplex.extract(model);
-    cplex.setParam(IloCplex::Threads, 1);    // number of parallel threads
+
+    prepareModel();
+    // cplex.clearModel();  // clear existing model
+    // cplex.extract(model);
+    // cplex.setParam(IloCplex::Threads, 4);    // number of parallel threads (automatic by default)
+    
     bool solved = cplex.solve();
     cplex.exportModel("model.lp");
     // env.out() << "Solution status = " << cplex.getStatus() << endl;
@@ -292,8 +301,12 @@ bool ShelterLocation::solveInstance() {
 
     if(solved){
         int sat_idx;
+        int shelter_idx;
         for(int i = 0; i<shelter_assign.getSize(); i++){
             env.out() << "shelter_assign = " << cplex.getValue(shelter_assign[i]) << endl; 
+            if(cplex.getValue(shelter_assign[i]) == 1){
+                shelter_idx = i;
+            }
         }
         for(int i = 0; i<_T; i++){
             if(cplex.getValue(bvars_maj[i]) == 1){
@@ -301,11 +314,12 @@ bool ShelterLocation::solveInstance() {
             }
             env.out() << "majority t = " << cplex.getValue(bvars_maj[i]) << endl; 
         }
-        env.out() << "t = " << sat_idx << " is satisfied" << endl; 
 
         for(int i = 0; i<bvars[sat_idx][0].getSize(); i++){
             env.out() << "flow vars = " << cplex.getValue(bvars[sat_idx][0][i]) << endl; 
         }
+        env.out() << "t = " << sat_idx << " is satisfied" << endl; 
+        env.out() << "shelter at: " << shelter_idx << endl; 
     }
     return true;
 }

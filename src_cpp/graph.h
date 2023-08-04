@@ -41,6 +41,8 @@ class Graph {
     void emptyInit();
     void normalInit();
     void loopFreeInit();
+    void readFromFile();
+    
     void addEdge(int u, int v);
     void removeEdge(int u, int v);
     void countLoopFreePathsDFS();
