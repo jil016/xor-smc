@@ -10,6 +10,8 @@
 #include <iterator>
 #include <algorithm>
 
+#include <filesystem>
+
 #include <stdio.h>
 #include <sys/time.h>
 #include <ilcp/cpext.h>
@@ -51,35 +53,50 @@ class ShelterLocation {
         // The following variables appears in the optimization
         IloBoolVarArray shelter_assign;
         vector<vector<IloBoolVarArray>> bvars;
-        vector<vector<vector<vector<int>>>> flows;  // index of flow[t][s][i][j] in bvars[t][s]
-        vector<vector<vector<int>>> shelters;   // index of shelters[t][s][i][j] in bvars[t][s]
+        IloBoolVarArray bvars_maj;
+
+
+        // Index vector for variables
+        vector<vector<vector<vector<int>>>> flows;  // idx = flow[t][s][i][j]; bvars[t][s][idx] represents flow from i to j for (t,s)
+        vector<vector<vector<int>>> shelters;   // idx = shelters[t][s][i][j]; bvars[t][s][idx] represents the shelter selection of (t,s) 
 
         // Constraints
+        vector<vector<IloConstraintArray>> const_flow;
+        vector<vector<IloConstraint>> const_flow_union; // added constraints for majority 
 
+        vector<vector<IloConstraintArray>> const_is_shelter;
+        vector<vector<IloConstraint>> const_is_shelter_union;   // added constraints for majority 
 
-        // Generate XOR  
+        IloConstraint const_max_shelter;
+        IloConstraint const_majority;
+
+        // Constraints for XOR
         bool sparsify_coeff;
         bool yannakis;    // yannakis encoding by default
-        std::vector < std::vector <bool> > coeffA;
-        std::vector <bool> feasiblesol;
-        
-        // XOR Constraints
-        int n_vars; 
-        IloConstraintArray *xor_constr_array;
-        IloIntVarArray *xor_int_vars_array;
-        IloBoolVarArray *xor_bool_vars_array;
+        vector<vector<IloConstraintArray>> const_xor;
+        vector<vector<IloIntVarArray>> ivars_xor;
+        vector<vector<IloBoolVarArray>> bvars_xor;
 
 
         ShelterLocation();
         ~ShelterLocation();
 
+        // running pipeline
         void loadParameters(int N, int T, int M, vector<int> src, vector<int> q);
-        void addFlowConstraints();
-        void addShelterConstraints();
-        void addXORConstraints();
-        void parseAllConstraints();
+        void genAllConstraints();
         bool solveInstance();
 
+
+        // separate functions
+        void genFlowConstraints();
+        void genShelterConstraints();
+        void genMajorityConstraints();
+        void genXORConstraints();     
+        void prepareModel();   
+
+        // utils
+        bool makeHashFuncSolvable(vector<vector<bool>> &coeffA);
+        void extractXorVarConst(vector<vector<bool>> coeffA, int t, int s);
 };
 
 
