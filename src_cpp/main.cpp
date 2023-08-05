@@ -19,6 +19,10 @@ void parseArgs(int argc, char **argv, int &N, int &M, int &T, vector<int> &sourc
   }
 
   for (int argIndex=1; argIndex < argc; ++argIndex) {
+    if ( !strcmp(argv[argIndex], "-graph") ) {
+        argIndex++;
+        // N = atol(argv[argIndex]);
+    }
     if ( !strcmp(argv[argIndex], "-N") ) {
         argIndex++;
         N = atol(argv[argIndex]);
@@ -53,6 +57,7 @@ void parseArgs(int argc, char **argv, int &N, int &M, int &T, vector<int> &sourc
         cout << endl
             << "USAGE: SMC [options]" << endl
             << endl
+            << "   -graph      Graph file name" << endl
             << "   -N          Number of Nodes" << endl
             << "   -M          Maximum Number of Shelters" << endl
             << "   -T          Parameter T" << endl
