@@ -22,7 +22,6 @@ typedef std::set<set_type> powerset_type;
 class Graph {
   public:
     int _N;
-    int _M;
     int _mode;
     int _degree;
 
@@ -32,9 +31,10 @@ class Graph {
 
     std::vector < std::vector <int> > Adj;
 
-    char instance_name[1024];
+    char graph_file[1024];
 
     Graph();
+    Graph(char graph_file[]);
     Graph(int n, int mode, int degree);
     ~Graph();
 

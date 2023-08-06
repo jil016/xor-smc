@@ -82,7 +82,7 @@ class ShelterLocation {
         ~ShelterLocation();
 
         // running pipeline
-        void loadParameters(int N, int T, int M, vector<int> src, vector<int> q);
+        void loadParameters(char graph_file[], int N, int T, int M, vector<int> src, vector<int> q);
         void genAllConstraints();
         bool solveInstance();
 

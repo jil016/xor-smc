@@ -17,6 +17,8 @@ for (unsigned int i =0;i<A.size();i++)
   }
 }
 
+
+
 vector <vector <bool> > generate_matrix(int m, int n) {
   vector <vector <bool> > A;
   A.resize(m);

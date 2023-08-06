@@ -10,8 +10,8 @@
             "request": "launch",
             "program": "${fileDirname}/SMC",
             "args": [
-                "-N",
-                "50",
+                "-graph",
+                "./graphs/graph1.txt",
                 "-T",
                 "2",
                 "-M",

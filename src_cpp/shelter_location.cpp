@@ -29,9 +29,18 @@ ShelterLocation::~ShelterLocation(){
     env.end();
 }
 
-void ShelterLocation::loadParameters(int N, int T, int M, vector<int> src, vector<int> q){
-    graph = new Graph(N, 1, 2);
-    _N = N;
+void ShelterLocation::loadParameters(char graph_file[], int N, int T, int M, vector<int> src, vector<int> q){
+    
+    if(N < 0){
+        graph = new Graph(graph_file);
+        _N = graph->_N;
+    }
+    else{
+        // fib graph
+        _N = N;
+        graph = new Graph(N, 1, 2);
+    }
+
     _T = T;
     _M = M;
     _src = src;

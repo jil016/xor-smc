@@ -9,7 +9,7 @@
 using namespace std;
 
 
-void parseArgs(int argc, char **argv, int &N, int &M, int &T, vector<int> &source, vector<int> &qlist) 
+void parseArgs(int argc, char **argv, char graph[], int &N, int &M, int &T, vector<int> &source, vector<int> &qlist) 
 {
   // one argument must be the instance filename
   if (argc <= 1) {
@@ -21,9 +21,13 @@ void parseArgs(int argc, char **argv, int &N, int &M, int &T, vector<int> &sourc
   for (int argIndex=1; argIndex < argc; ++argIndex) {
     if ( !strcmp(argv[argIndex], "-graph") ) {
         argIndex++;
-        // N = atol(argv[argIndex]);
+        strcpy(graph, argv[argIndex]);
     }
-    if ( !strcmp(argv[argIndex], "-N") ) {
+    else if (argv[argIndex][0] != '-') {
+        // must be the graph name
+        strcpy(graph, argv[argIndex]);
+    }
+    else if ( !strcmp(argv[argIndex], "-N") ) {
         argIndex++;
         N = atol(argv[argIndex]);
     }
@@ -58,7 +62,7 @@ void parseArgs(int argc, char **argv, int &N, int &M, int &T, vector<int> &sourc
             << "USAGE: SMC [options]" << endl
             << endl
             << "   -graph      Graph file name" << endl
-            << "   -N          Number of Nodes" << endl
+            << "   -N          Number of Nodes (skip if read map from file)" << endl
             << "   -M          Maximum Number of Shelters" << endl
             << "   -T          Parameter T" << endl
             << endl;
@@ -80,30 +84,30 @@ int main(int argc, char **argv)
     // source node
     // params: graph, src, q_list, N, T, M
 
-    int N = 10;
+    int N = -1;
     int M = 1;
     int T = 1;
     vector<int> source;
     vector<int> qlist;
+    char graph_file[1024];
 
-    parseArgs(argc, argv, N, M, T, source, qlist);
+    parseArgs(argc, argv, graph_file, N, M, T, source, qlist);
 
-    if (source.size() == 0){
-        source.push_back(0);
-        source.push_back(1);
-        source.push_back(2);
-    }
+    // if (source.size() == 0){
+    //     source.push_back(0);
+    //     source.push_back(1);
+    //     source.push_back(2);
+    // }
 
-    if (qlist.size() == 0){
-        qlist.resize(source.size());
-        fill(qlist.begin(), qlist.end(), 0);
-    }
+    // if (qlist.size() == 0){
+    //     qlist.resize(source.size());
+    //     fill(qlist.begin(), qlist.end(), 0);
+    // }
 
     ShelterLocation  sl;
 
     // try to calculate T
-
-    sl.loadParameters(N, T, M, source, qlist);
+    sl.loadParameters(graph_file, N, T, M, source, qlist);
     sl.genAllConstraints();
     sl.solveInstance();
 

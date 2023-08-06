@@ -8,6 +8,28 @@ typedef std::set<set_type> powerset_type;
 //////////////////////////////////////////////////////////
 Graph::Graph() {}
 
+Graph::Graph(char graph_file[]){
+    ifstream fp(graph_file);
+    if (! fp) {
+        cout << "Error, file couldn't be opened" << endl; 
+        exit(1); 
+    }
+    int N;
+    fp >> N;
+    if ( ! fp ) {
+        cout << "Error reading N" << endl; 
+        exit(1); 
+    }
+    _N = N;
+    Adj.resize(_N);
+    for(int i = 0; i < _N; i++){
+        Adj[i].resize(_N);
+        for (int j = 0; j < _N; j++){
+            fp >> Adj[i][j];
+        }
+    }
+}
+
 
 Graph::Graph(int N, int mode, int degree) {
     _N = N;
@@ -39,7 +61,6 @@ void Graph::emptyInit(){
                 Adj[i][j] = 0;
         }
     }
-    _M = 0;
 }
 
 void Graph::normalInit(){
@@ -49,7 +70,7 @@ void Graph::normalInit(){
                 Adj[i][j] = 1;
         }
     }
-    _M = _N * _N - _N;
+    // _M = _N * _N - _N;
 }
 
 void Graph::loopFreeInit(){
@@ -60,19 +81,20 @@ void Graph::loopFreeInit(){
         }
     }
     
-    if(_degree == -1)
-        _M = (_N * _N - _N) / 2;
-    else{
+    // if(_degree == -1)
+        // _M = (_N * _N - _N) / 2;
+    if(_degree != -1){
         for(int i = 0; i < _N-_degree-1; i++) {
             for (int j = _degree + i + 1; j < _N; j++){
                 Adj[i][j] = 0;
-                _M++;
+                // _M++;
             }
         }
     }
 }
 
 void Graph::readFromFile(){
+    // need file name
 
 }
 
