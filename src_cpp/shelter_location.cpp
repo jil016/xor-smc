@@ -29,7 +29,8 @@ ShelterLocation::~ShelterLocation(){
     env.end();
 }
 
-void ShelterLocation::loadParameters(char graph_file[], int N, int T, int M, vector<int> src, vector<int> q){
+void ShelterLocation::loadParameters(char graph_file[], int N, int T, int M, 
+                                     vector<int> src, vector<int> q, char output_dir[]){
     
     if(N < 0){
         graph = new Graph(graph_file);
@@ -45,6 +46,7 @@ void ShelterLocation::loadParameters(char graph_file[], int N, int T, int M, vec
     _M = M;
     _src = src;
     _q = q;
+    strcpy(_output_dir, output_dir);
 }
 
 
@@ -270,13 +272,14 @@ void ShelterLocation::prepareModel(){
 
 bool ShelterLocation::solveInstance() {
     cout << "\n================== Set Output Path ===================\n" << endl;
+    #ifdef DEBUG_SHELTER
     time_t now = time(0);
     char* date_time = ctime(&now);
     char log_folder_name[100] = "LOG-Shelter_";
     strcat(log_folder_name, date_time);
-
-
-    filesystem::path log_folder(log_folder_name);
+    #else
+    filesystem::path log_folder(_output_dir);
+    #endif
 
     if (!filesystem::is_directory(log_folder) || !filesystem::exists(log_folder)) { // Check if src folder exists
         filesystem::create_directory(log_folder); // create src folder
@@ -286,9 +289,9 @@ bool ShelterLocation::solveInstance() {
     filesystem::path cplex_log_path(log_folder);
     filesystem::path params_log_path(log_folder);
 
-    result_log_path = log_folder / "SL_result.log";
-    cplex_log_path = log_folder / "SL_cplex.log";
-    params_log_path = log_folder / "SL_params.log";
+    result_log_path = log_folder / "result.log";
+    cplex_log_path = log_folder / "cplex.log";
+    params_log_path = log_folder / "params.log";
 
     cout << "log file path:"<< endl;
     cout << result_log_path << endl;
@@ -321,29 +324,38 @@ bool ShelterLocation::solveInstance() {
     bool solved = cplex.solve();
     cplex.exportModel("model.lp");
     // env.out() << "Solution status = " << cplex.getStatus() << endl;
-    env.out() << "Solution value = " << cplex.getCplexStatus() << endl; 
+    env.out() << cplex.getCplexStatus() << endl; 
 
     if(solved){
-        int sat_idx;
-        int shelter_idx;
+        vector<int> shelter_idx;
+
         for(int i = 0; i<shelter_assign.getSize(); i++){
-            env.out() << "shelter_assign = " << cplex.getValue(shelter_assign[i]) << endl; 
+            env.out() << int(cplex.getValue(shelter_assign[i])) << " "; 
+
             if(cplex.getValue(shelter_assign[i]) == 1){
-                shelter_idx = i;
+                shelter_idx.push_back(i);
             }
         }
+
+        #ifdef DEBUG_SHELTER
+        int sat_idx;
         for(int i = 0; i<_T; i++){
             if(cplex.getValue(bvars_maj[i]) == 1){
                 sat_idx = i;
             }
-            env.out() << "majority t = " << cplex.getValue(bvars_maj[i]) << endl; 
+            env.out() << "\nMajority t = " << cplex.getValue(bvars_maj[i]) << endl; 
         }
 
         for(int i = 0; i<bvars[sat_idx][0].getSize(); i++){
             env.out() << "flow vars = " << cplex.getValue(bvars[sat_idx][0][i]) << endl; 
         }
         env.out() << "t = " << sat_idx << " is satisfied" << endl; 
-        env.out() << "shelter at: " << shelter_idx << endl; 
+        #endif
+
+        env.out() << "\nShelter at:" << endl;
+        for (int i = 0; i < shelter_idx.size(); i++){
+            env.out() << shelter_idx[i] << " ";
+        }
     }
     return true;
 }

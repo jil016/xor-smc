@@ -48,6 +48,8 @@ class ShelterLocation {
         IloCplex cplex;
         IloInt timelimit;
 
+        char _output_dir[1024];
+
 
         // Variables       
         // The following variables appears in the optimization
@@ -82,7 +84,8 @@ class ShelterLocation {
         ~ShelterLocation();
 
         // running pipeline
-        void loadParameters(char graph_file[], int N, int T, int M, vector<int> src, vector<int> q);
+        void loadParameters(char graph_file[], int N, int T, int M, 
+                            vector<int> src, vector<int> q, char output_dir[]);
         void genAllConstraints();
         bool solveInstance();
 

@@ -9,7 +9,10 @@
 using namespace std;
 
 
-void parseArgs(int argc, char **argv, char graph[], int &N, int &M, int &T, vector<int> &source, vector<int> &qlist) 
+void parseArgs(int argc, char **argv, char graph[], 
+               int &N, int &M, int &T, 
+               vector<int> &source, vector<int> &qlist,
+               char output[]) 
 {
   // one argument must be the instance filename
   if (argc <= 1) {
@@ -57,14 +60,19 @@ void parseArgs(int argc, char **argv, char graph[], int &N, int &M, int &T, vect
             qlist.push_back(stoi(substr));
         }
     }
+    else if ( !strcmp(argv[argIndex], "-output") ) {
+        argIndex++;
+        strcpy(output, argv[argIndex]);
+    }
     else if ( !strcmp(argv[argIndex], "-h") || !strcmp(argv[argIndex], "-help") ) {
         cout << endl
             << "USAGE: SMC [options]" << endl
             << endl
             << "   -graph      Graph file name" << endl
-            << "   -N          Number of Nodes (skip if read map from file)" << endl
+            << "   -N          Number of nodes (must skip this if read map from file)" << endl
             << "   -M          Maximum Number of Shelters" << endl
             << "   -T          Parameter T" << endl
+            << "   -output     Output directory" << endl
             << endl;
         // print parity constraint options usage
         //printParityUsage(cout);
@@ -90,8 +98,9 @@ int main(int argc, char **argv)
     vector<int> source;
     vector<int> qlist;
     char graph_file[1024];
+    char output_dir[1024];
 
-    parseArgs(argc, argv, graph_file, N, M, T, source, qlist);
+    parseArgs(argc, argv, graph_file, N, M, T, source, qlist, output_dir);
 
     // if (source.size() == 0){
     //     source.push_back(0);
@@ -107,7 +116,7 @@ int main(int argc, char **argv)
     ShelterLocation  sl;
 
     // try to calculate T
-    sl.loadParameters(graph_file, N, T, M, source, qlist);
+    sl.loadParameters(graph_file, N, T, M, source, qlist, output_dir);
     sl.genAllConstraints();
     sl.solveInstance();
 

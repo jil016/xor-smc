@@ -17,9 +17,11 @@
                 "-M",
                 "3",
                 "-source",
-                "0,25,40",
+                "0,1,2",
                 "-qlist",
-                "4,4,4"
+                "1,1,1",
+                "-output",
+                "LOG"
             ],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
