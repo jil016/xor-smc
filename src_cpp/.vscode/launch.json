@@ -11,7 +11,7 @@
             "program": "${fileDirname}/SMC",
             "args": [
                 "-graph",
-                "./graphs/graph_hawaii_800.txt",
+                "./graphs/graph_GP0m_490.txt",
                 "-T",
                 "1",
                 "-M",
@@ -19,9 +19,9 @@
                 "-source",
                 "0,2",
                 "-qlist",
-                "1,0",
+                "1,1",
                 "-output",
-                "LOG-Hawaii"
+                "LOG-GP0m"
             ],
             // -graph ./graphs/graph_hawaii.txt -T 2 -M 3 -source 100,200,500 -qlist 1,1,1 -output ./LOG-Hawaii
             "stopAtEntry": false,

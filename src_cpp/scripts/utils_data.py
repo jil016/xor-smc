@@ -8,6 +8,8 @@ import numpy as np
 import boolexpr as bx
 import time
 from graph import Graph
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 
 
@@ -231,6 +233,14 @@ def checkGraphDetails(graph: Graph):
     print("Max in-degree: ", max(in_degrees))
     print("Max out-degree: ", max(out_degrees))
 
+    # plt.figure(figsize=(4.5,2.5))
+    plt.figure(0)
+    sns.histplot(data=in_degrees)
+    plt.show()
+
+    # plt.figure(1)
+    # sns.histplot(data=out_degrees)
+    # plt.show()
     return
 
 
@@ -239,22 +249,7 @@ def test_flow2CNF():
     src = 0
     sink = 0
 
-    test_case = 3
-
-    if test_case == 0:
-        graph.readFromFile("graphs/graph2.txt")
-    
-    elif test_case == 1:
-        graph.readFromTSPFile("graphs/tsphcp/COL_1000.hcp")
-        # graph.exportToFile("graphs/graph_COL_1000.txt")
-
-    elif test_case == 2:
-        graph.readFromTSPFile("graphs/tsphcp/FLS3_408.hcp")
-        graph.exportToFile("graphs/graph_FLS3_408.txt")
-
-    elif test_case == 3:
-        graph.readFromHawaiiFile("graphs/hawaii/hawaii_800.txt")
-        graph.exportToFile("graphs/graph_hawaii_800.txt")
+    graph.readFromFile("graphs/graph_COL_1000.txt")
 
 
     N = graph.N
@@ -266,7 +261,7 @@ def test_flow2CNF():
 
     cnf, sub_cnfs = flow2CNF(graph, flow, src, sink)
 
-    exportCNF(cnf, "example_cnf")
+    exportCNF(cnf, "COL_1000")
 
     # sink_list = [bx.ZERO] * N
     # sink_list[sink] = bx.ONE
@@ -284,7 +279,9 @@ def test_flow2CNF():
 
 def test_checkGraphDetails():
     graph = Graph()
-    graph.readFromTSPFile("graphs/tsphcp/COL_1000.hcp")
+    graph.readFromTSPFile("graphs/tsphcp/SNm_500.hcp")
+    graph.exportToFile("graphs/graph_SNm_500.hcp")
+    # graph.readFromTSPFile("graphs/tsphcp/COL_1000.hcp")
     # graph.readFromTSPFile("graphs/tsphcp/FLS3_408.hcp")
     # graph.readFromHawaiiFile("graphs/hawaii/hawaii_800.txt")
     checkGraphDetails(graph)
@@ -293,3 +290,4 @@ def test_checkGraphDetails():
 
 if __name__ == "__main__":
     test_checkGraphDetails()
+    # test_flow2CNF()
