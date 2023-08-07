@@ -36,7 +36,7 @@ vector <vector <bool> > generate_matrix(int m, int n) {
 }
 
 int sparsify(vector <vector <bool> > & A) {
-  vector< bitset<1000> > bv;
+  vector< bitset<20000> > bv;
 
   bv.resize(A.size());
   size_t m = A.size();
@@ -46,7 +46,7 @@ int sparsify(vector <vector <bool> > & A) {
 
   for (size_t i = 0;i<m;i++)
     {
-    bitset<1000> row;
+    bitset<20000> row;
     for (size_t s = 0;s<n;s++)
       if (A[i][s]) 
         {

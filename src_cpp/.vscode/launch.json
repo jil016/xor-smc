@@ -11,18 +11,19 @@
             "program": "${fileDirname}/SMC",
             "args": [
                 "-graph",
-                "./graphs/graph1.txt",
+                "./graphs/graph_hawaii_800.txt",
                 "-T",
-                "2",
+                "1",
                 "-M",
-                "3",
+                "1",
                 "-source",
-                "0,1,2",
+                "0,2",
                 "-qlist",
-                "1,1,1",
+                "1,0",
                 "-output",
-                "LOG"
+                "LOG-Hawaii"
             ],
+            // -graph ./graphs/graph_hawaii.txt -T 2 -M 3 -source 100,200,500 -qlist 1,1,1 -output ./LOG-Hawaii
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
