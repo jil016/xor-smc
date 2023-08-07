@@ -1077,7 +1077,7 @@ if (!A.empty())
 							// model.add((zeta_sum_to_f==dummy_parity));			// (14)
 						// else
 							// model.add((zeta_sum_to_f==vars[i]));			// (14)
-							
+						
 						if (i<nbvar)
 							model.add((zeta_sum_to_f==vars[i]));			// (14)							
 						else
@@ -1087,7 +1087,7 @@ if (!A.empty())
 								{
 								int i1 =(i - nbvar-1)/nbvar;
 								int j1 =(i - nbvar-1)%nbvar;
-								//cout << i << " -->" << i1 << " " << j1 << endl;
+								// cout << i << " -->" << i1 << " " << j1 << endl;
 								model.add((zeta_sum_to_f==Mu[i1][j1][0][1]+Mu[i1][j1][1][0]));			// (14)
 								}
 							
@@ -1117,7 +1117,7 @@ if (!A.empty())
 	
 }
 
-
+// cout << "Important!!!!" << yannakis << " " << wainr << " " << jaroslow << endl;
 
 // jaroslaw encoding and wainwright for short xors
 for (size_t j= 0; j<A.size();j++)

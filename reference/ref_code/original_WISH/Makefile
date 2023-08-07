@@ -28,9 +28,9 @@ ICC = icc
 
 # ILOGBASE = /home/li4255/.local/ibm/ILOG/CPLEX_Studio201
 ifeq ($(findstring aiopt, $(HOSTNAME)), aiopt)
-	ILOGBASE  = /opt/ibm/ILOG/CPLEX_Studio201
+	ILOGBASE  = /home/jinzhao/.local/ibm/ILOG/CPLEX_Studio2211
 else
-	ILOGBASE  = /opt/ibm/ILOG/CPLEX_Studio201
+	ILOGBASE  = /home/jinzhao/.local/ibm/ILOG/CPLEX_Studio2211
 endif
 #ILOGLIBFORMAT = x86-64_sles10_4.1/static_pic
 ILOGLIBFORMAT = x86-64_linux/static_pic

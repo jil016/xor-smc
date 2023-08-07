@@ -279,11 +279,11 @@ def test_flow2CNF():
 
 def test_checkGraphDetails():
     graph = Graph()
-    graph.readFromTSPFile("graphs/tsphcp/SNm_500.hcp")
-    graph.exportToFile("graphs/graph_SNm_500.hcp")
+    # graph.readFromTSPFile("graphs/tsphcp/SNm_500.hcp")
     # graph.readFromTSPFile("graphs/tsphcp/COL_1000.hcp")
     # graph.readFromTSPFile("graphs/tsphcp/FLS3_408.hcp")
-    # graph.readFromHawaiiFile("graphs/hawaii/hawaii_800.txt")
+    graph.readFromHawaiiFile("graphs/hawaii/hawaii_400.txt")
+    graph.exportToFile("graphs/graph_hawaii_400.txt")
     checkGraphDetails(graph)
     return 
 
