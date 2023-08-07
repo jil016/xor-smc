@@ -1,5 +1,6 @@
 *.o
 SMC
-LOG*
+LOG
 *.lp
 third_party/
+graphs/
