@@ -155,7 +155,41 @@ class Graph:
         self.M -= 1
         self.Adj[u][v] = 0
         return
- 
+    
+    def removeNode(self, idx: int):
+        del self.Adj[idx]
+        for row in self.Adj:
+            del row[idx]
+
+        self.N -= 1
+        self.M = np.sum(self.Adj)
+
+    def randomReduceDegree(self, max_in: int, max_out: int):
+        for i in range(self.N):
+            in_edges = []
+            out_edges = []
+            for j in range(self.N):
+                if (self.Adj[i][j] == 1):
+                    out_edges.append(j)
+
+                if (self.Adj[j][i] == 1):
+                    in_edges.append(j)
+            
+            n_in_rm = len(in_edges) - max_in
+            n_out_rm = len(out_edges) - max_out
+            if (n_in_rm > 0):
+                print("Removing in edges")
+                in_rm_idx = np.random.randint(0, len(in_edges), size=(n_in_rm))
+                for idx in in_rm_idx:
+                    self.removeEdge(in_edges[idx], i)
+
+            if (n_out_rm > 0):
+                print("Removing out edges")
+                out_rm_idx = np.random.randint(0, len(out_edges), size=(n_out_rm))
+                for idx in out_rm_idx:
+                    self.removeEdge(i, out_edges[idx])
+
+    
    
     def countEdgeOncePaths(self, ):
         # Count paths that pass each edge at most once.
@@ -224,13 +258,6 @@ def graphTester():
     print(g.Adj)
     return
 
-
-def breakLoopTester():
-    N = 4
-    g = Graph(N, 'full')
-    print(g.Adj)
-    g.forceBreakLoopsBFS(0)
-    print("After break: ", g.Adj)
 
 if __name__ == '__main__':
     # graphTester()

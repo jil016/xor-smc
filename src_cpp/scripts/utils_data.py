@@ -348,7 +348,7 @@ def exportCNF(expr: bx.And, file_name):
             [f.write(f"{l} ") for l in clause]
             f.write("0\n")
 
-    return
+    return vars
 
 
 def checkGraphDetails(graph: Graph):
@@ -384,6 +384,16 @@ def checkGraphDetails(graph: Graph):
     sns.histplot(data=in_degrees)
     plt.show()
 
+    plt.figure(1)
+    Gd = nx.DiGraph()
+    for i in range(graph.N): 
+        for j in range(graph.N): 
+            if graph.Adj[i][j] == 1: 
+                Gd.add_edge(i,j) 
+
+    nx.draw(Gd, node_size=1) 
+    plt.show() 
+
     # plt.figure(1)
     # sns.histplot(data=out_degrees)
     # plt.show()
@@ -402,11 +412,11 @@ def extractLargestComponent(graph: Graph, outfile=""):
     # plt.show() 
     sccs = nx.weakly_connected_components(Gd) 
     # sccs = nx.strongly_connected_components(Gd) 
-    largest_component = None
+    largest_component = []
+
     for scc in sccs: 
-        if len(scc) > 1: 
+        if len(scc) > len(largest_component): 
             largest_component = list(scc)
-            break
 
 
     graph_out = Graph(N = len(largest_component))
@@ -422,7 +432,7 @@ def extractLargestComponent(graph: Graph, outfile=""):
 def test_flow2CNF():
     graph = Graph()
     src = 0
-    sink = 3
+    sink = 500
 
     graph.readFromFile("graphs/graph_hawaii_1000.txt")
 

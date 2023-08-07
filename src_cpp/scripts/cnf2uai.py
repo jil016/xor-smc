@@ -41,5 +41,5 @@ def cnf_to_uai(cnf_instance: CNF, prob: np.array, output_file):
 
 if __name__ == '__main__':
     cnf = CNF("third_party/sharpsat-td/examples/test1.cnf")
-    prob = np.random.rand(cnf.nv)
+    prob = np.ones(cnf.nv)
     cnf_to_uai(cnf, prob, "test1.uai")

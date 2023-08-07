@@ -351,11 +351,11 @@ bool ShelterLocation::solveInstance() {
     fs_params << "\nqlist: " << endl;
     std::copy(_q.begin(), _q.end(), output_iterator);
     
-    cplex.exportModel("model.lp");
     prepareModel();
-    // cplex.clearModel();  // clear existing model
-    // cplex.extract(model);
     // cplex.setParam(IloCplex::Threads, 4);    // number of parallel threads (automatic by default)
+
+    // Cplex parameters
+    cplex.setParam(IloCplex::Param::WorkMem, 20480);
     
     bool solved = cplex.solve();
     cplex.exportModel("model.lp");
