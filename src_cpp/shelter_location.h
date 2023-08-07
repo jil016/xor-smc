@@ -35,6 +35,7 @@ class ShelterLocation {
         Graph *graph;
         vector<int> _src;
         vector<int> _q;
+        bool allow_bf;
 
         // CPLEX SOLVER
         // IloEnv env;
@@ -69,6 +70,8 @@ class ShelterLocation {
         vector<vector<IloConstraintArray>> const_is_shelter;
         vector<vector<IloConstraint>> const_is_shelter_union;   // added constraints for majority 
 
+        vector<vector<IloConstraintArray>> const_nbf;   // no back and forth
+
         IloConstraint const_max_shelter;
         IloConstraint const_majority;
 
@@ -94,6 +97,7 @@ class ShelterLocation {
         void genFlowConstraints();
         void genShelterConstraints();
         void genMajorityConstraints();
+        void genNBFConstraints();
         void genXORConstraints();     
         void prepareModel();   
 

@@ -20,6 +20,7 @@ ShelterLocation::ShelterLocation(){
     
     sparsify_coeff = true;
     yannakis =true;
+    allow_bf = false;
 
     // global parameters, etc.
     timelimit = -1;
@@ -207,6 +208,24 @@ void ShelterLocation::genMajorityConstraints(){
     }
 }
 
+void ShelterLocation::genNBFConstraints(){
+    const_nbf.resize(_T);
+    for (int t = 0; t< _T; t++){
+        for (int s = 0; s< _src.size(); s++){  
+            IloConstraintArray const_nbf_t_s(env);
+            for (int i = 0; i< _N; i++){
+                for(int j = i; j< _N; j++){
+                    if((graph->Adj[i][j] == 1) && (graph->Adj[j][i] == 1)){
+                        // identify bf edges
+                        const_nbf_t_s.add((bvars[t][s][flows[t][s][i][j]] + bvars[t][s][flows[t][s][j][i]] < 2));
+                    }
+                }
+            }
+            const_nbf[t].push_back(const_nbf_t_s);
+        }
+    }
+}
+
 
 void ShelterLocation::genXORConstraints(){
     const_xor.resize(_T);
@@ -236,9 +255,17 @@ void ShelterLocation::genXORConstraints(){
 void ShelterLocation::genAllConstraints(){
     // generate everything
     genFlowConstraints();
+    cout << "Flow constraints generated!" << endl;
     genShelterConstraints();
+    cout << "Shelter constraints generated!" << endl;
     genMajorityConstraints();
+    cout << "Majority constraints generated!" << endl;
+    if(!allow_bf){
+        genNBFConstraints();
+        cout << "NBF constraints generated!" << endl;
+    }
     genXORConstraints(); 
+    cout << "XOR constraints generated!" << endl;
 }
 
 
@@ -255,6 +282,7 @@ void ShelterLocation::prepareModel(){
             model.add(ivars_xor[t][s]);
         }
     }
+    cout << "Variables added!" << endl;
 
     for (int t = 0; t< _T; t++){
         for (int s = 0; s< _src.size(); s++){
@@ -267,6 +295,14 @@ void ShelterLocation::prepareModel(){
     model.add(const_max_shelter);
     model.add(const_majority);
 
+    if(!allow_bf){
+        for (int t = 0; t< _T; t++){
+            for (int s = 0; s< _src.size(); s++){
+                model.add(const_nbf[t][s]);
+            }
+        }
+    }
+    cout << "Constraints added!" << endl;
 }
 
 
