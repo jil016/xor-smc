@@ -1,0 +1,100 @@
+Version identifier: 22.1.1.0 | 2022-11-28 | 9160aff4d
+Tried aggregator 2 times.
+Aggregator has done 1218 substitutions...
+MIP Presolve eliminated 2879 rows and 62583 columns.
+Aggregator did 1218 substitutions.
+Reduced MIP has 745553 rows, 692728 columns, and 2811316 nonzeros.
+Reduced MIP has 690926 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 17.07 sec. (15156.32 ticks)
+Probing time = 3.35 sec. (880.67 ticks)
+Tried aggregator 3 times.
+Aggregator has done 2305 substitutions...
+MIP Presolve eliminated 201265 rows and 145170 columns.
+MIP Presolve modified 1038 coefficients.
+Aggregator did 2305 substitutions.
+Reduced MIP has 543022 rows, 545016 columns, and 2170234 nonzeros.
+Reduced MIP has 545016 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 14.66 sec. (11452.25 ticks)
+Elapsed time = 30.70 sec. (10000.69 ticks) for 1% of probing (4539 vars fixed)
+Elapsed time = 62.60 sec. (20007.94 ticks) for 1% of probing (5605 vars fixed)
+Elapsed time = 96.73 sec. (30035.41 ticks) for 2% of probing (81355 vars fixed)
+Elapsed time = 127.72 sec. (40054.31 ticks) for 2% of probing (81363 vars fixed)
+Elapsed time = 159.79 sec. (50054.37 ticks) for 3% of probing (81377 vars fixed)
+Elapsed time = 191.40 sec. (60077.72 ticks) for 4% of probing (81395 vars fixed)
+Elapsed time = 222.26 sec. (70091.01 ticks) for 4% of probing (81406 vars fixed)
+Elapsed time = 256.29 sec. (80092.34 ticks) for 5% of probing (81416 vars fixed)
+Elapsed time = 286.83 sec. (90111.24 ticks) for 6% of probing (81429 vars fixed)
+Elapsed time = 316.04 sec. (100133.04 ticks) for 6% of probing (81437 vars fixed)
+Elapsed time = 346.77 sec. (110139.56 ticks) for 7% of probing (81451 vars fixed)
+Elapsed time = 375.89 sec. (120147.59 ticks) for 8% of probing (81455 vars fixed)
+Elapsed time = 405.76 sec. (130157.22 ticks) for 8% of probing (81467 vars fixed)
+Elapsed time = 435.70 sec. (140186.67 ticks) for 9% of probing (81485 vars fixed)
+Elapsed time = 466.46 sec. (150203.00 ticks) for 10% of probing (81497 vars fixed)
+Elapsed time = 500.79 sec. (160217.00 ticks) for 10% of probing (82427 vars fixed)
+Elapsed time = 534.30 sec. (170249.97 ticks) for 11% of probing (82437 vars fixed)
+Elapsed time = 567.00 sec. (180277.91 ticks) for 12% of probing (83367 vars fixed)
+Elapsed time = 599.97 sec. (190305.35 ticks) for 12% of probing (83378 vars fixed)
+Elapsed time = 632.53 sec. (200322.53 ticks) for 13% of probing (83389 vars fixed)
+Elapsed time = 666.65 sec. (210330.17 ticks) for 14% of probing (83399 vars fixed)
+Elapsed time = 699.88 sec. (220354.67 ticks) for 14% of probing (83403 vars fixed)
+Elapsed time = 730.77 sec. (230361.10 ticks) for 15% of probing (83410 vars fixed)
+Elapsed time = 764.23 sec. (240363.63 ticks) for 16% of probing (83418 vars fixed)
+Elapsed time = 795.87 sec. (250391.31 ticks) for 16% of probing (83427 vars fixed)
+Elapsed time = 825.44 sec. (260409.90 ticks) for 17% of probing (83439 vars fixed)
+Elapsed time = 854.23 sec. (270412.18 ticks) for 18% of probing (83448 vars fixed)
+Elapsed time = 891.91 sec. (280430.08 ticks) for 18% of probing (83459 vars fixed)
+Elapsed time = 923.28 sec. (290446.92 ticks) for 19% of probing (83473 vars fixed)
+Elapsed time = 953.56 sec. (300477.12 ticks) for 20% of probing (83481 vars fixed)
+Elapsed time = 983.88 sec. (310495.25 ticks) for 20% of probing (83494 vars fixed)
+Elapsed time = 1014.86 sec. (320503.88 ticks) for 21% of probing (83515 vars fixed)
+Elapsed time = 1045.08 sec. (330516.07 ticks) for 22% of probing (83523 vars fixed)
+Elapsed time = 1079.18 sec. (340527.76 ticks) for 22% of probing (83538 vars fixed)
+Elapsed time = 1112.70 sec. (350547.30 ticks) for 23% of probing (83554 vars fixed)
+Elapsed time = 1145.35 sec. (360555.57 ticks) for 24% of probing (83564 vars fixed)
+Elapsed time = 1177.88 sec. (370577.76 ticks) for 24% of probing (83574 vars fixed)
+Elapsed time = 1210.88 sec. (380609.90 ticks) for 25% of probing (83579 vars fixed)
+Elapsed time = 1243.99 sec. (390617.14 ticks) for 26% of probing (83591 vars fixed)
+Elapsed time = 1276.87 sec. (400647.12 ticks) for 26% of probing (83599 vars fixed)
+Elapsed time = 1307.14 sec. (410663.68 ticks) for 27% of probing (83615 vars fixed)
+Elapsed time = 1339.81 sec. (420687.33 ticks) for 28% of probing (83630 vars fixed)
+Elapsed time = 1372.57 sec. (430695.11 ticks) for 28% of probing (83642 vars fixed)
+Elapsed time = 1404.82 sec. (440723.45 ticks) for 29% of probing (83659 vars fixed)
+Elapsed time = 1438.06 sec. (450736.33 ticks) for 30% of probing (83670 vars fixed)
+Elapsed time = 1470.74 sec. (460742.17 ticks) for 30% of probing (83681 vars fixed)
+Elapsed time = 1503.31 sec. (470746.98 ticks) for 31% of probing (83692 vars fixed)
+Elapsed time = 1533.87 sec. (480756.65 ticks) for 32% of probing (83702 vars fixed)
+Elapsed time = 1568.56 sec. (490763.04 ticks) for 32% of probing (83718 vars fixed)
+Probing fixed 138979 vars, tightened 0 bounds.
+Probing time = 1618.82 sec. (500507.43 ticks)
+Tried aggregator 3 times.
+MIP Presolve eliminated 152319 rows and 150455 columns.
+Aggregator did 1875 substitutions.
+Reduced MIP has 390434 rows, 392685 columns, and 1561192 nonzeros.
+Reduced MIP has 392685 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 11.24 sec. (9779.30 ticks)
+Probing time = 1.76 sec. (510.53 ticks)
+Tried aggregator 1 time.
+Detecting symmetries...
+Reduced MIP has 390434 rows, 392685 columns, and 1561192 nonzeros.
+Reduced MIP has 392685 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 7.50 sec. (6986.40 ticks)
+Probing time = 2.06 sec. (512.64 ticks)
+Clique table members: 982424.
+MIP emphasis: balance optimality and feasibility.
+MIP search method: dynamic search.
+Parallel mode: deterministic, using up to 20 threads.
+Root relaxation solution time = 0.89 sec. (1309.69 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+      0     0    infeasible                                        727         
+
+Root node processing (before b&c):
+  Real time             = 1693.33 sec. (561035.18 ticks)
+Parallel b&c, 20 threads:
+  Real time             =    0.00 sec. (0.00 ticks)
+  Sync time (average)   =    0.00 sec.
+  Wait time (average)   =    0.00 sec.
+                          ------------
+Total (root+branch&cut) = 1693.33 sec. (561035.18 ticks)
