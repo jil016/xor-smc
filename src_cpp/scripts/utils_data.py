@@ -431,10 +431,10 @@ def extractLargestComponent(graph: Graph, outfile=""):
 
 def test_flow2CNF():
     graph = Graph()
-    src = 0
-    sink = 500
+    src = 20
+    sink = 90
 
-    graph.readFromFile("graphs/graph_hawaii_1000.txt")
+    graph.readFromFile("graphs/graph_hawaii_200.txt")
 
 
     N = graph.N
@@ -446,16 +446,16 @@ def test_flow2CNF():
 
     cnf, sub_cnfs = flow2CNF_nbf(graph, flow, src, sink)
 
-    exportCNF(cnf, "test2")
+    exportCNF(cnf, f"src{src}_sink{sink}")
 
     # sink_list = [bx.ZERO] * N
     # sink_list[sink] = bx.ONE
     # cnf2, sub_cnfs2 = pathIdentifier(graph, flow, src, sink_list)
     
-    if not cnf.is_cnf():
-        cnf.to_cnf()
+    # if not cnf.is_cnf():
+    #     cnf.to_cnf()
 
-    # print(cnf.sat())
+    # # print(cnf.sat())
     cnt = 0
     for sat in cnf.iter_sat():
         # print(sat)

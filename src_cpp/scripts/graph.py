@@ -179,13 +179,13 @@ class Graph:
             n_out_rm = len(out_edges) - max_out
             if (n_in_rm > 0):
                 print("Removing in edges")
-                in_rm_idx = np.random.randint(0, len(in_edges), size=(n_in_rm))
+                in_rm_idx = np.random.permutation(range(len(in_edges)))[:n_in_rm]
                 for idx in in_rm_idx:
                     self.removeEdge(in_edges[idx], i)
 
             if (n_out_rm > 0):
                 print("Removing out edges")
-                out_rm_idx = np.random.randint(0, len(out_edges), size=(n_out_rm))
+                out_rm_idx = np.random.permutation(range(len(out_edges)))[:n_out_rm] 
                 for idx in out_rm_idx:
                     self.removeEdge(i, out_edges[idx])
 

@@ -63,8 +63,12 @@ default: SMC
 	$(CC) $(OFLAGS) $(CFLAGS) $(LIBFLAGS) -c -o $@  $< $(PFLAGS)
 
 
-SMC: main.cpp graph.o graph.h utils.o utils.h shelter_location.o shelter_location.h
-	$(CC) $(OFLAGS) $(CFLAGS) -o $@ $< graph.o utils.o shelter_location.o $(ILOGLIBS) -L. -lgmp -ldl -no-pie
+SMC: main.cpp graph.o graph.h utils.o utils.h shelter_location.o shelter_location.h supply_chain.o supply_chain.h
+	$(CC) $(OFLAGS) $(CFLAGS) -o $@ $< graph.o utils.o shelter_location.o supply_chain.o $(ILOGLIBS) -L. -lgmp -ldl -no-pie
+
+# SMC: main.cpp graph.o graph.h utils.o utils.h shelter_location.o shelter_location.h
+# 	$(CC) $(OFLAGS) $(CFLAGS) -o $@ $< graph.o utils.o shelter_location.o $(ILOGLIBS) -L. -lgmp -ldl -no-pie
+
 
 clean:
 	rm SMC *.o

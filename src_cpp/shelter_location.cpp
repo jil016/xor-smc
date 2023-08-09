@@ -350,6 +350,7 @@ bool ShelterLocation::solveInstance() {
     std::copy(_src.begin(), _src.end(), output_iterator);    
     fs_params << "\nqlist: " << endl;
     std::copy(_q.begin(), _q.end(), output_iterator);
+    fs_params.close();
     
     prepareModel();
     // cplex.setParam(IloCplex::Threads, 4);    // number of parallel threads (automatic by default)

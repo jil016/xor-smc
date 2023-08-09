@@ -22,9 +22,9 @@ def reduceBackForthEdges(graph: Graph):
 
 def modifyGraph():
     graph = Graph()
-    graph.readFromFile("graphs/graph_hawaii_1000.txt")
+    graph.readFromFile("graphs/graph_hawaii_321.txt")
     
-    n_to_rm = 100
+    n_to_rm = 20
     max_in = 3
     max_out = 3
 
