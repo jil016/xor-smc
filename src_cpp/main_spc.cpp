@@ -43,11 +43,10 @@ void parseArgs(int argc, char **argv, string &net_folder,
     }
     else if ( !strcmp(argv[argIndex], "-h") || !strcmp(argv[argIndex], "-help") ) {
         cout << endl
-            << "USAGE: SMC [options]" << endl
+            << "USAGE: Supply Chain [options]" << endl
             << endl
-            << "   -graph      Graph file name" << endl
-            << "   -N          Number of nodes (must skip this if read map from file)" << endl
-            << "   -M          Maximum Number of Shelters" << endl
+            << "   -network      Network folder name" << endl
+            << "   -Nd          Number of disasters" << endl
             << "   -T          Parameter T" << endl
             << "   -output     Output directory" << endl
             << endl;
