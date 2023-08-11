@@ -33,6 +33,7 @@ class SupplyNet {
     vector<vector<int>> _capacity; // size: _N * _N; capacity[i][j] is the capacity of trading edge from i to j 
                                    // capacity == 0 means no demand or supply relation.
     vector<int> _budget;
+    vector<vector<int>> _cost;
 
 
     // disasters model ...

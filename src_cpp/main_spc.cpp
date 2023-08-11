@@ -29,6 +29,7 @@ int main(int argc, char **argv)
     SupplyChain sc;
     sc.loadParameters(net_folder, n_disaster, 1, output_dir);
     sc.initializeVariables();
+    sc.genSupplyConstraints();
 
     return 0;
 }

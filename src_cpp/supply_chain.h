@@ -52,38 +52,15 @@ class SupplyChain {
         // Variables       
         // The following variables appears in the optimization
         
-        IloBoolVarArray supplier_selection;
-
-        vector<vector<vector<IloBoolVarArray>>> bvars;  // T * N * M * IloBoolVarArray
-                                                        // some materials are empty
-                                                        // only those required
-                                                        // capacity variables
-                                                        // theta variables
-                                                        // ...............
-
-        
-        // contract variables
-        vector<IloBoolVarArray> contract; 
-
-        IloBoolVarArray bvars_maj;      // May ignore majority for now
-
-        vector<vector<int>> index_selection;
-
-        vector<vector<vector<int>>> index_supplies;     // Index of supplies in bvars
-                                                        // _T * _N * _N the spply from j to i is 
-                                                        // bvars[t][i][m][index_supplies[t][j][i]]. 
-            
-        vector<vector<vector<vector<vector<int>>>>> index_disasters;    // Index of disaster variables
-                                                                            // _T * _N * _M * _Nd * dim(disaster)
-                                                                            // look up disasters in bvars.
-        
-        vector<vector<vector<vector<int>>>> index_capacities;   // _T * _N * _M * dim(capacity)
+        vector<vector<IloBoolVarArray>> supply_selection;
+        vector<vector<vector<IloBoolVarArray>>> bvars;
+        vector<vector<vector<IloConstraintArray>>> constraints;
+        IloConstraintArray const_budget;
 
 
-
-        // Constraints
-
+        IloBoolVarArray bvars_maj;      // Ignore majority in this case
         IloConstraint const_majority;
+
 
         // Constraints for XOR
         bool sparsify_coeff;
@@ -105,7 +82,7 @@ class SupplyChain {
         // separate functions
         void initializeVariables();
         void genSupplyConstraints();
-        
+
         void genCapacityConstraints();
         void genBudgetConstraints();
 

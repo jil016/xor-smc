@@ -14,6 +14,7 @@ SupplyNet::SupplyNet(string net_folder, int n_disasters){
     string capacity_file("/capacity.txt");
     string demand_file("/demand.txt");
     string budget_file("/budget.txt");
+    string cost_file("/cost.txt");
 
     ///// produce
     ifstream fp(net_folder + produce_file);
@@ -67,6 +68,17 @@ SupplyNet::SupplyNet(string net_folder, int n_disasters){
     for(int i = 0; i < _N; i++){
         fp >> _budget[i];
     } 
+    fp.close();
+
+    ///// cost
+    fp.open(net_folder + cost_file);
+    _cost.resize(_N);
+    for(int i = 0; i < _N; i++){
+        _cost[i].resize(_N);
+        for (int j = 0; j < _N; j++){
+            fp >> _cost[i][j];
+        }
+    }
     fp.close();
     
     // load disaster models
