@@ -8,7 +8,7 @@
             "name": "g++ - Build and debug active file",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${fileDirname}/SMC",
+            "program": "${fileDirname}/SPC",
             "args": [
                 "-graph",
                 "./graphs/graph_hawaii_1000.txt",

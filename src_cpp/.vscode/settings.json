@@ -55,7 +55,10 @@
         "sstream": "cpp",
         "stdexcept": "cpp",
         "streambuf": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "list": "cpp",
+        "optional": "cpp",
+        "variant": "cpp"
     },
     "cmake.configureOnOpen": false
 }

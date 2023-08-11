@@ -20,7 +20,6 @@ SupplyChain::SupplyChain(){
     
     sparsify_coeff = true;
     yannakis =true;
-    allow_bf = false;
 
     // global parameters, etc.
     timelimit = -1;
@@ -30,118 +29,233 @@ SupplyChain::~SupplyChain(){
     env.end();
 }
 
-void SupplyChain::loadParameters(char graph_file[], int N, int T, int M, 
-                                     vector<int> src, vector<int> q, char output_dir[]){
+void SupplyChain::loadParameters(string net_folder, int n_disaster, int _T, char output_dir[]){
     
-    if(N < 0){
-        graph = new Graph(graph_file);
-        graph_theta = new Graph(graph_file);
-        _N = graph->_N;
-    }
-    else{
-        // fib graph
-        _N = N;
-        graph = new Graph(N, 1, 2);
-    }
+    _network = SupplyNet(net_folder, n_disaster);
+    _N = _network._N;
+    _M = _network._M;
 
-    _T = T;
-    _M = M;
-    _q = q;
     strcpy(_output_dir, output_dir);
-    supplier_locations.resize(2);
-    supplier_locations[0].push_back(0);
-    supplier_locations[1].push_back(1);
 }
 
 
 void SupplyChain::initializeVariables(){
-    bvars_flow.resize(_T);
-    flow_idx.resize(_T);
-    supplier_idx.resize(_T);
+    bvars.resize(_T);
 
-    int n_mtrl = supplier_locations.size();
-
-    // One-hot encoding for source nodes
-    // Save it to the instance if necessary
-
-    // Preprocess
-    for (int t = 0; t< _T; t++){
-        flow_idx[t].resize(n_mtrl);
-        supplier_idx[t].resize(n_mtrl);
-
-        for (int m = 0; m< n_mtrl; m++){  
-            flow_idx[t][m].resize(_N);
-            supplier_idx[t][m].resize(_N);
-            bvars_flow[t].push_back(IloBoolVarArray(env));
-            bvars[t].push_back(IloBoolVarArray(env));
-
-            for (int i = 0; i< _N; i++){
-                flow_idx[t][m][i].resize(_N);
-                for(int j = 0; j< _N; j++){
-                    if(graph->Adj[i][j] == 1){
-                        IloBoolVar f_var(env);
-                        bvars_flow[t][m].add(f_var);
-                        flow_idx[t][m][i][j] = bvars_flow[t][m].getSize() - 1;
-                    }
-                    if(graph_theta->Adj[i][j] == 1){
-                        IloBoolVar theta_var(env);
-                        bvars[t][m].add(theta_var);
-                        flow_idx[t][m][i][j] = bvars[t][m].getSize() - 1;
-                    }
-                }
-            }            
-            for (int i = 0; i< _N; i++){
-                IloBoolVar m_var(env);
-                bvars[t][m].add(m_var);
-                supplier_idx[t][m][i] = bvars[t][m].getSize() - 1;
-            }
-        }
-    }
-}
-
-
-void SupplyChain::genFlowConstraints(){
-    // There will be T * n_src complete flow_idx
-    // gives a source node, a sink node, determine whether it is a flow
-    // 
-
-    int n_mtrl = supplier_locations.size();
-    // Extract flow constraints
-    // vector<vector<IloConstraintArray>> const_flow;
-    // this is the main output
-    const_flow.resize(_T);
+    index_supplies.resize(_T);      // _T * _N * _N
+    index_disasters.resize(_T);     // _T * _N * _N * _Nd * dim(disaster)
+    index_capacities.resize(_T);    // _T * _N * _M * dim(capacity)
 
     for (int t = 0; t < _T; t++){
-        for (int m = 0; m < n_mtrl; m++){
-            IloConstraintArray const_flow_t_s(env);
-            if (const_flow_t_s.getSize() != 0)
-                cout << "Wrong!" << endl;
+        bvars[t].resize(_N);
 
-            // all nodes
-            for (int i = 0; i< _N; i++){
-                // consider node i
-                // in & out
-                IloNumExpr degree_abs(env);
-                for (int j = 0; j< _N; j++){
-                    if(graph->Adj[j][i] == 1){
-                        // in 
-                        int var_idx = flow_idx[t][m][j][i];
-                        degree_abs += bvars_flow[t][m][var_idx];
-                    }
-                    if(graph->Adj[i][j] == 1){
-                        // out 
-                        int var_idx = flow_idx[t][m][i][j];
-                        degree_abs -= bvars_flow[t][m][var_idx];
-                    }
-                }
-                int var_idx = supplier_idx[t][m][i]; 
-                const_flow_t_s.add((degree_abs == (factory_assign[i] - bvars[t][m][var_idx])));
+        index_supplies[t].resize(_N);
+        index_disasters[t].resize(_N);
+        index_capacities[t].resize(_N);
+
+        for (int i = 0; i < _N; i++){
+            index_supplies[t][i].resize(_N);
+            fill(index_supplies[t][i].begin(), index_supplies[t][i].end(), -1); 
+
+            index_disasters[t][i].resize(_M);
+            for(int j = 0; j < _M; j++){
+                index_disasters[t][i][j].resize(_network._Nd);
             }
 
-            const_flow[t].push_back(const_flow_t_s);
+            index_capacities[t][i].resize(_M);
+        }
+
+
+        for (int i = 0; i < _N; i++){
+
+            for (int m = 0; m < _M; m++){
+                bvars[t][i].push_back(IloBoolVarArray(env));
+
+                // add supply variables
+                if(_network._demand[i][m] != 0){
+                    // node i requires _demand[i][m] unit of material m
+                    // will create a bunch of variables for those trade edges
+                    for (int p = 0; p < _network._producers[m].size(); p ++){
+                        // node _network._producers[m][p] produces material m
+                        IloBoolVar var_supply(env);
+                        bvars[t][i][m].add(var_supply);
+
+                        int idx = _network._producers[m][p];
+                        index_supplies[t][idx][i] = bvars[t][i][m].getSize() - 1;
+                    }
+                }
+
+                // add disaster variables
+                for (int d = 0; d < _network._Nd; d++){
+                    for (int dd = 0; dd < _network._disaster_precision[d]; dd++){
+                        IloBoolVar var_dis(env);
+                        bvars[t][i][m].add(var_dis);
+
+                        index_disasters[t][i][m][d].push_back(bvars[t][i][m].getSize() - 1);
+                    }
+                }
+
+                // add capacity variables
+                for (int c = 0; c < _network._capacity_precision; c++){
+                        IloBoolVar var_cap(env);
+                        bvars[t][i][m].add(var_cap);
+
+                        index_capacities[t][i][m].push_back(bvars[t][i][m].getSize() - 1);
+                }
+            }
+        }
+    }
+
+    supplier_selection = IloBoolVarArray(env);
+    index_selection.resize(_N);
+    for (int i = 0; i< _N; i++){
+        index_selection[i].resize(_N);
+        fill(index_selection[i].begin(), index_selection[i].end(), -1);
+    }
+
+    for (int i = 0; i< _N; i++){
+        for (int m = 0; m < _M; m++){
+            if(_network._demand[i][m] != 0){
+                for (int p = 0; p < _network._producers[m].size(); p ++){
+                    IloBoolVar var_select(env);
+                    supplier_selection.add(var_select);
+
+                    int idx = _network._producers[m][p];
+                    index_selection[idx][i] = supplier_selection.getSize() - 1;
+                }
+            }
         }
     }
 }
+
+
+void SupplyChain::genSupplyConstraints(){
+    // given sampled single supply source
+
+    IloConstraintArray const_disaster(env);
+    IloConstraintArray const_capacity(env);
+
+
+
+    //
+    for (int t = 0; t < _T; t++){
+        for (int i = 0; i < _N; i++){
+            for (int m = 0; m < _M; m++){
+                if(_network._demand[i][m] != 0){
+                    // i needs material m
+                    // IloBoolVarArray supply_vars;
+
+                    IloConstraintArray const_temp(env);
+
+                    for (int p = 0; p < _network._producers[m].size(); p ++){
+                        int splr = _network._producers[m][p];
+
+                        // considering (splr -> i) supply
+
+                        // int idx_s = index_supplies[t][splr][i];
+                        // bvars[t][i][m][idx] is the corresponding variable
+
+                        
+
+                        // the capacity info is
+                        // int idx_c = 
+                        // the disaster info is
+                        // int idx_d = 
+                    }
+                }
+            }
+        }
+    } 
+}
+
+// {
+//     bvars_flow.resize(_T);
+//     flow_idx.resize(_T);
+//     supplier_idx.resize(_T);
+
+//     int n_mtrl = supplier_locations.size();
+
+//     // One-hot encoding for source nodes
+//     // Save it to the instance if necessary
+
+//     // Preprocess
+//     for (int t = 0; t< _T; t++){
+//         flow_idx[t].resize(n_mtrl);
+//         supplier_idx[t].resize(n_mtrl);
+
+//         for (int m = 0; m< n_mtrl; m++){  
+//             flow_idx[t][m].resize(_N);
+//             supplier_idx[t][m].resize(_N);
+//             bvars_flow[t].push_back(IloBoolVarArray(env));
+//             bvars[t].push_back(IloBoolVarArray(env));
+
+//             for (int i = 0; i< _N; i++){
+//                 flow_idx[t][m][i].resize(_N);
+//                 for(int j = 0; j< _N; j++){
+//                     if(graph->Adj[i][j] == 1){
+//                         IloBoolVar f_var(env);
+//                         bvars_flow[t][m].add(f_var);
+//                         flow_idx[t][m][i][j] = bvars_flow[t][m].getSize() - 1;
+//                     }
+//                     if(graph_theta->Adj[i][j] == 1){
+//                         IloBoolVar theta_var(env);
+//                         bvars[t][m].add(theta_var);
+//                         flow_idx[t][m][i][j] = bvars[t][m].getSize() - 1;
+//                     }
+//                 }
+//             }            
+//             for (int i = 0; i< _N; i++){
+//                 IloBoolVar m_var(env);
+//                 bvars[t][m].add(m_var);
+//                 supplier_idx[t][m][i] = bvars[t][m].getSize() - 1;
+//             }
+//         }
+//     }
+// }
+
+
+// void SupplyChain::genFlowConstraints(){
+//     // There will be T * n_src complete flow_idx
+//     // gives a source node, a sink node, determine whether it is a flow
+//     // 
+
+//     int n_mtrl = supplier_locations.size();
+//     // Extract flow constraints
+//     // vector<vector<IloConstraintArray>> const_flow;
+//     // this is the main output
+//     const_flow.resize(_T);
+
+//     for (int t = 0; t < _T; t++){
+//         for (int m = 0; m < n_mtrl; m++){
+//             IloConstraintArray const_flow_t_s(env);
+//             if (const_flow_t_s.getSize() != 0)
+//                 cout << "Wrong!" << endl;
+
+//             // all nodes
+//             for (int i = 0; i< _N; i++){
+//                 // consider node i
+//                 // in & out
+//                 IloNumExpr degree_abs(env);
+//                 for (int j = 0; j< _N; j++){
+//                     if(graph->Adj[j][i] == 1){
+//                         // in 
+//                         int var_idx = flow_idx[t][m][j][i];
+//                         degree_abs += bvars_flow[t][m][var_idx];
+//                     }
+//                     if(graph->Adj[i][j] == 1){
+//                         // out 
+//                         int var_idx = flow_idx[t][m][i][j];
+//                         degree_abs -= bvars_flow[t][m][var_idx];
+//                     }
+//                 }
+//                 int var_idx = supplier_idx[t][m][i]; 
+//                 const_flow_t_s.add((degree_abs == (factory_assign[i] - bvars[t][m][var_idx])));
+//             }
+
+//             const_flow[t].push_back(const_flow_t_s);
+//         }
+//     }
+// }
 
 
 // void SupplyChain::genShelterConstraints(){

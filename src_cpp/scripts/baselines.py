@@ -7,6 +7,7 @@ from cnf2uai import cnf_to_uai
 from sampler.gibbs_sampler.gibbs_mrf import Gibbs_Sampling
 import os
 import sys
+import argparse
 
 def calc_heuristic(cnf_file, n_free, n_samples, sampler='gibbs'):
     # Sampling based counter.
@@ -18,7 +19,7 @@ def calc_heuristic(cnf_file, n_free, n_samples, sampler='gibbs'):
 
 def draw_from_gibbs_sampling(num_samples, input_file, cnf_instance, prob):
     cnf_to_uai(cnf_instance, prob, input_file + ".uai")
-    returned_samples = Gibbs_Sampling(input_file + ".uai", num_samples, burnin_time=20)
+    returned_samples = Gibbs_Sampling(input_file + ".uai", num_samples, burnin_time=15)
     return returned_samples
 
 
@@ -27,7 +28,7 @@ def draw_from_quicksampler(num_samples, input_file):
     formula = CNF(input_file)
     solver = Solver(bootstrap_with=formula.clauses)
     iter = 0
-    max_iter = 1000
+    max_iter = 50
     while len(sampled_assignments) < num_samples:
         iter += 1
         if(iter > max_iter):
@@ -81,12 +82,10 @@ def draw_from_unigen(num_samples, input_file):
     return np.array(sampled_assignments)
 
 
-def shelter_location_local_search(graph: Graph, sources, sampler = 'gibbs'):
+def shelter_location_local_search(graph: Graph, sources, sampler = 'gibbs', n_sample_bits=20):
     N = graph.N
     ctx = bx.Context()
     
-
-
     start = np.random.randint(0, N+1)
     # start = 50 #94 #113
 
@@ -98,7 +97,6 @@ def shelter_location_local_search(graph: Graph, sources, sampler = 'gibbs'):
     max_steps = 100
     max_neighbor = 10
     n_samples = 20
-    n_sampling_bits = 14
 
     neighbors = [start]
 
@@ -122,7 +120,7 @@ def shelter_location_local_search(graph: Graph, sources, sampler = 'gibbs'):
                 assign_values = []  # 0 -- 0; 1 -- 1; -1 -- keep
                 acc_prob = 1.0
 
-                for nsb in range(n_sampling_bits):
+                for nsb in range(n_sample_bits):
                     print(f"Sampling the {nsb} round")
                     cnf, _ = flow2CNF_nbf(graph, flow, s, nb)
 
@@ -131,6 +129,7 @@ def shelter_location_local_search(graph: Graph, sources, sampler = 'gibbs'):
                         break
 
                     if not cnf.is_cnf():
+                        print("Convert to CNF!")
                         cnf.to_cnf()
 
                     if not cnf.sat()[0]:
@@ -142,6 +141,7 @@ def shelter_location_local_search(graph: Graph, sources, sampler = 'gibbs'):
 
                     # sample from cnf
                     st = time.time()
+                    print(f"Start sampling!")
 
                     if(sampler == 'quick'):
                         returned_samples = draw_from_quicksampler(n_samples, "flow_cnf.cnf")
@@ -154,6 +154,10 @@ def shelter_location_local_search(graph: Graph, sources, sampler = 'gibbs'):
                         cnf_inst = CNF("flow_cnf.cnf")
                         prob = np.ones(cnf_inst.nv)
                         returned_samples = draw_from_gibbs_sampling(n_samples, "gibbs.uniform", cnf_inst, prob)
+                    
+                    if (returned_samples.shape[0] == 0):
+                        print("No sample!")
+                        break
 
 
                     sampled_time = time.time() - st
@@ -181,8 +185,12 @@ def shelter_location_local_search(graph: Graph, sources, sampler = 'gibbs'):
 
                 cnf, _ = flow2CNF_nbf(graph, flow, s, nb)
                 cnt = 0
+                print("All bits sampled")
                 for sat in cnf.iter_sat():
                     # print(sat)
+                    if(cnt > 20000):
+                        print("too many solutions in down-sized SAT")
+                        break
                     cnt += 1
                 
                 nb_eval.append([cnt, acc_prob])
@@ -220,22 +228,84 @@ def shelter_location_local_search(graph: Graph, sources, sampler = 'gibbs'):
         neighbors = []  # initialize
 
     print(best_everseen)
-    return best_everseen[-1]
+    return best_everseen
 
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Incremental Shelter Finding')
+    parser.add_argument(
+        '-g', '--graph', default="./graphs/graph1.txt", help='Graph file required')
+    parser.add_argument(
+        '-n', '--N', default=10, type=int, help='Rounds')
+    parser.add_argument(
+        '-s','--source', nargs='+', help='Source nodes (residential areas)', required=True)
+    parser.add_argument(
+        '--sampler', default="quick", help='quick, unigen, gibbs')
+    parser.add_argument(
+        '-b', '--n_sample_bits', default=20, type=int, help='n_sample_bits')
+    parser.add_argument(
+        '--seed', default=1086, type=int, help='quick, unigen, gibbs')
+    parser.add_argument(
+        '-o','--output', default="./LOG-baseline", help='Output base path')
+    
+    args = parser.parse_args()
+
+    # params
+    graph_path = args.graph
+    sampler = args.sampler
+    n_rounds = args.N
+    n_sample_bits = args.n_sample_bits
+    source = [int(i) for i in args.source]
+    output = args.output
+    seed = args.seed
+
+    print("Parameters")
+    print(f"graph: {graph_path}")
+    print(f"N: {n_rounds}")
+    print(f"n_sample_bits: {n_sample_bits}")
+    print(f"sampler: {sampler}")
+    print(f"source: {source}")
+    print(f"output: {output}")
+    print(f"seed: {seed}")
+        
+
     graph = Graph()
-    graph.readFromFile("graphs/graph_hawaii_200.txt")
-    np.random.seed(1086)
+    graph.readFromFile(graph_path)
+    np.random.seed(seed)
+
+
     best_everseen = []
     run_time_list = []
-    for i in range(10):
+    for i in range(n_rounds):
         st = time.time()
-        res = shelter_location_local_search(graph, [0, 10, 20], 'gibbs')
+        res = shelter_location_local_search(graph, source, sampler, n_sample_bits)
         best_everseen.append(res)
         run_time = time.time() - st
         run_time_list.append(run_time)
     
-    print(best_everseen)
-    print(run_time_list)
+    if not os.path.exists(output):
+        os.makedirs(output)
+    
+    res_file_path = output + "/result.log"
+    runtime_file_path = output + "/runtime.log"
+    params_file_path = output + "/params.log"
+
+    with open(res_file_path, 'w') as f:
+        for line in best_everseen:
+            f.write(f"{line}\n")
+    
+    with open(runtime_file_path, 'w') as f:
+        for line in run_time_list:
+            f.write(f"{line}\n")
+    
+    with open(params_file_path, 'w') as f:
+        f.write("Parameters\n")
+        f.write(f"graph: {graph_path}\n")
+        f.write(f"N: {n_rounds}\n")
+        f.write(f"sampler: {sampler}\n")
+        f.write(f"source: {source}\n")
+        f.write(f"seed: {seed}\n")
+        f.write(f"n_sample_bits: {n_sample_bits}")
+
+

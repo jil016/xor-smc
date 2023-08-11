@@ -1,0 +1,5 @@
+numpy
+python-sat
+networkx
+boolexpr
+seaborn
