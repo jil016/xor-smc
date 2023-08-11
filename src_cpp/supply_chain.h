@@ -33,6 +33,7 @@ class SupplyChain {
         int _M;
         int _T;
         SupplyNet _network;
+        string _net_folder;
         char _output_dir[1024];
 
         // CPLEX SOLVER
@@ -48,7 +49,6 @@ class SupplyChain {
         IloInt timelimit;
 
 
-
         // Variables       
         // The following variables appears in the optimization
         
@@ -58,16 +58,12 @@ class SupplyChain {
         IloConstraintArray const_budget;
 
 
-        IloBoolVarArray bvars_maj;      // Ignore majority in this case
-        IloConstraint const_majority;
-
-
         // Constraints for XOR
         bool sparsify_coeff;
         bool yannakis;    // yannakis encoding by default
-        vector<vector<IloConstraintArray>> const_xor;
-        vector<vector<IloIntVarArray>> ivars_xor;
-        vector<vector<IloBoolVarArray>> bvars_xor;
+        vector<vector<vector<IloConstraintArray>>> const_xor;
+        vector<vector<vector<IloIntVarArray>>> ivars_xor;
+        vector<vector<vector<IloBoolVarArray>>> bvars_xor;
 
 
         SupplyChain();
@@ -83,16 +79,17 @@ class SupplyChain {
         void initializeVariables();
         void genSupplyConstraints();
 
-        void genCapacityConstraints();
-        void genBudgetConstraints();
-
-        void genMajorityConstraints();
         void genXORConstraints();     
         void prepareModel();   
 
         // utils
         bool makeHashFuncSolvable(vector<vector<bool>> &coeffA);
-        void extractXorVarConst(vector<vector<bool>> coeffA, int t, int s);
+        void extractXorVarConst(vector<vector<bool>> coeffA, int t, int n, int m);
+
+        // Ignore majority in this application
+        // IloBoolVarArray bvars_maj;      
+        // IloConstraint const_majority;
+        // void genMajorityConstraints();
 };
 
 

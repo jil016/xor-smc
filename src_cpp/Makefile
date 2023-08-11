@@ -51,7 +51,7 @@ PFLAGS =
 
 BUILD = $(CC) -shared
 
-default: SPC
+default: all
 
 %.o : %.cpp %.hpp
 	$(CC) $(OFLAGS) $(CFLAGS) $(LIBFLAGS) -c -o $@  $< $(PFLAGS)
@@ -62,6 +62,7 @@ default: SPC
 %.o : %.cpp
 	$(CC) $(OFLAGS) $(CFLAGS) $(LIBFLAGS) -c -o $@  $< $(PFLAGS)
 
+all: SL SPC
 
 SL: main_sl.cpp graph.o graph.h utils.o utils.h shelter_location.o shelter_location.h
 	$(CC) $(OFLAGS) $(CFLAGS) -o $@ $< graph.o utils.o shelter_location.o $(ILOGLIBS) -L. -lgmp -ldl -no-pie
