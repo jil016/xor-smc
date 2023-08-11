@@ -132,40 +132,105 @@ void SupplyChain::initializeVariables(){
 void SupplyChain::genSupplyConstraints(){
     // given sampled single supply source
 
-    IloConstraintArray const_disaster(env);
-    IloConstraintArray const_capacity(env);
+    vector<vector<vector<IloBoolVarArray>>> bvars;
 
+    vector<vector<IloConstraintArray>> constraints;
 
+    vector<vector<IloBoolVarArray>> supply_selection;  // big boss
+    supply_selection.resize(_N);
+    for (int n = 0; n < _N; n++){
+        for (int m = 0; m < _M; m++){
+            if(_network._demand[n][m] != 0){ 
+                supply_selection[n].push_back(IloBoolVarArray(env, _network._producers[m].size()));
+            }
+            else{
+                supply_selection[n].push_back(IloBoolVarArray(env));
+            }
+        }
+    }
 
     //
     for (int t = 0; t < _T; t++){
-        for (int i = 0; i < _N; i++){
+        for (int n = 0; n < _N; n++){
             for (int m = 0; m < _M; m++){
-                if(_network._demand[i][m] != 0){
-                    // i needs material m
-                    // IloBoolVarArray supply_vars;
+                if(_network._demand[n][m] != 0){
+                    // supply
+                    IloBoolVarArray bvars_supply(env);  // represents only one supplier
+                    IloConstraintArray const_supply(env);
 
-                    IloConstraintArray const_temp(env);
+                    // capacity
+                    IloBoolVarArray bvars_cap(env, 4);  // dim(capacity) 4 digits
+                    IloNumExpr capacity_encoded = 8*bvars_cap[0] + 4*bvars_cap[1] + 2*bvars_cap[2] + bvars_cap[3];
 
-                    for (int p = 0; p < _network._producers[m].size(); p ++){
-                        int splr = _network._producers[m][p];
-
-                        // considering (splr -> i) supply
-
-                        // int idx_s = index_supplies[t][splr][i];
-                        // bvars[t][i][m][idx] is the corresponding variable
-
+                    // disasters
+                    vector<IloBoolVarArray> bvars_dis; // _Nd * dim(disaster) 4 digits each
+                    vector<IloNumExpr> disaster_encoded;
+                    for(int d = 0; d < _network._Nd; d++){
+                        IloBoolVarArray bvars_dis_d(env, 4);
+                        IloNumExpr dis_d_encoded = 8*bvars_dis_d[0] + 4*bvars_dis_d[1] + 2*bvars_dis_d[2] + bvars_dis_d[3];
                         
-
-                        // the capacity info is
-                        // int idx_c = 
-                        // the disaster info is
-                        // int idx_d = 
+                        bvars_dis.push_back(bvars_dis_d);
+                        disaster_encoded.push_back(dis_d_encoded);
                     }
+
+                    for (int j = 0; j < _network._producers[m].size(); j ++){
+                        int p = _network._producers[m][j]; 
+                        // considering (p -> n) supply
+
+                        IloBoolVar bvar_pn(env);
+                        IloConstraint const_supply_pn;
+
+                        // capacity is large enough
+                        int capacity_pn = _network._capacity[p][n];  // precision = 4. this is an integer 0~16
+                        IloConstraint const_cap_pn = (capacity_encoded <= capacity_pn); // capacity success
+                        
+                        // survived in all disasters
+                        IloConstraint const_dis_pn;
+                        for(int d = 0; d < _network._Nd; d++){
+                            // disaster pass
+                            int prob_pn_d = _network._disaster_map[d][p][n];
+                            
+                            const_dis_pn = const_dis_pn && (disaster_encoded[d] >= prob_pn_d);
+                        }
+                        
+                        // overall
+                        const_supply_pn = (bvar_pn == 0) || (const_cap_pn && const_dis_pn);
+                        
+                        bvars_supply.add(bvar_pn);
+                        const_supply.add(const_supply_pn);
+                    }
+                    // for this specific material,
+
+                    // one edge sampled a time
+                    IloNumExpr expr_one_edge(env);
+                    for (int j = 0; j < _network._producers[m].size(); j++){
+                        expr_one_edge = expr_one_edge + bvars_supply[j];
+                    }
+                    IloConstraint const_one_edge = (expr_one_edge == 1);
+
+                
+                    IloConstraintArray const_be_selected;
+                    for (int j = 0; j < _network._producers[m].size(); j++){
+                        const_be_selected.add(bvars_supply[j] <= supply_selection[n][m][j]);
+                    }
+
+                    // push_back the following:
+
+                    // const_be_selected
+                    // const_one_edge
+                    // const_supply
+
+                    // bvars_supply
+                    // bvars_cap
+                    // bvars_dis
+
                 }
             }
         }
     } 
+
+    // limit the budget
+    //
 }
 
 // {
