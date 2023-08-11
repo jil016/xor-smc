@@ -1,5 +1,7 @@
 *.o
 SMC
+SPC
+SL
 LOG
 LOG*
 *.lp
