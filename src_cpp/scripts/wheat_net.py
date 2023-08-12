@@ -1,0 +1,129 @@
+import numpy as np
+
+def gen_wheat_data():
+    # We need:
+    # - produces
+    # - demand
+    # - cost
+    # - budget
+    # - capacity
+    # - disaster models
+
+    wheat = [i for i in range(9)]  # 9
+    flour = [i for i in range(9, 16)]  # 7
+    bread = [i for i in range(16, 25)]  # 9
+    market = [i for i in range(25, 25+19)]  #19
+
+    rate_wheat_flour = 0.83
+    rate_flour_bread = 1.3
+
+    # produce
+    produce = [0] * len(wheat) + [1] * len(flour) + [2] * len(bread) + [3] * len(market)
+
+    # demand
+    # demand for the market side is ...
+    # then at least the bread factories should ...
+    # 
+
+    # cost
+    cost_wf =  [[967,	659,	1330,	810,	1159,	1081,	375],
+                [280,	1523,	1637,	1038,	911,	1276,	879],
+                [1032,	368,	1042,	1152,	470,	1390,	1212],
+                [1623,	1325,	999,	1173,	924,	873,	1543],
+                [414,	1112,	1288,	653,	838,	953,	320],
+                [1653,	619,	485,	975,	1284,	657,	1327],
+                [329,	949,	1125,	464,	649,	736,	263],
+                [1143,	120,	680,	485,	950,	350,	830],
+                [731,	1181,	1273,	600,	370,	911,	911]]
+
+    cost_fb =  [[1553,	1909,	1353,	900,	757,	450,	1623,	505,	1300],
+                [490,	1123,	571,	659,	485,	881,	1325,	773,	100],
+                [485,	552,	100,	1230,	661,	1273,	550,	949,	571],
+                [975,	1213,	661,	745,	300,	320,	1173,	288,	585],
+                [1084,	1378,	1073,	886,	396,	270,	924,	507,	1181],
+                [557,	913,	361,	981,	300,	527,	673,	588,	575],
+                [1227,	1583,	1031,	300,	370,	711,	1543,	206,	855]]
+
+    cost_bm =  [[743,	866,	720,	520,	200,	485,	300,	400,	300,	619,	320,	400,	1087,	1037,	835,	770,	557,	750,	827],
+                [325,	170,	200,	352,	652,	360,	890,	680,	823,	1123,	723,	870,	1736,	1736,	1436,	1335,	913,	1293,	1427],
+                [529,	550,	529,	300,	200,	280,	685,	670,	400,	671,	460,	500,	1284,	1184,	1070,	950,	361,	745,	775],
+                [1759,	1780,	1765,	1530,	1030,	1530,	978,	1587,	800,	510,	870,	800,	100,	210,	120,	200,	1081,	433,	485],
+                [1190,	1363,	1370,	861,	561,	850,	975,	1175,	600,	485,	661,	680,	700,	870,	745,	870,	300,	299,	500],
+                [1453,	1673,	1810,	1473,	1273,	1540,	1384,	1680,	1010,	1220,	1160,	710,	760,	904,	886,	986,	727,	810,	976],
+                [350,	480,	780,	360,	700,	580,	1313,	1113,	925,	1225,	960,	1100,	1640,	1808,	1618,	1650,	873,	1405,	1200],
+                [1478,	1650,	1700,	1100,	949,	1120,	1045,	1525,	905,	773,	995,	960,	300,	701,	581,	650,	588,	587,	868],
+                [1100,	1000,	1050,	700,	420,	670,	519,	819,	1855,	180,	250,	200,	730,	670,	620,	559,    425,	200,	304]]
+
+    # capacity of each edge -- limited by factory capacity and transportation
+    # raw data, then discretized to 0~16
+    capacity_wf = [[],
+                   [],
+                   [],
+                   [],
+                   [],
+                   [],
+                   [],
+                   []]
+
+    capacity_fb = []
+
+    capacity_bm = []
+
+    return
+
+
+def gen_downsized_data():
+    # We need:
+    # - produces
+    # - demand
+    # - cost
+    # - budget
+    # - capacity
+    # - disaster models
+
+    wheat = [i for i in range(2)]  # 9
+    flour = [i for i in range(2, 4)]  # 7
+    bread = [i for i in range(4, 6)]  # 9
+    market = [i for i in range(6, 8)]  #19
+
+    rate_wheat_flour = 0.83
+    rate_flour_bread = 1.3
+
+    # produce
+    produce = [0] * len(wheat) + [1] * len(flour) + [2] * len(bread) + [3] * len(market)
+
+    # demand
+    demand = []
+
+    # cost
+    cost_wf =  [[967,	659],
+                [280,	1523]]
+
+    cost_fb =  [[1553,	1909],
+                [490,	1123]]
+    
+    cost_bm =  [[743,	866],
+                [325,	170]]
+    
+    # budget
+    # node 0 - 7
+    budget = [3000] * 8
+    
+    # capacity of each edge -- limited by factory capacity and transportation
+    # raw data, then discretized to 0~16
+    capacity_wf = [[],
+                   []]
+
+    capacity_fb = [[],
+                   []]
+
+    capacity_bm = [[],
+                   []]
+
+
+    disaster_models = []
+
+    return
+
+if __name__ == '__main__':
+    gen_wheat_data()
