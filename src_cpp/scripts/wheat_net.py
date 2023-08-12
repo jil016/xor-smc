@@ -72,7 +72,7 @@ def gen_wheat_data():
     return
 
 
-def gen_downsized_data():
+def gen_downsized_data(net_folder):
     # We need:
     # - produces
     # - demand
@@ -85,15 +85,21 @@ def gen_downsized_data():
     flour = [i for i in range(2, 4)]  # 7
     bread = [i for i in range(4, 6)]  # 9
     market = [i for i in range(6, 8)]  #19
-
-    rate_wheat_flour = 0.83
-    rate_flour_bread = 1.3
+    n_disaster = 4
 
     # produce
     produce = [0] * len(wheat) + [1] * len(flour) + [2] * len(bread) + [3] * len(market)
 
     # demand
-    demand = []
+    demand = [[2, 0, 1],
+              [3, 0, 1],
+              [4, 1, 1],
+              [5, 1, 1],
+              [6, 2, 1],
+              [7, 2, 1]]
+    # only need one unit?
+    # increase need for 6/7, will increase the production
+
 
     # cost
     cost_wf =  [[967,	659],
@@ -111,19 +117,40 @@ def gen_downsized_data():
     
     # capacity of each edge -- limited by factory capacity and transportation
     # raw data, then discretized to 0~16
-    capacity_wf = [[],
-                   []]
+    # should correspond to demand
+    # real capacity: 5000, 9000, 8500
+    # real demand for market: 2900 bread 
+    # real demand for bread factory: 2230 flour
+    # real demand for flour factory: 2686 wheat
+    # 
+    # sum cap * disaster_prob * I >= demand
+    # demand / cap * 16^n_disasters
+    print("demand = ", np.log2(2900/8500/16 *(16**n_disaster)))
 
-    capacity_fb = [[],
-                   []]
+    # rate_wheat_flour = 0.83
+    # rate_flour_bread = 1.3
+    # rate_market = 1.0
+    # probability: discretized by 1/16
 
-    capacity_bm = [[],
-                   []]
+    capacity_wf = [[5000, 5000],
+                   [5000, 5000]]
 
+    capacity_fb = [[9000, 9000],
+                   [9000, 9000]]
+
+    capacity_bm = [[8500, 8500],
+                   [8500, 8500]]
 
     disaster_models = []
+    for i in range(n_disaster):
+        disaster_i = np.random.randint(0,2,size=(8,8))
+        disaster_models.append(disaster_i.tolist())
+
+    # export files
+    # 
 
     return
 
 if __name__ == '__main__':
-    gen_wheat_data()
+    # gen_wheat_data()
+    gen_downsized_data("./test_net")
