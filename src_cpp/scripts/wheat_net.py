@@ -144,8 +144,7 @@ def gen_downsized_data(net_folder):
     # node 0 - 7
     budget = ['3000'] * 8
     with open(net_folder + "/budget.txt", "w") as fp:
-        fp.write(f"{market[-1] + 1} {4}\n")
-        fp.write(" ".join(produce))
+        fp.write(" ".join(budget))
     
     # capacity of each edge -- limited by factory capacity and transportation
     # raw data, then discretized to 0~16
@@ -164,14 +163,11 @@ def gen_downsized_data(net_folder):
     # rate_market = 1.0
     # probability: discretized by 1/16
 
-    capacity_wf = [[5000, 5000],
-                   [5000, 5000]]
+    capacity_wf = np.random.randint(10,16, size=(2,2)).tolist()
 
-    capacity_fb = [[9000, 9000],
-                   [9000, 9000]]
+    capacity_fb = np.random.randint(9,15, size=(2,2)).tolist()
 
-    capacity_bm = [[8500, 8500],
-                   [8500, 8500]]
+    capacity_bm = np.random.randint(8,14, size=(2,2)).tolist()
 
     capacity_matrix = np.zeros((market[-1] + 1, market[-1] + 1),dtype=int).tolist()
     for i, w_idx in enumerate(wheat):
@@ -188,15 +184,24 @@ def gen_downsized_data(net_folder):
     
     # print(capacity_matrix)
     # export capacity matrix
-
+    with open(net_folder + "/capacity.txt", "w") as fp:
+        fp.write("4\n")
+        for line in capacity_matrix:
+            fp.write(" ".join([str(l) for l in line]))
+            fp.write("\n")
 
     disaster_models = []
     for i in range(n_disaster):
         disaster_i = np.random.randint(0,2,size=(8,8))
         disaster_models.append(disaster_i.tolist())
 
-    # export files
-    # 
+    # export disasters
+    for i, model in enumerate(disaster_models):
+        with open(net_folder + f"/disaster{i}.txt", "w") as fp:
+            fp.write("4\n")
+            for line in model:
+                fp.write(" ".join([str(l) for l in line]))
+                fp.write("\n")
 
     return
 
