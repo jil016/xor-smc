@@ -1,7 +1,7 @@
 import numpy as np
 import os
 
-def gen_wheat_data():
+def gen_wheat_data(net_folder):
     # We need:
     # - produces
     # - demand
@@ -9,22 +9,36 @@ def gen_wheat_data():
     # - budget
     # - capacity
     # - disaster models
+    if not os.path.exists(net_folder):
+        os.mkdir(net_folder)
 
     wheat = [i for i in range(9)]  # 9
     flour = [i for i in range(9, 16)]  # 7
     bread = [i for i in range(16, 25)]  # 9
     market = [i for i in range(25, 25+19)]  #19
-
-    rate_wheat_flour = 0.83
-    rate_flour_bread = 1.3
+    n_disaster = 4
 
     # produce
-    produce = [0] * len(wheat) + [1] * len(flour) + [2] * len(bread) + [3] * len(market)
+    produce = ['0'] * len(wheat) + ['1'] * len(flour) + ['2'] * len(bread) + ['3'] * len(market)
+    with open(net_folder + "/produce.txt", "w") as fp:
+        fp.write(f"{market[-1] + 1} {4}\n")
+        fp.write(" ".join(produce))
 
     # demand
-    # demand for the market side is ...
-    # then at least the bread factories should ...
-    # 
+    demand = []
+    for f in flour:
+        demand.append([f, 0, 1])
+    for b in flour:
+        demand.append([b, 1, 1])
+    for m in flour:
+        demand.append([m, 2, 1])
+    # only need one unit?
+    # increase need for 6/7, will increase the production
+    with open(net_folder + "/demand.txt", "w") as fp:
+        fp.write(f"{len(demand)}\n")
+        for line in demand:
+            fp.write(" ".join([str(l) for l in line]))
+            fp.write("\n")
 
     # cost
     cost_wf =  [[967,	659,	1330,	810,	1159,	1081,	375],
@@ -55,20 +69,88 @@ def gen_wheat_data():
                 [1478,	1650,	1700,	1100,	949,	1120,	1045,	1525,	905,	773,	995,	960,	300,	701,	581,	650,	588,	587,	868],
                 [1100,	1000,	1050,	700,	420,	670,	519,	819,	1855,	180,	250,	200,	730,	670,	620,	559,    425,	200,	304]]
 
+    
+    cost_matrix = np.zeros((market[-1] + 1, market[-1] + 1),dtype=int).tolist()
+    for i, w_idx in enumerate(wheat):
+        for j, f_idx in enumerate(flour):
+            cost_matrix[w_idx][f_idx] = cost_wf[i][j]
+
+    for i, f_idx in enumerate(flour):
+        for j, b_idx in enumerate(bread):
+            cost_matrix[f_idx][b_idx] = cost_fb[i][j]
+
+    for i, b_idx in enumerate(bread):
+        for j, m_idx in enumerate(market):
+            cost_matrix[b_idx][m_idx] = cost_bm[i][j]
+
+    with open(net_folder + "/cost.txt", "w") as fp:
+        for line in cost_matrix:
+            fp.write(" ".join([str(l) for l in line]))
+            fp.write("\n")
+    
+    # budget
+    # node 0 - 
+    budget = ['3000'] * (market[-1] + 1)
+    with open(net_folder + "/budget.txt", "w") as fp:
+        fp.write(" ".join(budget))
+    
     # capacity of each edge -- limited by factory capacity and transportation
     # raw data, then discretized to 0~16
-    capacity_wf = [[],
-                   [],
-                   [],
-                   [],
-                   [],
-                   [],
-                   [],
-                   []]
+    # should correspond to demand
+    # real capacity: 5000, 9000, 8500
+    # real demand for market: 2900 bread 
+    # real demand for bread factory: 2230 flour
+    # real demand for flour factory: 2686 wheat
+    # 
+    # sum cap * disaster_prob * I >= demand
+    # demand / cap * 16^n_disasters
+    print("demand = ", np.log2(2900/8500/16 *(16**n_disaster)))
 
-    capacity_fb = []
+    # rate_wheat_flour = 0.83
+    # rate_flour_bread = 1.3
+    # rate_market = 1.0
+    # probability: discretized by 1/16
 
-    capacity_bm = []
+    capacity_wf = np.random.randint(10,16, size=(9,7)).tolist()
+
+    capacity_fb = np.random.randint(9,15, size=(7,9)).tolist()
+
+    capacity_bm = np.random.randint(8,14, size=(9,19)).tolist()
+
+    capacity_matrix = np.zeros((market[-1] + 1, market[-1] + 1),dtype=int).tolist()
+    for i, w_idx in enumerate(wheat):
+        for j, f_idx in enumerate(flour):
+            capacity_matrix[w_idx][f_idx] = capacity_wf[i][j]
+
+    for i, f_idx in enumerate(flour):
+        for j, b_idx in enumerate(bread):
+            capacity_matrix[f_idx][b_idx] = capacity_fb[i][j]
+
+    for i, b_idx in enumerate(bread):
+        for j, m_idx in enumerate(market):
+            capacity_matrix[b_idx][m_idx] = capacity_bm[i][j]
+    
+    # print(capacity_matrix)
+    # export capacity matrix
+    with open(net_folder + "/capacity.txt", "w") as fp:
+        fp.write("4\n")
+        for line in capacity_matrix:
+            fp.write(" ".join([str(l) for l in line]))
+            fp.write("\n")
+
+    disaster_models = []
+    for i in range(n_disaster):
+        disaster_i = np.random.randint(0,2,size=(8,8))
+        disaster_models.append(disaster_i.tolist())
+
+    # export disasters
+    for i, model in enumerate(disaster_models):
+        with open(net_folder + f"/disaster{i}.txt", "w") as fp:
+            fp.write("4\n")
+            for line in model:
+                fp.write(" ".join([str(l) for l in line]))
+                fp.write("\n")
+
 
     return
 
@@ -206,6 +288,6 @@ def gen_downsized_data(net_folder):
     return
 
 if __name__ == '__main__':
-    # gen_wheat_data()
     np.random.seed(1086)
+    gen_wheat_data("./test_net_large")
     gen_downsized_data("./test_net")
