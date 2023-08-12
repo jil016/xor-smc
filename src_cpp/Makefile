@@ -65,10 +65,10 @@ default: all
 all: SL SPC
 
 SL: main_sl.cpp graph.o graph.h utils.o utils.h shelter_location.o shelter_location.h
-	$(CC) $(OFLAGS) $(CFLAGS) -o $@ $< graph.o utils.o shelter_location.o $(ILOGLIBS) -L. -lgmp -ldl -no-pie
+	$(CC) $(OFLAGS) $(CFLAGS) -o $@ $< graph.o utils.o shelter_location.o $(ILOGLIBS) -L. -lgmp -ldl -no-pie -lstdc++fs
 
 SPC: main_spc.cpp utils.o utils.h supply_net.o supply_net.h supply_chain.o supply_chain.h
-	$(CC) $(OFLAGS) $(CFLAGS) -o $@ $< utils.o supply_net.o supply_chain.o $(ILOGLIBS) -L. -lgmp -ldl -no-pie
+	$(CC) $(OFLAGS) $(CFLAGS) -o $@ $< utils.o supply_net.o supply_chain.o $(ILOGLIBS) -L. -lgmp -ldl -no-pie -lstdc++fs
 
 # SMC: main.cpp graph.o graph.h utils.o utils.h shelter_location.o shelter_location.h
 # 	$(CC) $(OFLAGS) $(CFLAGS) -o $@ $< graph.o utils.o shelter_location.o $(ILOGLIBS) -L. -lgmp -ldl -no-pie
