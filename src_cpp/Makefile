@@ -27,10 +27,10 @@ ICC = icc
 
 # ILOGBASE  = /home/li4255/.local/ibm/ILOG/CPLEX_Studio201
 ifeq ($(findstring aiopt, $(HOSTNAME)), aiopt)
-	ILOGBASE  = /home/jinzhao/.local/ibm/ILOG/CPLEX_Studio2211
+	ILOGBASE  = /home/li4255/libraries/ILOG/CPLEX_Studio2211
 	# /home/jinzhao/jinzhao/CPLEX/CPLEX_Studio201
 else
-	ILOGBASE  = /home/jinzhao/.local/ibm/ILOG/CPLEX_Studio2211
+	ILOGBASE  = /home/li4255/libraries/ILOG/CPLEX_Studio2211
 	# /home/jinzhao/jinzhao/CPLEX/CPLEX_Studio201
 #/opt/ibm/ILOG/CPLEX_Studio201
 endif
