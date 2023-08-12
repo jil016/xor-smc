@@ -207,4 +207,5 @@ def gen_downsized_data(net_folder):
 
 if __name__ == '__main__':
     # gen_wheat_data()
+    np.random.seed(1086)
     gen_downsized_data("./test_net")
