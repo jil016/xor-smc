@@ -1,38 +1,186 @@
 import numpy as np
 import os
+from utils_data import *
+from graph import Graph
 
-def generateCNF(outfolder, sources, sinks):
+def generateCNF(outfolder, sources, sinks, graph_file):
     if not os.path.exists(outfolder):
         os.mkdir(outfolder)
 
-    
+    graph = Graph()
+    graph.readFromFile(graph_file)
+    N = graph.N
+    ctx = bx.Context()
+    for src in sources:
+        for sink in sinks:
+            flow = [[ctx.get_var(f'x_{i}_{j}') for j in range(N)]
+                                for i in range(N)]
+
+            cnf, sub_cnfs = flow2CNF_nbf(graph, flow, src, sink)
+            exportCNF(cnf, outfolder + f"/src{src}_sink{sink}")
+            print(f"/src{src}_sink{sink} exported!")
+
+            # cnt = 0
+            # for sat in cnf.iter_sat():
+            #     # print(sat)
+            #     cnt += 1
+            # print(cnt)
     return
 
 
+def calcDirectly(outfolder, sources, sinks, graph_file):
+    if not os.path.exists(outfolder):
+        os.mkdir(outfolder)
+
+    graph = Graph()
+    graph.readFromFile(graph_file)
+    N = graph.N
+    ctx = bx.Context()
+    for src in sources:
+        for sink in sinks:
+            flow = [[ctx.get_var(f'x_{i}_{j}') for j in range(N)]
+                                for i in range(N)]
+
+            cnf, _ = flow2CNF_nbf(graph, flow, src, sink)
+            
+            cnt = 0
+            for sat in cnf.iter_sat():
+                # print(sat)
+                cnt += 1
+            
+            with open(outfolder + f"/src{src}_sink{sink}.res", "w") as fp:
+                fp.write(str(cnt))
+
+            print(f"Result written to src{src}_sink{sink}.res!")
+    return
 
 
-if __name__ == '__main__':
-
+def useDirectResults(eval_folder, xor_res, gibbs_res, quick_res, unigen_res):
     sources = [0, 10, 20]
+
+    xor_stats = []
+    gibbs_stats = []
+    quick_stats = []
+    unigen_stats = []
+
+    for src in sources:
+        path_cnt = 0
+        for sink in xor_res:
+            with open(eval_folder + f"/src{src}_sink{sink}.res", "r") as fp:
+                num = fp.readline()
+                path_cnt += int(num)
+
+        xor_stats.append(path_cnt)
+
+    print(xor_stats)
+
+    for src in sources:
+        path_cnt = 0
+        for sink in gibbs_res[:5]:
+            with open(eval_folder + f"/src{src}_sink{sink}.res", "r") as fp:
+                num = fp.readline()
+                path_cnt += int(num)
+
+        gibbs_stats.append(path_cnt)
+
+    print(gibbs_stats)
+
+
+    for src in sources:
+        path_cnt = 0
+        for sink in quick_res[:5]:
+            with open(eval_folder + f"/src{src}_sink{sink}.res", "r") as fp:
+                num = fp.readline()
+                path_cnt += int(num)
+
+        quick_stats.append(path_cnt)
+
+    print(quick_stats)
+
+
+    for src in sources:
+        path_cnt = 0
+        for sink in unigen_res[:5]:
+            with open(eval_folder + f"/src{src}_sink{sink}.res", "r") as fp:
+                num = fp.readline()
+                path_cnt += int(num)
+
+        unigen_stats.append(path_cnt)
+
+    print(unigen_stats)
+
+    return
+
+# 121
+# [972, 1080, 1512]
+# [288, 648, 2376]
+# [1044, 864, 1620]
+# [828, 648, 1512]
+
+
+# 183
+# [38880, 25920, 46656]
+# [18144, 10368, 18144]
+# [10368, 10368, 25920]
+# [10368, 5184, 25920]
+
+
+
+def mainFunc():
+    sources = [0, 10, 20]
+    graph121 = "graphs/graph_hawaii_121.txt"
+    graph183 = "graphs/graph_hawaii_200.txt"
+    graph246 = "graphs/graph_hawaii_250.txt"
+    graph388 = "graphs/graph_hawaii_388.txt"
 
     xor_121 = [19, 20, 43, 77, 105]
     xor_183 = [0, 20, 24, 121, 157]
     xor_246 = [0, 10, 18, 119, 147]
     xor_388 = [1, 13, 39, 87, 175]
 
-    gibbs_121 = []
-    gibbs_183 = []
-    gibbs_246 = []
-    gibbs_388 = []
+    gibbs_121 = [37, 91, 112, 77, 65, 30, 112, 51, 43, 58]
+    gibbs_183 = [165, 10, 110, 162, 7, 76, 24, 182, 29, 100]
+    gibbs_246 = [166, 10, 218, 242, 172, 32, 200, 113, 222, 240]
+    gibbs_388 = [165, 10, 314, 84, 42, 176, 122, 85, 371, 311]
 
-    unigen_121 = []
-    unigen_183 = []
-    unigen_246 = []
-    unigen_388 = []
+    quick_121 = [37, 41, 90, 114, 45, 120, 32, 72, 113, 94]
+    quick_183 = [165, 41, 173, 32, 113, 165, 50, 106, 142, 48]
+    quick_246 = [16, 121, 218, 242, 234, 32, 200, 114, 222, 60]
+    quick_388 = [165, 10, 218, 173, 248, 32, 200, 113, 165, 50]
 
-    quick_121 = []
-    quick_183 = []
-    quick_246 = []
-    quick_388 = []
+    unigen_121 = [37, 107, 90, 17, 45, 120, 32, 72, 113, 94]
+    unigen_183 = [165, 10, 173, 32, 113, 165, 50, 106, 142, 48]
+    unigen_246 = [11, 10, 219, 222, 172, 32, 102, 203, 222, 239]
+    unigen_388 = [165, 10, 218, 173, 248, 32, 200, 113, 165, 50]
 
-    generateCNF("shelter_CNFs_121", sources, sinks)
+    hawaii121_union = xor_121 + gibbs_121 + quick_121 + unigen_121
+    hawaii121_union = np.unique(hawaii121_union).tolist()
+    # print(hawaii121_union)
+
+    hawaii183_union = xor_183 + gibbs_183 + quick_183 + unigen_183
+    hawaii183_union = np.unique(hawaii183_union).tolist()
+    # print(hawaii183_union)
+
+    hawaii246_union = xor_246 + gibbs_246 + quick_246 + unigen_246
+    hawaii246_union = np.unique(hawaii246_union).tolist()
+    print(hawaii246_union)
+
+    hawaii388_union = xor_388 + gibbs_388 + quick_388 + unigen_388
+    hawaii388_union = np.unique(hawaii388_union).tolist()
+    print(hawaii388_union)
+
+
+    # useDirectResults("shelter_eval_121", xor_121, gibbs_121, quick_121, unigen_121)
+    # useDirectResults("shelter_eval_183", xor_183, gibbs_183, quick_183, unigen_183)
+
+    # calcDirectly("shelter_eval_121", sources, hawaii121_union, graph121)
+    # calcDirectly("shelter_eval_183", sources, hawaii183_union, graph183)
+   
+    # generateCNF("shelter_CNFs_121", sources, xor_121, graph121)
+    # generateCNF("shelter_CNFs_200", sources, xor_183, graph183)
+    # generateCNF("shelter_CNFs_250", sources, hawaii246_union, graph246)
+    # generateCNF("shelter_CNFs_388", sources, hawaii388_union, graph388)
+    return
+
+if __name__ == '__main__':
+    mainFunc()
