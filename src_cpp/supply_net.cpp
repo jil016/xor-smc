@@ -26,6 +26,9 @@ SupplyNet::SupplyNet(string net_folder, int n_disasters){
     fp >> _M;  // read number of raw materials
     _produce.resize(_N);
 
+    // cout <<"_N:" << _N <<endl;
+    // cout <<"_M:" << _M <<endl;
+
     for(int i = 0; i < _N; i++){
         fp >> _produce[i];
     } 
@@ -47,6 +50,8 @@ SupplyNet::SupplyNet(string net_folder, int n_disasters){
         fp >> n_idx;
         fp >> m_idx;
         fp >> _demand[n_idx][m_idx];
+        // cout << "input demand" << endl;
+        // cout << n_idx << m_idx << _demand[n_idx][m_idx] << endl;
     }
     fp.close();
     
@@ -58,6 +63,9 @@ SupplyNet::SupplyNet(string net_folder, int n_disasters){
         _capacity[i].resize(_N);
         for (int j = 0; j < _N; j++){
             fp >> _capacity[i][j];
+            // if(_capacity[i][j] != 0){
+            //     cout << "capacity (i,j)" << i << ", " << j <<"; = " << _capacity[i][j] << endl; 
+            // }
         }
     }
     fp.close();
@@ -77,6 +85,9 @@ SupplyNet::SupplyNet(string net_folder, int n_disasters){
         _cost[i].resize(_N);
         for (int j = 0; j < _N; j++){
             fp >> _cost[i][j];
+            // if(_cost[i][j] != 0){
+            //     cout << "_cost (i,j)" << i << ", " << j <<"; = " << _cost[i][j] << endl; 
+            // }
         }
     }
     fp.close();

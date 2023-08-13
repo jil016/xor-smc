@@ -10,18 +10,14 @@
             "request": "launch",
             "program": "${fileDirname}/SPC",
             "args": [
-                "-graph",
-                "./graphs/graph_hawaii_1000.txt",
+                "-network",
+                "./test_net_large",
                 "-T",
                 "1",
-                "-M",
-                "1",
-                "-source",
-                "0,1,2",
-                "-qlist",
-                "1,1,1",
+                "-Nd",
+                "4",
                 "-output",
-                "LOG-Hawaii"
+                "LOG-SPC-test"
             ],
             // -graph ./graphs/graph_hawaii.txt -T 2 -M 3 -source 100,200,500 -qlist 1,1,1 -output ./LOG-Hawaii
             "stopAtEntry": false,

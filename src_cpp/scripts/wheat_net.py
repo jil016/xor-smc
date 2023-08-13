@@ -28,9 +28,9 @@ def gen_wheat_data(net_folder):
     demand = []
     for f in flour:
         demand.append([f, 0, 1])
-    for b in flour:
+    for b in bread:
         demand.append([b, 1, 1])
-    for m in flour:
+    for m in market:
         demand.append([m, 2, 1])
     # only need one unit?
     # increase need for 6/7, will increase the production
@@ -90,7 +90,7 @@ def gen_wheat_data(net_folder):
     
     # budget
     # node 0 - 
-    budget = ['3000'] * (market[-1] + 1)
+    budget = ['2000'] * (market[-1] + 1)
     with open(net_folder + "/budget.txt", "w") as fp:
         fp.write(" ".join(budget))
     

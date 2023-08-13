@@ -181,7 +181,9 @@ void SupplyChain::genSupplyConstraints(){
         for (int m = 0; m < _M; m++){
             if(_network._demand[n][m] != 0){
                 for (int j = 0; j < _network._producers[m].size(); j ++){
-                    expr_cost_sum = expr_cost_sum + supply_selection[n][m][j] * _network._cost[j][n];
+                    // cout<< "node :" << n << " material: " << m << " cost: " << _network._cost[j][n]<<endl;
+                    int p = _network._producers[m][j];
+                    expr_cost_sum = expr_cost_sum + supply_selection[n][m][j] * _network._cost[p][n];
                 }
             }
         }
