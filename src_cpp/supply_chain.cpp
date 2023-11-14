@@ -281,8 +281,9 @@ bool SupplyChain::solveInstance() {
     prepareModel();
 
     // Cplex parameters
-    cplex.setParam(IloCplex::Param::WorkMem, 20480);
-    // cplex.setParam(IloCplex::Threads, 4);    // number of parallel threads (automatic by default)
+    cplex.setParam(IloCplex::Param::WorkMem, 2048);
+    cplex.setParam(IloCplex::Param::MIP::Limits::TreeMemory, 2048);
+    cplex.setParam(IloCplex::Threads, 4);    // number of parallel threads (automatic by default)
     
     bool solved = cplex.solve();
     cplex.exportModel("model.lp");

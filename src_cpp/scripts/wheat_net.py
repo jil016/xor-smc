@@ -16,7 +16,7 @@ def gen_wheat_data(net_folder):
     flour = [i for i in range(9, 16)]  # 7
     bread = [i for i in range(16, 25)]  # 9
     market = [i for i in range(25, 25+19)]  #19
-    n_disaster = 4
+    n_disaster = 20
 
     # produce
     produce = ['0'] * len(wheat) + ['1'] * len(flour) + ['2'] * len(bread) + ['3'] * len(market)
@@ -26,10 +26,10 @@ def gen_wheat_data(net_folder):
 
     # demand
     demand = []
-    for f in flour:
-        demand.append([f, 0, 1])
-    for b in bread:
-        demand.append([b, 1, 1])
+    # for f in flour:
+    #     demand.append([f, 0, 1])
+    # for b in bread:
+    #     demand.append([b, 1, 1])
     for m in market:
         demand.append([m, 2, 1])
     # only need one unit?
@@ -90,7 +90,7 @@ def gen_wheat_data(net_folder):
     
     # budget
     # node 0 - 
-    budget = ['2000'] * (market[-1] + 1)
+    budget = ['1000'] * (market[-1] + 1)
     with open(net_folder + "/budget.txt", "w") as fp:
         fp.write(" ".join(budget))
     
@@ -140,7 +140,8 @@ def gen_wheat_data(net_folder):
 
     disaster_models = []
     for i in range(n_disaster):
-        disaster_i = np.random.randint(0,2,size=(8,8))
+        disaster_i = np.random.random(size=(44,44))
+        disaster_i[disaster_i < 0.2] = 1
         disaster_models.append(disaster_i.tolist())
 
     # export disasters
@@ -148,14 +149,14 @@ def gen_wheat_data(net_folder):
         with open(net_folder + f"/disaster{i}.txt", "w") as fp:
             fp.write("4\n")
             for line in model:
-                fp.write(" ".join([str(l) for l in line]))
+                fp.write(" ".join([str(int(l)) for l in line]))
                 fp.write("\n")
 
 
     return
 
 
-def gen_downsized_data(net_folder):
+def gen_randomsized_data(net_folder):
     # We need:
     # - produces
     # - demand
@@ -166,11 +167,12 @@ def gen_downsized_data(net_folder):
     if not os.path.exists(net_folder):
         os.mkdir(net_folder)
 
-    wheat = [i for i in range(2)]  # 9
-    flour = [i for i in range(2, 4)]  # 7
-    bread = [i for i in range(4, 6)]  # 9
-    market = [i for i in range(6, 8)]  #19
-    n_disaster = 4
+    N = 100
+    wheat = [i for i in range(N//4)]  # 9
+    flour = [i for i in range(N//4, N//2)]  # 7
+    bread = [i for i in range(N//2, N//4 * 3)]  # 9
+    market = [i for i in range(N//4 * 3, N)]  #19
+    n_disaster = 10
 
     # produce
     produce = ['0'] * len(wheat) + ['1'] * len(flour) + ['2'] * len(bread) + ['3'] * len(market)
@@ -180,12 +182,13 @@ def gen_downsized_data(net_folder):
         fp.write(" ".join(produce))
     
     # demand
-    demand = [[2, 0, 1],
-              [3, 0, 1],
-              [4, 1, 1],
-              [5, 1, 1],
-              [6, 2, 1],
-              [7, 2, 1]]
+    demand = []
+    # for f in flour:
+    #     demand.append([f, 0, 1])
+    # for b in bread:
+    #     demand.append([b, 1, 1])
+    for m in market:
+        demand.append([m, 2, 1])
     # only need one unit?
     # increase need for 6/7, will increase the production
     with open(net_folder + "/demand.txt", "w") as fp:
@@ -195,14 +198,11 @@ def gen_downsized_data(net_folder):
             fp.write("\n")
 
     # cost
-    cost_wf =  [[967,	659],
-                [280,	1523]]
+    cost_wf =  np.random.randint(280, 1423, size=(N//4,N//4)).tolist()
 
-    cost_fb =  [[1553,	1909],
-                [490,	1123]]
+    cost_fb =  np.random.randint(200, 1365, size=(N//4,N//4)).tolist()
     
-    cost_bm =  [[743,	866],
-                [325,	170]]
+    cost_bm =  np.random.randint(200, 1480, size=(N//4,N//4)).tolist()
     
     cost_matrix = np.zeros((market[-1] + 1, market[-1] + 1),dtype=int).tolist()
     for i, w_idx in enumerate(wheat):
@@ -224,7 +224,7 @@ def gen_downsized_data(net_folder):
     
     # budget
     # node 0 - 7
-    budget = ['3000'] * 8
+    budget = ['1500'] * N
     with open(net_folder + "/budget.txt", "w") as fp:
         fp.write(" ".join(budget))
     
@@ -238,18 +238,17 @@ def gen_downsized_data(net_folder):
     # 
     # sum cap * disaster_prob * I >= demand
     # demand / cap * 16^n_disasters
-    print("demand = ", np.log2(2900/8500/16 *(16**n_disaster)))
 
     # rate_wheat_flour = 0.83
     # rate_flour_bread = 1.3
     # rate_market = 1.0
     # probability: discretized by 1/16
 
-    capacity_wf = np.random.randint(10,16, size=(2,2)).tolist()
+    capacity_wf = np.random.randint(10,16, size=(N//4,N//4)).tolist()
 
-    capacity_fb = np.random.randint(9,15, size=(2,2)).tolist()
+    capacity_fb = np.random.randint(9,15, size=(N//4,N//4)).tolist()
 
-    capacity_bm = np.random.randint(8,14, size=(2,2)).tolist()
+    capacity_bm = np.random.randint(8,14, size=(N//4,N//4)).tolist()
 
     capacity_matrix = np.zeros((market[-1] + 1, market[-1] + 1),dtype=int).tolist()
     for i, w_idx in enumerate(wheat):
@@ -274,7 +273,8 @@ def gen_downsized_data(net_folder):
 
     disaster_models = []
     for i in range(n_disaster):
-        disaster_i = np.random.randint(0,2,size=(8,8))
+        disaster_i = np.random.random(size=(N,N))
+        disaster_i[disaster_i < 0.2] = 1
         disaster_models.append(disaster_i.tolist())
 
     # export disasters
@@ -282,7 +282,7 @@ def gen_downsized_data(net_folder):
         with open(net_folder + f"/disaster{i}.txt", "w") as fp:
             fp.write("4\n")
             for line in model:
-                fp.write(" ".join([str(l) for l in line]))
+                fp.write(" ".join([str(int(l)) for l in line]))
                 fp.write("\n")
 
     return
@@ -290,4 +290,4 @@ def gen_downsized_data(net_folder):
 if __name__ == '__main__':
     np.random.seed(1086)
     gen_wheat_data("./test_net_large")
-    gen_downsized_data("./test_net")
+    gen_randomsized_data("./test_net")

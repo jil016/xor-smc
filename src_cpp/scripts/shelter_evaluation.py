@@ -111,11 +111,68 @@ def useDirectResults(eval_folder, xor_res, gibbs_res, quick_res, unigen_res):
 
     return
 
+def useSharpSatResults(eval_folder, xor_list, gibbs_list, quick_list, unigen_list):
+    sources = [0, 10, 20]
+
+    xor_stats = []
+    gibbs_stats = []
+    quick_stats = []
+    unigen_stats = []
+
+    for src in sources:
+        path_cnt = 0
+        for sink in xor_list:
+            with open(eval_folder + f"/src{src}_sink{sink}.out", "r") as fp:
+                lines = fp.readlines()
+                log_cnt = lines[-2][:-1].split(" ")[-1]
+                int_cnt = lines[-1][:-1].split(" ")[-1]
+                path_cnt += int(int_cnt)
+        xor_stats.append(path_cnt)
+    print(xor_stats)
+
+    for src in sources:
+        path_cnt = 0
+        for sink in gibbs_list:
+            with open(eval_folder + f"/src{src}_sink{sink}.out", "r") as fp:
+                lines = fp.readlines()
+                log_cnt = lines[-2][:-1].split(" ")[-1]
+                int_cnt = lines[-1][:-1].split(" ")[-1]
+                path_cnt += int(int_cnt)
+        gibbs_stats.append(path_cnt)
+    print(gibbs_stats)
+
+    for src in sources:
+        path_cnt = 0
+        for sink in quick_list:
+            with open(eval_folder + f"/src{src}_sink{sink}.out", "r") as fp:
+                lines = fp.readlines()
+                log_cnt = lines[-2][:-1].split(" ")[-1]
+                int_cnt = lines[-1][:-1].split(" ")[-1]
+                path_cnt += int(int_cnt)
+        quick_stats.append(path_cnt)
+    print(quick_stats)
+
+
+    for src in sources:
+        path_cnt = 0
+        for sink in unigen_list:
+            with open(eval_folder + f"/src{src}_sink{sink}.out", "r") as fp:
+                lines = fp.readlines()
+                log_cnt = lines[-2][:-1].split(" ")[-1]
+                int_cnt = lines[-1][:-1].split(" ")[-1]
+                path_cnt += int(int_cnt)
+        unigen_stats.append(path_cnt)
+    print(unigen_stats)
+
+    return
+
 # 121
 # [972, 1080, 1512]
 # [288, 648, 2376]
 # [1044, 864, 1620]
 # [828, 648, 1512]
+
+
 
 
 # 183
@@ -124,7 +181,30 @@ def useDirectResults(eval_folder, xor_res, gibbs_res, quick_res, unigen_res):
 # [10368, 10368, 25920]
 # [10368, 5184, 25920]
 
+# 246
+# [229864635, 255537828, 137151144]
+# [165337200, 212182740, 151047342]
+# [168919506, 219347352, 154117890]
+# [168919506, 219347352, 154117890]
 
+
+# 388
+# [770943744, 2448880128, 256981248]
+# [1027924992, 2403530496, 64245312]
+# [342641664, 1133740800, 64245312]
+# [342641664, 1133740800, 64245312]
+
+#hawaii121-xor-gibbs-quick-unigen
+#972, 288, 864, 648
+
+#hawaii183-xor-gibbs-quick-unigen
+#25920, 10368, 10368, 5184
+
+#hawaii246-xor-gibbs-quick-unigen
+#137151144, 151047342, 154117890, 154117890
+
+#hawaii388-xor-gibbs-quick-unigen
+#770943744, 64245312, 64245312, 64245312
 
 def mainFunc():
     sources = [0, 10, 20]
@@ -169,17 +249,21 @@ def mainFunc():
     hawaii388_union = np.unique(hawaii388_union).tolist()
     print(hawaii388_union)
 
+    # calcDirectly("shelter_eval_121", sources, hawaii121_union, graph121)
+    # calcDirectly("shelter_eval_183", sources, hawaii183_union, graph183)
 
     # useDirectResults("shelter_eval_121", xor_121, gibbs_121, quick_121, unigen_121)
     # useDirectResults("shelter_eval_183", xor_183, gibbs_183, quick_183, unigen_183)
 
-    # calcDirectly("shelter_eval_121", sources, hawaii121_union, graph121)
-    # calcDirectly("shelter_eval_183", sources, hawaii183_union, graph183)
-   
-    # generateCNF("shelter_CNFs_121", sources, xor_121, graph121)
-    # generateCNF("shelter_CNFs_200", sources, xor_183, graph183)
     # generateCNF("shelter_CNFs_250", sources, hawaii246_union, graph246)
     # generateCNF("shelter_CNFs_388", sources, hawaii388_union, graph388)
+    # for 250 and 388, must use sharpSAT-td as in shelter_eval.sh
+    # 
+    # Then
+    useSharpSatResults("LOG-Eval/shelter_CNFs_250", xor_246, gibbs_246[:5], quick_246[:5], unigen_246[:5])
+
+    useSharpSatResults("LOG-Eval/shelter_CNFs_388", xor_388, gibbs_388[:5], quick_388[:5], unigen_388[:5])
+
     return
 
 if __name__ == '__main__':
