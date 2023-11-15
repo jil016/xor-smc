@@ -67,10 +67,10 @@ int main(int argc, char **argv)
     // source node
     // params: graph, src, q_list, N, T, M
 
-    int T;
+    int T = 1;
     string net_folder("./networks/net1");
     int n_disaster = 1;
-    char output_dir[] = "./LOG-SPC\0";
+    char output_dir[1024] = "./LOG-SPC\0";
 
     parseArgs(argc, argv, net_folder, n_disaster, T, output_dir);
 

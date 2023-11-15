@@ -5,7 +5,7 @@
             "includePath": [
                 "${workspaceFolder}",
                 "${workspaceFolder}/**",
-                "/home/li4255/libraries/ILOG/CPLEX_Studio2211/**"
+                "/home/li4255/.local/ibm/ILOG/CPLEX_Studio201/**"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
