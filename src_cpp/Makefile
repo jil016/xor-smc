@@ -27,26 +27,26 @@ ICC = icc
 
 # ILOGBASE  = /home/li4255/.local/ibm/ILOG/CPLEX_Studio201
 ifeq ($(findstring aiopt, $(HOSTNAME)), aiopt)
-	ILOGBASE  = /home/li4255/.local/ibm/ILOG/CPLEX_Studio201
-	# /home/jinzhao/jinzhao/CPLEX/CPLEX_Studio201
+	ILOGBASE  = /Applications/CPLEX_Studio2211
 else
-	ILOGBASE  = /home/li4255/.local/ibm/ILOG/CPLEX_Studio201
-	# /home/jinzhao/jinzhao/CPLEX/CPLEX_Studio201
-#/opt/ibm/ILOG/CPLEX_Studio201
+	ILOGBASE  = /Applications/CPLEX_Studio2211
 endif
-#ILOGLIBFORMAT = x86-64_sles10_4.1/static_pic
-ILOGLIBFORMAT = x86-64_linux/static_pic
+
+# CPLEX PATH
+ILOGLIBFORMAT = arm64_osx/static_pic	# MACOS
 ILOGFLAGS = -DILOGLUE -DIL_STD -I$(ILOGBASE)/cpoptimizer/include/ -I$(ILOGBASE)/concert/include/ -I$(ILOGBASE)/cplex/include/
 ILOGLIBS  = -L$(ILOGBASE)/cpoptimizer/lib/$(ILOGLIBFORMAT) -L$(ILOGBASE)/concert/lib/$(ILOGLIBFORMAT) -L$(ILOGBASE)/cplex/lib/$(ILOGLIBFORMAT) -lcp -lilocplex -lcplex -lconcert -lm -lpthread
 
 CFLAGS = -g -std=c++17 -Wall $(ILOGFLAGS) $(BOOST) $(XMLI) -DNARYCHAR -DWCSPFORMATONLY
 
+# GMP PATH -- MACOS
+GMPFLAGS = -I/opt/homebrew/Cellar/gmp/6.3.0/include/
+GMPLIBS = -L/opt/homebrew/Cellar/gmp/6.3.0/lib/
 
 ICCFLAGS = 
 #-O3 -ipo -static -DNDEBUG
 
-PFLAGS = 
-
+PFLAGS =
 # -pg -g3 # use these options to catch numerical overflows
 
 BUILD = $(CC) -shared
@@ -54,25 +54,21 @@ BUILD = $(CC) -shared
 default: all
 
 %.o : %.cpp %.hpp
-	$(CC) $(OFLAGS) $(CFLAGS) $(LIBFLAGS) -c -o $@  $< $(PFLAGS)
+	$(CC) $(OFLAGS) $(CFLAGS) $(GMPFLAGS) $(LIBFLAGS) -c -o $@  $< $(PFLAGS)
 
 %.o : %.cpp %.h
-	$(CC) $(OFLAGS) $(CFLAGS) $(LIBFLAGS) -c -o $@  $< $(PFLAGS)
+	$(CC) $(OFLAGS) $(CFLAGS) $(GMPFLAGS) $(LIBFLAGS) -c -o $@  $< $(PFLAGS)
 
 %.o : %.cpp
-	$(CC) $(OFLAGS) $(CFLAGS) $(LIBFLAGS) -c -o $@  $< $(PFLAGS)
+	$(CC) $(OFLAGS) $(CFLAGS) $(GMPFLAGS) $(LIBFLAGS) -c -o $@  $< $(PFLAGS)
 
 all: SL SPC
 
 SL: main_sl.cpp graph.o graph.h utils.o utils.h shelter_location.o shelter_location.h
-	$(CC) $(OFLAGS) $(CFLAGS) -o $@ $< graph.o utils.o shelter_location.o $(ILOGLIBS) -L. -lgmp -ldl -no-pie -lstdc++fs
+	$(CC) $(OFLAGS) $(CFLAGS) $(GMPFLAGS) -o $@ $< graph.o utils.o shelter_location.o $(ILOGLIBS) $(GMPLIBS) -L. -ldl #-no-pie  -lstdc++fs
 
 SPC: main_spc.cpp utils.o utils.h supply_net.o supply_net.h supply_chain.o supply_chain.h
-	$(CC) $(OFLAGS) $(CFLAGS) -o $@ $< utils.o supply_net.o supply_chain.o $(ILOGLIBS) -L. -lgmp -ldl -no-pie -lstdc++fs
-
-# SMC: main.cpp graph.o graph.h utils.o utils.h shelter_location.o shelter_location.h
-# 	$(CC) $(OFLAGS) $(CFLAGS) -o $@ $< graph.o utils.o shelter_location.o $(ILOGLIBS) -L. -lgmp -ldl -no-pie
-
+	$(CC) $(OFLAGS) $(CFLAGS) $(GMPFLAGS) -o $@ $< utils.o supply_net.o supply_chain.o $(ILOGLIBS) $(GMPLIBS) -L. -ldl #-no-pie -lstdc++fs
 
 clean:
 	rm SL SPC *.o
