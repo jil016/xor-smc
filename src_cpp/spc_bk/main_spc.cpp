@@ -68,7 +68,7 @@ int main(int argc, char **argv)
     // params: graph, src, q_list, N, T, M
 
     int T = 1;
-    string net_folder("./test_net_new");
+    string net_folder("./networks/net1");
     int n_disaster = 1;
     char output_dir[1024] = "./LOG-SPC\0";
 
@@ -80,13 +80,10 @@ int main(int argc, char **argv)
          << "output_dir: " << output_dir << endl;
 
 
-//    SupplyChain sc;
-//    sc.loadParameters(net_folder, n_disaster, T, output_dir);
-//    sc.genAllConstraints();
-//    sc.solveInstance();
-
-    SupplyNet sn;
-    sn.loadFromFile(net_folder);
+    SupplyChain sc;
+    sc.loadParameters(net_folder, n_disaster, T, output_dir);
+    sc.genAllConstraints();
+    sc.solveInstance();
 
     return 0;
 }
