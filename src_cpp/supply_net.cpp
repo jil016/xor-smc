@@ -97,7 +97,7 @@ SupplyNet::SupplyNet(string net_folder, int n_disasters){
     _disaster_map.resize(_Nd);
     _disaster_precision.resize(_Nd);
 
-    for (int i = 0; i < n_disasters; i++){
+    for (int i = 0; i < n_disasters; i++) {
         // read each map
         string prefix("/disaster");
         string suffix(".txt");
@@ -107,27 +107,17 @@ SupplyNet::SupplyNet(string net_folder, int n_disasters){
         fp >> _disaster_precision[i];
 
         _disaster_map[i].resize(_N);
-        for(int j = 0; j < _N; j++){
+        for (int j = 0; j < _N; j++) {
             _disaster_map[i][j].resize(_N);
-            for (int k = 0; k < _N; k++){
+            for (int k = 0; k < _N; k++) {
                 fp >> _disaster_map[i][j][k];
             }
         }
         fp.close();
     }
-
-    genAdvancedInfo();
 }
 
 SupplyNet::~SupplyNet() {}
-
-void SupplyNet::genAdvancedInfo(){
-    _producers.resize(_M);
-
-    for (int i = 0; i < _N; i++){
-        _producers[_produce[i]].push_back(i);
-    }
-}
 
 void SupplyNet::loadFromFile(string net_folder){
 
@@ -142,12 +132,27 @@ void SupplyNet::loadFromFile(string net_folder){
     ///// graph connection: edge capacity
     fp.open(net_folder + capacity_file);
     fp >> _N;   // N nodes
+    fp >> _M;   // M layers
+    _N_connect = 0;
     _raw_capacity.resize(_N);
+
+    _edges.resize(2);
+    _edge_map.resize(_N);
+    for(int i = 0; i < _N; i++){ // initialize log_demand
+        _edge_map[i].resize(_N);
+        fill(_edge_map[i].begin(), _edge_map[i].end(), -1);
+    }
 
     for(int i = 0; i < _N; i++){
         _raw_capacity[i].resize(_N);
         for (int j = 0; j < _N; j++){
             fp >> _raw_capacity[i][j];
+            if(_raw_capacity[i][j] > 0){
+                _N_connect += 1;
+                _edges[0].push_back(i);
+                _edges[1].push_back(j);
+                _edge_map[i][j] = _N_connect - 1;
+            }
         }
     }
     fp.close();
@@ -169,6 +174,17 @@ void SupplyNet::loadFromFile(string net_folder){
         for (int j = 0; j < _N; j++){
             fp >> _raw_cost[i][j];
         }
+    }
+    fp.close();
+
+
+    //// terminal nodes & demand
+    fp.open(net_folder + demand_file);
+    fp >> _N_end;
+    for(int i = 0; i < _N_end; i++){
+        int id;
+        fp >> id;
+        _end_nodes.push_back(id);
     }
     fp.close();
 
@@ -230,6 +246,12 @@ void SupplyNet::loadFromFile(string net_folder){
 }
 
 
-SupplyNet::SupplyNet(string net_folder, int prec_cap, int prec_cst, int prec_bgt, int prec_prob){
+SupplyNet::SupplyNet(string net_folder, int prec_cap, int prec_cst, int prec_bgt, int prec_prob):
+        _prec_cap(prec_cap), _prec_bgt(prec_bgt), _prec_prob(prec_prob){
     loadFromFile(net_folder);
+}
+
+
+void SupplyNet::discretization() {
+
 }

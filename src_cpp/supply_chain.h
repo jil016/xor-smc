@@ -30,6 +30,9 @@ class SupplyChain {
     public:
          // Parameters
         int _N;
+        int _N_connect;
+        int _N_end;
+
         int _M;
         int _T;
         SupplyNet _network;
@@ -51,6 +54,13 @@ class SupplyChain {
 
         // Variables       
         // The following variables appears in the optimization
+
+        vector<IloBoolVarArray> _plan;
+        vector<int> _end_nodes;
+        vector<vector<int>> _edges;
+        vector<vector<int>> _edge_map;
+
+        //
         
         vector<vector<IloBoolVarArray>> supply_selection;
         vector<vector<vector<IloBoolVarArray>>> bvars;
@@ -70,10 +80,9 @@ class SupplyChain {
         ~SupplyChain();
 
         // running pipeline
-        void loadParameters(string net_folder, int n_disaster, int _T,  char output_dir[]);
+        void loadParameters(const string& net_folder, int _T,  char output_dir[]);
         void genAllConstraints();
         bool solveInstance();
-
 
         // separate functions
         void initializeVariables();
@@ -85,6 +94,7 @@ class SupplyChain {
         // utils
         bool makeHashFuncSolvable(vector<vector<bool>> &coeffA);
         void extractXorVarConst(vector<vector<bool>> coeffA, int t, int n, int m);
+
 
         // Ignore majority in this application
         // IloBoolVarArray bvars_maj;      

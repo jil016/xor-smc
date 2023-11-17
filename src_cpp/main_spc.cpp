@@ -85,8 +85,7 @@ int main(int argc, char **argv)
 //    sc.genAllConstraints();
 //    sc.solveInstance();
 
-    SupplyNet sn;
-    sn.loadFromFile(net_folder);
+    SupplyNet sn(net_folder, 1, 1, 1, 1);
 
     return 0;
 }
