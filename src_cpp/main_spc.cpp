@@ -10,7 +10,7 @@ using namespace std;
 
 
 void parseArgs(int argc, char **argv, string &net_folder, 
-               int &n_disaster, int &T,
+               int &target, int &T,
                char output[]) 
 {
   // one argument must be the instance filename
@@ -29,9 +29,9 @@ void parseArgs(int argc, char **argv, string &net_folder,
         // must be the graph name
         net_folder = argv[argIndex];
     }
-    else if ( !strcmp(argv[argIndex], "-Nd") ) {
+    else if ( !strcmp(argv[argIndex], "-target") ) {
         argIndex++;
-        n_disaster = atol(argv[argIndex]);
+        target = atol(argv[argIndex]);
     }
     else if ( !strcmp(argv[argIndex], "-T") ) {
         argIndex++;
@@ -46,7 +46,7 @@ void parseArgs(int argc, char **argv, string &net_folder,
             << "USAGE: Supply Chain [options]" << endl
             << endl
             << "   -network      Network folder name" << endl
-            << "   -Nd          Number of disasters" << endl
+            << "   -target       Target node" << endl
             << "   -T          Parameter T" << endl
             << "   -output     Output directory" << endl
             << endl;
@@ -69,23 +69,42 @@ int main(int argc, char **argv)
 
     int T = 1;
     string net_folder("./test_net_new");
-    int n_disaster = 1;
     char output_dir[1024] = "./LOG-SPC\0";
+    int target = 5;
 
-    parseArgs(argc, argv, net_folder, n_disaster, T, output_dir);
+    parseArgs(argc, argv, net_folder, target, T, output_dir);
 
     cout << "T: " <<  T << endl
          << "net_folder: " << net_folder << endl
-         << "n_disaster: " << n_disaster << endl
+         << "target: " << target << endl
          << "output_dir: " << output_dir << endl;
 
+//    IloEnv env = IloEnv();
+//    IloModel model(env);
+//    IloCplex cplex(model);
+//
+//    IloBoolVar v1(env);
+//    IloBoolVar v2(env);
+//
+//    IloNumExpr expr = v1 * v2;
+//    IloConstraint constraint_test = (expr == 1);
+//
+//    model.add(v1);
+//    model.add(v2);
+//    model.add(constraint_test);
+//
+//    bool solved = cplex.solve();
+//    cplex.exportModel("model.lp");
+//    // env.out() << "Solution status = " << cplex.getStatus() << endl;
+//    env.out() << cplex.getCplexStatus() << endl;
 
-//    SupplyChain sc;
-//    sc.loadParameters(net_folder, n_disaster, T, output_dir);
-//    sc.genAllConstraints();
-//    sc.solveInstance();
 
-    SupplyNet sn(net_folder, 1, 1, 1, 1);
+    SupplyNet sn(net_folder, 4, 4, 4, 4);
+    sn.discretizeAll();
+
+    SupplyChain sc;
+    sc.loadParameters(net_folder, target, T, output_dir);
+    sc.genProbConstraints();
 
     return 0;
 }

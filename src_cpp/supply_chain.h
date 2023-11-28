@@ -28,45 +28,64 @@ typedef std::set<set_type> powerset_type;
 
 class SupplyChain {
     public:
-         // Parameters
-        int _N;
-        int _N_connect;
-        int _N_end;
 
-        int _M;
-        int _T;
-        SupplyNet _network;
-        string _net_folder;
-        char _output_dir[1024];
-
+        ////////NEW VERSION/////////
         // CPLEX SOLVER
-        // IloEnv env;
-        // IloModel *model;
-        // IloTimer *timer;
-        // IloCplex *cplex;
-        // IloInt timelimit;
-        // IloNumExpr *objexpr;
         IloEnv env;
         IloModel model;
         IloCplex cplex;
         IloInt timelimit;
 
-
-        // Variables       
-        // The following variables appears in the optimization
-
-        vector<IloBoolVarArray> _plan;
+        // Parameters
+        int _N;
+        int _N_edges;
+        int _N_dedges;
+        int _N_end;
+        int _T;
+        int _target;
+        int _N_inedge;
+        string _net_folder;
+        SupplyNet _network;
+        char _output_dir[1024];
         vector<int> _end_nodes;
         vector<vector<int>> _edges;
         vector<vector<int>> _edge_map;
 
-        //
-        
+        // Variables
+        IloBoolVarArray _var_select;  // edge selection
+        vector<IloBoolVarArray> _var_disaster; // disaster edges
+
+        vector<IloBoolVarArray> _var_prob_dis;
+        vector<IloBoolVarArray> _var_cap_dis;
+        vector<IloBoolVarArray> _var_inedge;    //
+
+        // extra variables
+        vector<IloBoolVarArray> _var_node_conn;    // indicator of node connection
+        vector<IloBoolVarArray> _var_prob_add;  // single
+
+
+        // Constraints
+        IloConstraintArray _const_budget;
+
+
+        // XOR Constraints
+
+        // functions
+
+        void genConnectionConstraints();
+        void genProbConstraints();
+        void genCapacityConstraints();
+
+
+        ////////END NEW VERSION/////////
+
+        int _M;
+
+        // Variables
         vector<vector<IloBoolVarArray>> supply_selection;
         vector<vector<vector<IloBoolVarArray>>> bvars;
         vector<vector<vector<IloConstraintArray>>> constraints;
         IloConstraintArray const_budget;
-
 
         // Constraints for XOR
         bool sparsify_coeff;
@@ -80,7 +99,7 @@ class SupplyChain {
         ~SupplyChain();
 
         // running pipeline
-        void loadParameters(const string& net_folder, int _T,  char output_dir[]);
+        void loadParameters(const string& net_folder, int target, int _T, char output_dir[]);
         void genAllConstraints();
         bool solveInstance();
 

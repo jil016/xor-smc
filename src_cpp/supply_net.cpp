@@ -7,120 +7,9 @@ typedef std::set<set_type> powerset_type;
 
 //////////////////////////////////////////////////////////
 SupplyNet::SupplyNet() {}
-
-
-SupplyNet::SupplyNet(string net_folder, int n_disasters){
-    string produce_file("/produce.txt");
-    string capacity_file("/capacity.txt");
-    string demand_file("/demand.txt");
-    string budget_file("/budget.txt");
-    string cost_file("/cost.txt");
-
-    ///// produce
-    ifstream fp(net_folder + produce_file);
-    if (! fp) {
-        cout << "Error, file couldn't be opened" << endl;
-        exit(1);
-    }
-    fp >> _N;  // read number of nodes
-    fp >> _M;  // read number of raw materials
-    _produce.resize(_N);
-
-    // cout <<"_N:" << _N <<endl;
-    // cout <<"_M:" << _M <<endl;
-
-    for(int i = 0; i < _N; i++){
-        fp >> _produce[i];
-    }
-    fp.close();
-
-    ///// demand
-    fp.open(net_folder + demand_file);
-    _demand.resize(_N);
-    for(int i = 0; i < _N; i++){ // initialize log_demand
-        _demand[i].resize(_M);
-        fill(_demand[i].begin(), _demand[i].end(), 0);
-    }
-
-    int n_demand;
-    fp >> n_demand;
-    for(int i = 0; i < n_demand; i++){
-        int n_idx;
-        int m_idx;
-        fp >> n_idx;
-        fp >> m_idx;
-        fp >> _demand[n_idx][m_idx];
-        // cout << "input demand" << endl;
-        // cout << n_idx << m_idx << _demand[n_idx][m_idx] << endl;
-    }
-    fp.close();
-
-    ///// capacity
-    fp.open(net_folder + capacity_file);
-    _capacity.resize(_N);
-    fp >> _capacity_precision;
-    for(int i = 0; i < _N; i++){
-        _capacity[i].resize(_N);
-        for (int j = 0; j < _N; j++){
-            fp >> _capacity[i][j];
-            // if(_capacity[i][j] != 0){
-            //     cout << "capacity (i,j)" << i << ", " << j <<"; = " << _capacity[i][j] << endl;
-            // }
-        }
-    }
-    fp.close();
-
-    ///// budget
-    fp.open(net_folder + budget_file);
-    _budget.resize(_N);
-    for(int i = 0; i < _N; i++){
-        fp >> _budget[i];
-    }
-    fp.close();
-
-    ///// cost
-    fp.open(net_folder + cost_file);
-    _cost.resize(_N);
-    for(int i = 0; i < _N; i++){
-        _cost[i].resize(_N);
-        for (int j = 0; j < _N; j++){
-            fp >> _cost[i][j];
-            // if(_cost[i][j] != 0){
-            //     cout << "_cost (i,j)" << i << ", " << j <<"; = " << _cost[i][j] << endl;
-            // }
-        }
-    }
-    fp.close();
-
-    // load disaster models
-    _Nd = n_disasters;
-    _disaster_map.resize(_Nd);
-    _disaster_precision.resize(_Nd);
-
-    for (int i = 0; i < n_disasters; i++) {
-        // read each map
-        string prefix("/disaster");
-        string suffix(".txt");
-        string full_path = net_folder + prefix + std::to_string(i) + suffix;
-
-        fp.open(full_path);
-        fp >> _disaster_precision[i];
-
-        _disaster_map[i].resize(_N);
-        for (int j = 0; j < _N; j++) {
-            _disaster_map[i][j].resize(_N);
-            for (int k = 0; k < _N; k++) {
-                fp >> _disaster_map[i][j][k];
-            }
-        }
-        fp.close();
-    }
-}
-
 SupplyNet::~SupplyNet() {}
 
 void SupplyNet::loadFromFile(string net_folder){
-
     string capacity_file("/capacity.txt");
     string demand_file("/demand.txt");
     string budget_file("/budget.txt");
@@ -132,8 +21,7 @@ void SupplyNet::loadFromFile(string net_folder){
     ///// graph connection: edge capacity
     fp.open(net_folder + capacity_file);
     fp >> _N;   // N nodes
-    fp >> _M;   // M layers
-    _N_connect = 0;
+    _N_edges = 0;
     _raw_capacity.resize(_N);
 
     _edges.resize(2);
@@ -143,36 +31,50 @@ void SupplyNet::loadFromFile(string net_folder){
         fill(_edge_map[i].begin(), _edge_map[i].end(), -1);
     }
 
+    _min_cap = 999999;
+    _max_cap = 0;
     for(int i = 0; i < _N; i++){
         _raw_capacity[i].resize(_N);
         for (int j = 0; j < _N; j++){
             fp >> _raw_capacity[i][j];
             if(_raw_capacity[i][j] > 0){
-                _N_connect += 1;
+                _N_edges += 1;
                 _edges[0].push_back(i);
                 _edges[1].push_back(j);
-                _edge_map[i][j] = _N_connect - 1;
+                _edge_map[i][j] = _N_edges - 1;
+
+                _min_cap = std::min(_raw_capacity[i][j], _min_cap);
+                _max_cap = std::max(_raw_capacity[i][j], _max_cap);;
             }
         }
     }
     fp.close();
 
-
     ///// node budget
     fp.open(net_folder + budget_file);
+    _min_bgt = 999999;
+    _max_bgt = 0;
     _raw_budget.resize(_N);
     for(int i = 0; i < _N; i++){
         fp >> _raw_budget[i];
+        _min_bgt = std::min(_raw_budget[i], _min_bgt);
+        _max_bgt = std::max(_raw_budget[i], _max_bgt);
     }
     fp.close();
 
     ///// edge cost
     fp.open(net_folder + cost_file);
+    _min_cst = 999999;
+    _max_cst = 0;
     _raw_cost.resize(_N);
     for(int i = 0; i < _N; i++){
         _raw_cost[i].resize(_N);
         for (int j = 0; j < _N; j++){
             fp >> _raw_cost[i][j];
+            if(_raw_capacity[i][j] > 0){    // there is an edge
+                _min_cst = std::min(_raw_cost[i][j], _min_cst);
+                _max_cst = std::max(_raw_cost[i][j], _max_cst);
+            }
         }
     }
     fp.close();
@@ -188,13 +90,12 @@ void SupplyNet::loadFromFile(string net_folder){
     }
     fp.close();
 
-    // load disaster models
+    // Load disaster models
     fp.open(net_folder + disaster_file);
 
     char pbname[1024];
     fp >> pbname;
     fp >> _N_dedges;
-
     _dedges.resize(2);
     // read edges
     int tmp;
@@ -210,14 +111,13 @@ void SupplyNet::loadFromFile(string net_folder){
         _dedge_map[i].resize(_N);
         fill(_dedge_map[i].begin(), _dedge_map[i].end(), -1);
     }
-
     for (int i = 0; i < _N_dedges; i++){
         _dedge_map[_dedges[0][i]][_dedges[1][i]] = i;
     }
 
     fp >> _N_factors;
-
     int arity;
+    _dedge_watchers.resize(_N_dedges);
     for (int i = 0; i < _N_factors; i++) {
         fp >> arity;
         vector<int> tmp_factor;
@@ -225,6 +125,7 @@ void SupplyNet::loadFromFile(string net_folder){
         for (int j=0; j<arity; j++) {
             fp >> id;
             tmp_factor.push_back(id);
+            _dedge_watchers[id].push_back(i);
         }
         _factors.push_back(tmp_factor);
     }
@@ -247,11 +148,80 @@ void SupplyNet::loadFromFile(string net_folder){
 
 
 SupplyNet::SupplyNet(string net_folder, int prec_cap, int prec_cst, int prec_bgt, int prec_prob):
-        _prec_cap(prec_cap), _prec_bgt(prec_bgt), _prec_prob(prec_prob){
+        _prec_cap(prec_cap), _prec_cst(prec_cst), _prec_bgt(prec_bgt), _prec_prob(prec_prob){
     loadFromFile(net_folder);
 }
 
 
-void SupplyNet::discretization() {
+//std::vector<int> discretize(const std::vector<double>& input, double v_min, double v_max, int k) {
+//    int range = (1 << k) - 1; // This is 2^k - 1
+//    std::vector<int> output(input.size());
+//
+//    for (size_t i = 0; i < input.size(); ++i) {
+//        // Clamp the value between v_min and v_max
+//        double clamped_value = std::max(v_min, std::min(v_max, input[i]));
+//        // Normalize the value to a [0, 1] range
+//        double normalized_value = (clamped_value - v_min) / (v_max - v_min);
+//        // Scale to the desired range [1, 2^k - 1] and round to the nearest integer
+//        output[i] = static_cast<int>(std::round(normalized_value * (range - 1))) + 1;
+//
+//        // output[i] = static_cast<int>(std::round(normalized_value * range)); // [0, 2^k-1]
+//    }
+//
+//    return output;
+//}
 
+void SupplyNet::discretizeAll() {
+    // Discretize capacities.
+    // [min_cap, max_cap] -> [1, ..., 2^prec_cap-1]
+    _dis_capacity.resize(_N);
+    int range = (1 << _prec_cap) - 1;
+    for (int i = 0; i < _N; i++) {
+        _dis_capacity[i].resize(_N);
+        for (int j = 0; j < _N; j++) {
+            if (_raw_capacity[i][j] == 0) {   // no edge
+                _dis_capacity[i][j] = 0;
+            } else if (_min_cap == _max_cap) {
+                _dis_capacity[i][j] = range;
+            } else if (_min_cap < 1 || _max_cap > range) {
+                // exceed effective digits, normalize
+                double clamped_value = std::max(_min_cap, std::min(_max_cap, _raw_capacity[i][j]));
+                double normalized_value = (clamped_value - _min_cap) / (_max_cap - _min_cap);
+                _dis_capacity[i][j] = static_cast<int>(std::round(normalized_value * (range - 1))) + 1;
+            } else {
+                // simply cast
+                _dis_capacity[i][j] = static_cast<int>(std::round(_raw_capacity[i][j]));
+            }
+        }
+    }
+
+    // TODO: Discretize probabilities
+    //  Suppose the discretization is done by special design
 }
+
+
+/*
+void SupplyNet::discretizeAll(){
+    // TODO: Discretize costs and budgets (related) for other applications
+    // [_min_cst, _max_cst] -> [1, ..., 2^prec_cst-1]
+    // [_min_bgt, _max_bgt]
+
+    _dis_cost.resize(_N);
+    range = (1 << _prec_cst) - 1;
+    for(int i = 0; i < _N; i++) {
+        _dis_cost[i].resize(_N);
+        for (int j = 0; j < _N; j++) {
+            if(_raw_capacity[i][j] == 0){   // no edge
+                _dis_cost[i][j] = 0;
+            }
+            else if(_min_cst == _max_cst){
+                _dis_cost[i][j] = range;
+            }
+            else{
+                double clamped_value = std::max(_min_cst, std::min(_max_cst, _raw_cost[i][j]));
+                double normalized_value = (clamped_value - _min_cst) / (_max_cst - _min_cst);
+                _dis_cost[i][j] = static_cast<int>(std::round(normalized_value * (range - 1))) + 1;
+            }
+        }
+    }
+} */
