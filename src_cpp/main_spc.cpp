@@ -10,7 +10,7 @@ using namespace std;
 
 
 void parseArgs(int argc, char **argv, string &net_folder, 
-               int &target, int &T,
+               int &target, int &T, int &seed,
                char output[]) 
 {
   // one argument must be the instance filename
@@ -36,6 +36,10 @@ void parseArgs(int argc, char **argv, string &net_folder,
     else if ( !strcmp(argv[argIndex], "-T") ) {
         argIndex++;
         T = atol(argv[argIndex]);
+    }
+    else if ( !strcmp(argv[argIndex], "-seed") ) {
+        argIndex++;
+        seed = atol(argv[argIndex]);
     }
     else if ( !strcmp(argv[argIndex], "-output") ) {
         argIndex++;
@@ -71,13 +75,15 @@ int main(int argc, char **argv)
     string net_folder("./test_net_new");
     char output_dir[1024] = "./LOG-SPC\0";
     int target = 5;
+    int seed = 17;
 
-    parseArgs(argc, argv, net_folder, target, T, output_dir);
+    parseArgs(argc, argv, net_folder, target, T, seed, output_dir);
 
     cout << "T: " <<  T << endl
          << "net_folder: " << net_folder << endl
          << "target: " << target << endl
-         << "output_dir: " << output_dir << endl;
+         << "output_dir: " << output_dir << endl
+         << "seed: " << seed << endl;
 
 //    IloEnv env = IloEnv();
 //    IloModel model(env);
@@ -98,13 +104,16 @@ int main(int argc, char **argv)
 //    // env.out() << "Solution status = " << cplex.getStatus() << endl;
 //    env.out() << cplex.getCplexStatus() << endl;
 
-
-    SupplyNet sn(net_folder, 4, 4, 4, 4);
-    sn.discretizeAll();
-
+    srand(seed);
     SupplyChain sc;
     sc.loadParameters(net_folder, target, T, output_dir);
-    sc.genProbConstraints();
+//    sc.genProbConstraints();
+//    sc.genCapacityConstraints();
+//    sc.genConnectionConstraints();
+//    sc.genBudgetConstraints();
+    sc.genAllConstraints();
+    sc.prepareModel();
+    sc.solveInstance();
 
     return 0;
 }

@@ -35,6 +35,8 @@ class SupplyChain {
         IloModel model;
         IloCplex cplex;
         IloInt timelimit;
+        bool yannakis;    // yannakis encoding by default
+        bool sparsify_coeff;
 
         // Parameters
         int _N;
@@ -50,79 +52,76 @@ class SupplyChain {
         vector<int> _end_nodes;
         vector<vector<int>> _edges;
         vector<vector<int>> _edge_map;
+        vector<vector<int>> _dedges;
+        vector<vector<int>> _dedge_map;
 
-        // Variables
+        int _prec_prob, _prec_cap;    // precision represented by the number of bits
+        int _prec_cst, _prec_bgt;
+
+        // Objective Variables
         IloBoolVarArray _var_select;  // edge selection
-        vector<IloBoolVarArray> _var_disaster; // disaster edges
-
-        vector<IloBoolVarArray> _var_prob_dis;
-        vector<IloBoolVarArray> _var_cap_dis;
-        vector<IloBoolVarArray> _var_inedge;    //
-
-        // extra variables
-        vector<IloBoolVarArray> _var_node_conn;    // indicator of node connection
-        vector<IloBoolVarArray> _var_prob_add;  // single
-
-
-        // Constraints
         IloConstraintArray _const_budget;
+
+        // Disaster Probability
+        vector<IloBoolVarArray> _var_disaster; // disaster edges
+        vector<vector<IloBoolVarArray>> _var_prob_dis;   // [T, N_factors, prec_prob] discretization vars
+        vector<vector<IloBoolVarArray>> _var_prob_add;   // [T, N_factors, table_size] added vars
+        vector<IloConstraintArray> _const_prob_dis; // constraints on discretization variables
+        vector<vector<IloConstraintArray>> _const_prob_add;  // constraints on added variables, T, N_factors, vars
+        vector<vector<IloNumExpr>> _expr_prob;           // [T, N_factors] probability expression
+
+
+        // Connection
+        vector<IloBoolVarArray> _var_node_conn;    // indicator of node connection
+        vector<IloBoolVarArray> _var_edge_conn;    // indicator of node connection
+        vector<IloConstraintArray> _const_connect;
+
+
+        // Capacity
+        vector<IloBoolVarArray> _var_cap_dis;   //
+        vector<IloConstraint> _const_cap_dis;
+        vector<IloNumExpr> _expr_cap;   // should be related to connection variables
 
 
         // XOR Constraints
+        vector<IloBoolVarArray> _var_all_inxor;     // all variables appear in XOR
+        vector<IloIntVarArray> ivars_xor;
+        vector<IloBoolVarArray> bvars_xor;
+        vector<IloConstraintArray> const_xor;
 
-        // functions
-
-        void genConnectionConstraints();
-        void genProbConstraints();
-        void genCapacityConstraints();
-
-
-        ////////END NEW VERSION/////////
-
-        int _M;
-
-        // Variables
-        vector<vector<IloBoolVarArray>> supply_selection;
-        vector<vector<vector<IloBoolVarArray>>> bvars;
-        vector<vector<vector<IloConstraintArray>>> constraints;
-        IloConstraintArray const_budget;
-
-        // Constraints for XOR
-        bool sparsify_coeff;
-        bool yannakis;    // yannakis encoding by default
-        vector<vector<vector<IloConstraintArray>>> const_xor;
-        vector<vector<vector<IloIntVarArray>>> ivars_xor;
-        vector<vector<vector<IloBoolVarArray>>> bvars_xor;
+        // Majority
+        IloBoolVarArray _vars_maj;
+        IloConstraint _const_majority;
+        vector<IloConstraint> _const_all_union;  // all constraints including majority
 
 
         SupplyChain();
         ~SupplyChain();
 
-        // running pipeline
-        void loadParameters(const string& net_folder, int target, int _T, char output_dir[]);
-        void genAllConstraints();
-        bool solveInstance();
-
-        // separate functions
+        // Functions
         void initializeVariables();
-        void genSupplyConstraints();
+        void genProbConstraints();
+        void genConnectionConstraints();
+        void genCapacityConstraints();
+        void genBudgetConstraints();
+        void genXORConstraints();
 
-        void genXORConstraints();     
-        void prepareModel();   
 
         // utils
         bool makeHashFuncSolvable(vector<vector<bool>> &coeffA);
-        void extractXorVarConst(vector<vector<bool>> coeffA, int t, int n, int m);
+        void extractXorVarConst(vector<vector<bool>> coeffA, int t);
 
+
+        // running pipeline:
+        void loadParameters(const string& net_folder, int target, int _T, char output_dir[]);
+        void genAllConstraints();
+        void prepareModel();
+        bool solveInstance();
 
         // Ignore majority in this application
-        // IloBoolVarArray bvars_maj;      
+        // IloBoolVarArray bvars_maj;
         // IloConstraint const_majority;
-        // void genMajorityConstraints();
+         void genMajorityConstraints();
 };
-
-
-
-
 
 #endif

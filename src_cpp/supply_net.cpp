@@ -88,6 +88,7 @@ void SupplyNet::loadFromFile(string net_folder){
         fp >> id;
         _end_nodes.push_back(id);
     }
+    fp >> _demand;
     fp.close();
 
     // Load disaster models
@@ -107,7 +108,7 @@ void SupplyNet::loadFromFile(string net_folder){
     }
 
     _dedge_map.resize(_N);
-    for(int i = 0; i < _N; i++){ // initialize log_demand
+    for(int i = 0; i < _N; i++){ // initialize demand
         _dedge_map[i].resize(_N);
         fill(_dedge_map[i].begin(), _dedge_map[i].end(), -1);
     }
@@ -150,6 +151,7 @@ void SupplyNet::loadFromFile(string net_folder){
 SupplyNet::SupplyNet(string net_folder, int prec_cap, int prec_cst, int prec_bgt, int prec_prob):
         _prec_cap(prec_cap), _prec_cst(prec_cst), _prec_bgt(prec_bgt), _prec_prob(prec_prob){
     loadFromFile(net_folder);
+    discretizeAll();
 }
 
 

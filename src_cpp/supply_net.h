@@ -37,6 +37,8 @@ class SupplyNet {
     vector<vector<int>> _edges;
     vector<vector<int>> _edge_map;
 
+    int _demand;
+
 
     // disaster model -- UAI
     int _N_dedges;  // disaster edges
@@ -64,23 +66,6 @@ class SupplyNet {
     // vector<int> _dis_budget;         // not used
     int _prec_cst, _prec_bgt;   // not used
     double _min_cst, _max_cst, _min_bgt, _max_bgt;  // not used
-
-    ////////// TO BE DELETED ///////////
-    // Read from input
-    vector<int> _produce;    // size: _N * 1; node i produces produce[i]
-    vector<vector<int>> _demand;  // size: _N * _M; node i requires demand[i][m] unit of material m
-    vector<vector<int>> _capacity;
-    vector<int> _budget;
-    vector<vector<int>> _cost;
-    int _capacity_precision; //
-
-    // disasters model ...
-    // easy to read
-    int _Nd;           // the number of disasters
-    vector<int> _disaster_precision; // the number of discretized values, e.g., [0.25, 0.5, 0.75, 1] => _precision=4
-    vector<vector<vector<int>>> _disaster_map; // disaster i affects edges in disaster_map[i] with a probabiliy disaster_map[i][j][k]
-    // Advanced information
-    vector<vector<int>> _producers; // size: _M * UNSURE; material m has produces producers[m]
 };
 
 

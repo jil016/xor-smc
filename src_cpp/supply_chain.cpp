@@ -1,6 +1,6 @@
 #include "supply_chain.h"
 
-// #define DEBUG_SHELTER
+// #define DEBUG_SUPPLYCHAIN
 using namespace std;
 
 typedef std::set<int> set_type;
@@ -32,12 +32,12 @@ SupplyChain::~SupplyChain(){
 // start modification
 void SupplyChain::loadParameters(const string& net_folder, int target, int T, char output_dir[]){
     _net_folder = net_folder;
-    int prec_cap = 4;
-    int prec_prob = 4;
-    int prec_cst = 4;   // not used in our application
-    int prec_bgt = 4;   // not used
+    _prec_prob = 4;
+    _prec_cap = 6;
+    _prec_cst = 4;   // not used in our application
+    _prec_bgt = 4;   // not used
 
-    _network = SupplyNet(net_folder, prec_cap, prec_cst, prec_bgt, prec_prob);
+    _network = SupplyNet(net_folder, _prec_cap, _prec_cst, _prec_bgt, _prec_prob);
     _N = _network._N;
     _N_edges = _network._N_edges;
     _N_dedges = _network._N_dedges;
@@ -48,6 +48,9 @@ void SupplyChain::loadParameters(const string& net_folder, int target, int T, ch
 
     _edges = _network._edges;
     _edge_map = _network._edge_map;
+
+    _dedges = _network._dedges;
+    _dedge_map = _network._dedge_map;
 
     _T = T;
 
@@ -62,53 +65,92 @@ void SupplyChain::loadParameters(const string& net_folder, int target, int T, ch
 }
 
 void SupplyChain::initializeVariables(){
+    // Edge selection related
     _var_select = IloBoolVarArray(env, _N_edges);    // trade plan
+    _const_budget = IloConstraintArray(env);
 
+
+    // Add disaster variables
     for (int t = 0; t < _T; t++){
         _var_disaster.emplace_back(env, _network._N_dedges);  // disaster variables \theta
-        _var_prob_dis.emplace_back(env, _network._prec_prob);   // discretization
-        _var_cap_dis.emplace_back(env, _network._prec_cap);     // discretization
-        _var_inedge.emplace_back(env, _N_inedge);    // incoming edges
     }
+
+    // Add variables for probability calculation
+    _var_prob_dis.resize(_T);
+    _var_prob_add.resize(_T);
+    _expr_prob.resize(_T);
+    for (int t = 0; t < _T; t++){
+        _const_prob_dis.emplace_back(env);  // disaster variables \theta
+    }
+    _const_prob_add.resize(_T);  // constraints on added variables, T, N_factors, vars
+
 
     // add assist variables for node connection
     for (int t = 0; t < _T; t++){
         _var_node_conn.emplace_back(env, _N);    // node connection, indicates the accessibility from primary suppliers
+        _var_edge_conn.emplace_back(env, _N_edges);
+    }
+    for (int t = 0; t < _T; t++){
+        _const_connect.emplace_back(env);   // constraints for connectivity
     }
 
-    // add assist variables for Prob(theta) -- according to the UAI size
-    for (int t = 0; t < _T; t++){
-        _var_prob_add.emplace_back(env);    // node connection, indicates the accessibility from primary suppliers
-    }
-    
-    _const_budget = IloConstraintArray(env);
-}
+    // add capacity variables
+    _var_cap_dis.resize(_T);
+
+    // add majority variables
+    _vars_maj = IloBoolVarArray(env, _T);
 
 
-void SupplyChain::genConnectionConstraints(){
-    for (int t = 0; t < _T; t++){
-        for (int n = 0; n < _N; n++) {
-            // Node connection constraints
-            IloConstraintArray const_conn(env);
+    /// Begin set variable names
+    for (int i = 0; i < _N; i++) {
+        for (int j = 0; j < _N; j++) {
+            if (_edge_map[i][j] != -1) {
+                char *name = new char[32];
+                snprintf(name, 32, "s_%d_%d", (int) i, (int) j);
+                _var_select[_edge_map[i][j]].setName(name);
+            }
         }
     }
+    // set node, edge connectivity assist variable names
+    // set disaster variable names
+    for (int t = 0; t < _T; t++) {
+        for (int i = 0; i < _N; i++) {
+            char *name = new char[32];
+            snprintf(name, 32, "v_t%d_%d", (int) t, (int) i);
+            _var_node_conn[t][i].setName(name);
+
+            for (int j = 0; j < _N; j++) {
+                if (_edge_map[i][j] != -1) {
+                    snprintf(name, 32, "_e_t%d_%d_%d", (int) t, (int) i, (int) j);
+                    _var_edge_conn[t][_edge_map[i][j]].setName(name);
+                }
+
+                if (_edge_map[i][j] != -1 && _dedge_map[i][j] != -1) {
+                    snprintf(name, 32, "de_t%d_%d_%d", (int) t, (int) i, (int) j);
+                    _var_disaster[t][_dedge_map[i][j]].setName(name);
+                }
+            }
+        }
+    }
+
+    for(int t = 0; t < _T; t++){
+        char *name = new char[32];
+        snprintf(name, 32, "mj_t%d", (int) t);
+        _vars_maj[t].setName(name);
+    }
+    /// End set names
 }
+
 
 void SupplyChain::genProbConstraints(){
     for (int t = 0; t < _T; t++){
-        // Generate the probability expr:
-        vector<IloNumExpr> prob_exprs;
-        IloBoolVarArray prob_vars(env, _N_dedges);
-        IloBoolVarArray prob_all_add_vars(env);
-        IloConstraintArray prob_all_add_consts(env);
-
         // read through UAI
         for(int i = 0; i < _network._N_factors; i++){
-            IloNumExpr prob_expr(env);
-            IloBoolVarArray prob_add_vars(env);
-            IloConstraintArray prob_add_consts(env);
+            IloNumExpr expr_i(env);
+            IloBoolVarArray var_add_i(env);
+            IloConstraintArray const_i(env);
 
-            // TODO: Now assume a single factor
+            // TODO: Now assume variables in different factors
             int f_size = _network._factors[i].size();   // number of variables
             int tab_size = _network._tables[i].size();  // number of terms in this factor
 
@@ -119,10 +161,10 @@ void SupplyChain::genProbConstraints(){
                 snprintf(name, 32, "mu_t%d_f%d_%d", (int) t, (int) i, (int) j);
 
                 IloBoolVar mu_i_j (env, 0, 1, name);
-                prob_add_vars.add(mu_i_j);
-                prob_expr += _network._tables[i][j] * mu_i_j;
+                var_add_i.add(mu_i_j);
+                expr_i += _network._tables[i][j] * mu_i_j;
             }
-            prob_exprs.push_back(prob_expr);
+            _expr_prob[t].push_back(expr_i);
 
             // also add constraints for mu_i_j
             for (int k = 0; k < f_size; k++) {
@@ -131,27 +173,96 @@ void SupplyChain::genProbConstraints(){
                 // for each variable
                 for (int j = 0; j < tab_size; j++){
                     if((j >> (f_size - k - 1)) % 2 == 1 ){
-                        add_pos_expr += prob_add_vars[j];
+                        add_pos_expr += var_add_i[j];
                     }
                     else{
-                        add_neg_expr += prob_add_vars[j];
+                        add_neg_expr += var_add_i[j];
                     }
                 }
-                prob_add_consts.add(add_pos_expr == prob_vars[_network._factors[i][k]]);
-                prob_add_consts.add(add_neg_expr == 1 - prob_vars[_network._factors[i][k]]);
+                const_i.add(add_pos_expr == _var_disaster[t][_network._factors[i][k]]);
+                const_i.add(add_neg_expr == 1 - _var_disaster[t][_network._factors[i][k]]);
             }
-            prob_all_add_vars.add(prob_add_vars);
-            prob_all_add_consts.add(prob_add_consts);
+            _var_prob_add[t].push_back(var_add_i);
+            _const_prob_add[t].push_back(const_i);
+        }
+
+        _var_prob_dis[t].resize(_network._N_factors);
+        for(int i = 0; i < _network._N_factors; i++){
+            _var_prob_dis[t][i] = IloBoolVarArray(env, _prec_prob);
+            IloNumExpr expr_i(env);
+
+            for(int j = 0; j < _prec_prob; j++){
+                expr_i += pow(2, j) * _var_prob_dis[t][i][j];
+            }
+
+            _const_prob_dis[t].add(expr_i <= ((int) pow(2, _prec_prob) - 1) * _expr_prob[t][i] + 1);
         }
 
         // DEBUG: try to output them
-        model.add(prob_vars);
-        model.add(prob_all_add_vars);
-        model.add(prob_all_add_consts);
-        for (const auto & prob_expr : prob_exprs)
-            model.add((prob_expr == 0));
-        bool solved = cplex.solve();
-        cplex.exportModel("model.lp");
+//        model.add(_var_disaster[t]);
+//        for (const auto & v : _var_prob_add[t])
+//            model.add(v);
+//        model.add(_const_prob_dis[t]);
+//        for (const auto & c : _const_prob_add[t])
+//            model.add(c);
+//        cplex.exportModel("model_prob.lp");
+    }
+}
+
+void SupplyChain::genConnectionConstraints(){
+    for (int t = 0; t < _T; t++){
+        for (int i = 0; i < _N; i++) {
+            // Node connection constraints
+            int in_degree = 0;
+            IloConstraintArray in_const(env);
+
+            for (int j = 0; j < _N; j++) {
+                // traverse the whole edge map
+                if (_edge_map[i][j] != -1) {
+                    // outgoing edge, set edge connectivity
+                    IloConstraintArray out_const(env);
+                    out_const.add(_var_node_conn[t][i] == 1);    // starting node is connected
+                    out_const.add(_var_select[_edge_map[i][j]] == 1);    // is selected
+                    if(_dedge_map[i][j] != -1){
+                        out_const.add(_var_disaster[t][_dedge_map[i][j]] == 0);    // no disaster
+                    }
+                    IloAnd out_and(env);
+                    out_and.add(out_const);
+                    _const_connect[t].add(_var_edge_conn[t][_edge_map[i][j]] == out_and);
+                }
+                if (_edge_map[j][i] != -1) {
+                    // incoming edge, set node connectivity
+                    in_degree++;
+                    in_const.add(_var_edge_conn[t][_edge_map[j][i]] == 1);
+                }
+            }
+            if (in_degree == 0) {
+                // primary supplier, always connected
+                _const_connect[t].add((_var_node_conn[t][i] == 1));
+            }
+            else{
+                IloOr in_or(env);
+                in_or.add(in_const);
+                _const_connect[t].add(_var_node_conn[t][i] == in_or);
+                in_degree = 0;
+            }
+        }
+
+//        // DEBUG: try to output them
+//        model.add(_var_select);
+//        for(const auto & vars : _var_node_conn){
+//            model.add(vars);
+//        }
+//        for(const auto & vars : _var_edge_conn){
+//            model.add(vars);
+//        }
+//        for(const auto & vars : _var_disaster){
+//            model.add(vars);
+//        }
+//        for(const auto & cons : _const_connect){
+//            model.add(cons);
+//        }
+//        cplex.exportModel("model_connect.lp");
     }
 }
 
@@ -161,200 +272,133 @@ void SupplyChain::genCapacityConstraints(){
         vector<int> in_edges;
         vector<int> in_edge_cap;
 
-        IloBoolVarArray cap_vars(env);
-        IloNumExpr cap_expr(env);
+        IloNumExpr expr_cap(env);
 
         for (const auto & node : _end_nodes){
             for(int i = 0; i < _N; i++){
-                if(_edge_map[i][node] >= 0){    // detected one incoming edge
-                    in_edges.push_back(_edge_map[i][node]);
-                    in_edge_cap.push_back(_network._dis_capacity[i][node]);
+                if(_edge_map[i][node] >= 0){    // detected one incoming edge of one end node
+                    in_edges.push_back(_edge_map[i][node]); // only for debug purpose
+                    in_edge_cap.push_back(_network._dis_capacity[i][node]); // only for debug purpose
 
-                    char *name = new char[32];
-                    snprintf(name, 32, "cap_t%d_%d_%d", (int) t, (int) i, (int) node);
-                    IloBoolVar cap_i_j (env, 0, 1, name);
-                    cap_vars.add(cap_i_j);
-                    cap_expr += cap_i_j * _network._dis_capacity[i][node];
+                    expr_cap += _var_edge_conn[t][_edge_map[i][node]] * _network._dis_capacity[i][node];
                 }
             }
         }
-        //
-        // DEBUG: try to output them
-        model.add(cap_vars);
-        model.add(prob_all_add_vars);
-        model.add(prob_all_add_consts);
-        for (const auto & prob_expr : prob_exprs)
-            model.add((prob_expr == 0));
-        bool solved = cplex.solve();
-        cplex.exportModel("model.lp");
+        _expr_cap.push_back(expr_cap);
 
+        // create discretization variables
+        _var_cap_dis[t] = IloBoolVarArray(env, _prec_cap);
+        IloNumExpr cap_decode_dis(env);
+        for(int i = 0; i < _prec_cap; i++){
+            cap_decode_dis += pow(2, i) * _var_cap_dis[t][i];
+        }
+        _const_cap_dis.push_back(cap_decode_dis <= expr_cap);
+
+        // DEBUG: try to output them
+//        model.add(_var_edge_conn[t]);
+//        model.add(_const_cap_dis[t]);
+//        cplex.exportModel("model_cap.lp");
     }
 }
 
+void SupplyChain::genBudgetConstraints(){
+    for(int i = 0; i < _N; i++){
+        // each node i
+        IloNumExpr expr_cst(env);
+        int in_degree = 0;
+        for(int j = 0; j < _N; j++){
+            // look at edge (j,i)
+            if(_edge_map[j][i] >= 0){
+                expr_cst += _var_select[_edge_map[j][i]] * _network._raw_cost[j][i];
+                in_degree++;
+            }
+        }
+        if(in_degree > 0) _const_budget.add(expr_cst <= _network._raw_budget[i]);
+    }
 
+    // DEBUG: try to output them
+//    model.add(_var_select);
+//    model.add(_const_budget);
+//    cplex.exportModel("model_bgt.lp");
+}
 
-void SupplyChain::genSupplyConstraints(){
-//    //
-//    for (int t = 0; t < _T; t++){
-//        for (int n = 0; n < _N; n++){
-//            for (int m = 0; m < _M; m++){
-//                if(_network._demand[n][m] != 0){
-//                    // supply
-//                    IloBoolVarArray bvars_supply(env);  // represents only one supplier
-//                    IloConstraintArray const_supply(env);
-//
-//                    // capacity
-//                    IloBoolVarArray bvars_cap(env, 4);  // dim(capacity) 4 digits
-//                    IloNumExpr capacity_encoded = 8*bvars_cap[0] + 4*bvars_cap[1] + 2*bvars_cap[2] + bvars_cap[3];
-//
-//                    // disasters
-//                    vector<IloBoolVarArray> bvars_dis; // _Nd * dim(disaster) 4 digits each
-//                    vector<IloNumExpr> disaster_encoded;
-//                    for(int d = 0; d < _network._Nd; d++){
-//                        IloBoolVarArray bvars_dis_d(env, 4);
-//                        IloNumExpr dis_d_encoded(env);
-//                        dis_d_encoded = 8*bvars_dis_d[0] + 4*bvars_dis_d[1] + 2*bvars_dis_d[2] + bvars_dis_d[3];
-//
-//                        bvars_dis.push_back(bvars_dis_d);
-//                        disaster_encoded.push_back(dis_d_encoded);
-//                    }
-//
-//                    for (int j = 0; j < _network._producers[m].size(); j ++){
-//                        int p = _network._producers[m][j];
-//                        // considering (p -> n) supply
-//
-//                        IloBoolVar bvar_pn(env);
-//                        IloConstraint const_supply_pn;
-//
-//                        // capacity is large enough
-//                        int capacity_pn = _network._capacity[p][n];  // precision = 4. this is an integer 0~16
-//                        IloConstraint const_cap_pn = (capacity_encoded < capacity_pn); // capacity success
-//
-//                        // survived in all disasters
-//                        IloConstraintArray const_dis_pn(env);
-//                        for(int d = 0; d < _network._Nd; d++){
-//                            // disaster pass
-//                            int prob_pn_d = _network._disaster_map[d][p][n];
-//
-//                            const_dis_pn.add(disaster_encoded[d] >= prob_pn_d);
-//                        }
-//
-//                        IloAnd const_dis_pn_and(env);
-//                        const_dis_pn_and.add(const_dis_pn);
-//
-//                        // overall
-//                        const_supply_pn = (bvar_pn == 0) || (const_cap_pn && const_dis_pn_and);
-//
-//                        bvars_supply.add(bvar_pn);
-//                        const_supply.add(const_supply_pn);
-//                    }
-//                    // for this specific material,
-//
-//                    // one edge sampled a time
-//                    IloNumExpr expr_one_edge(env);
-//                    for (int j = 0; j < _network._producers[m].size(); j++){
-//                        expr_one_edge = expr_one_edge + bvars_supply[j];
-//                    }
-//                    IloConstraint const_one_edge = (expr_one_edge == 1);
-//
-//
-//                    IloConstraintArray const_be_selected(env);
-//                    for (int j = 0; j < _network._producers[m].size(); j++){
-//                        const_be_selected.add(bvars_supply[j] <= supply_selection[n][m][j]);
-//                    }
-//
-//                    // push_back the following:
-//
-//                    // const_be_selected
-//                    // const_one_edge
-//                    // const_supply
-//
-//                    // bvars_supply
-//                    // bvars_cap
-//                    // bvars_dis
-//
-//                    bvars[t][n][m].add(bvars_supply);
-//                    bvars[t][n][m].add(bvars_cap);
-//                    for(int j = 0; j < bvars_dis.size(); j++){
-//                        bvars[t][n][m].add(bvars_dis[j]);
-//                    }
-//
-//                    constraints[t][n][m].add(const_be_selected);
-//                    constraints[t][n][m].add(const_one_edge);
-//                    constraints[t][n][m].add(const_supply);
-//                }
-//            }
-//        }
-//    }
-//
-//    // limit the budget
-//    for (int n = 0; n < _N; n++){
-//        IloNumExpr expr_cost_sum(env);
-//        int budget_n = _network._budget[n];
-//
-//        for (int m = 0; m < _M; m++){
-//            if(_network._demand[n][m] != 0){
-//                for (int j = 0; j < _network._producers[m].size(); j ++){
-//                    // cout<< "node :" << n << " material: " << m << " cost: " << _network._cost[j][n]<<endl;
-//                    int p = _network._producers[m][j];
-//                    expr_cost_sum = expr_cost_sum + supply_selection[n][m][j] * _network._cost[p][n];
-//                }
-//            }
-//        }
-//        const_budget.add(expr_cost_sum <= budget_n);
-//    }
-//    //
+void SupplyChain::genAllConstraints(){
+    // generate everything
+    genProbConstraints();
+    cout << "Disaster constraints generated!" << endl;
+    genConnectionConstraints();
+    cout << "Connection constraints generated!" << endl;
+    genCapacityConstraints();
+    cout << "Capacity constraints generated!" << endl;
+    genBudgetConstraints();
+    cout << "Budget constraints generated!" << endl;
+    genXORConstraints();
+    cout << "XOR constraints generated!" << endl;
+    genMajorityConstraints();
+    cout << "Majority constraints generated!" << endl;
 }
 
 
 void SupplyChain::prepareModel(){
 
-    for (int n = 0; n < _N; n++){
-        for (int m = 0; m < _M; m++){
-            model.add(supply_selection[n][m]);
+    // Objective Variables
+    model.add(_var_select);
+    model.add(_const_budget);
+    cout << "Selection variables and budget constraints added!" << endl;
+
+    // Disaster Probability
+    for(int t = 0; t < _T; t++){
+        model.add(_var_disaster[t]);
+
+        for (int i = 0; i<_network._N_factors; i++){
+            model.add(_var_prob_dis[t][i]);
+            model.add(_var_prob_add[t][i]);
+            // model.add(_const_prob_add[t][i]);
         }
+        // model.add(_const_prob_dis[t]);
+    }
+    cout << "Disaster variables added!" << endl;
+
+
+    // Connection
+    for(int t = 0; t < _T; t++){
+        model.add(_var_node_conn[t]);
+        model.add(_var_edge_conn[t]);
+        // model.add(_const_connect[t]);
+    }
+    cout << "Connection variables added!" << endl;
+
+    // Capacity
+    for(int t = 0; t < _T; t++){
+        model.add(_var_cap_dis[t]);
+        // model.add(_const_cap_dis[t]);
+    }
+    cout << "Capacity variables added!" << endl;
+
+    // XOR Constraints
+    for(int t = 0; t < _T; t++){
+        model.add(ivars_xor[t]);
+        model.add(bvars_xor[t]);
+        model.add(const_xor[t]);
+    }
+    cout << "XOR variables and constraints added!" << endl;
+
+    // Majority and all constraints
+    model.add(_vars_maj);
+    model.add(_const_majority);
+    for(int t = 0; t < _T; t++){
+        model.add(_const_all_union[t]);
     }
 
-    for (int t = 0; t < _T; t++){
-        for (int n = 0; n < _N; n++){
-            for (int m = 0; m < _M; m++){
-                model.add(bvars[t][n][m]);
-            }
-        }
-    }
-    cout << "Supply variables added!" << endl;
+    cout << "Majority constraints (union with all constraints) added!" << endl;
 
-    for (int t = 0; t < _T; t++){
-        for (int n = 0; n < _N; n++){
-            for (int m = 0; m < _M; m++){
-                model.add(constraints[t][n][m]);
-            }
-        }
-    }
-    model.add(const_budget);
-    cout << "Supply constraints added!" << endl;
-
-    // XOR constraints ...
-
-    for (int t = 0; t < _T; t++){
-        for (int n = 0; n < _N; n++){
-            for (int m = 0; m < _M; m++){
-                model.add(ivars_xor[t][n][m]);
-                model.add(bvars_xor[t][n][m]);
-                model.add(const_xor[t][n][m]);
-            }
-        }
-    }
-    cout << "XOR constraints added!" << endl;
-    // vector<vector<vector<IloConstraintArray>>> const_xor;
-    // vector<vector<vector<IloIntVarArray>>> ivars_xor;
-    // vector<vector<vector<IloBoolVarArray>>> bvars_xor;
+    // DEBUG
+    cplex.exportModel("model_all_w_maj.lp");
 }
-
 
 bool SupplyChain::solveInstance() {
     cout << "\n================== Set Output Path ===================\n" << endl;
-    #ifdef DEBUG_SUPPLY_CHAIN
+    #ifdef DEBUG_SUPPLYCHAIN
     time_t now = time(0);
     char* date_time = ctime(&now);
     char log_folder_name[100] = "LOG-Shelter_";
@@ -387,7 +431,7 @@ bool SupplyChain::solveInstance() {
 
     fs_params << "N: " << _N << "\n"
               << "T: " << _T << "\n"
-              << "M: " << _M << "\n"
+              << "demand: " << _network._demand << "\n"
               << "Data path: " << _net_folder << endl;
 
     fs_params.close();
@@ -405,7 +449,7 @@ bool SupplyChain::solveInstance() {
     env.out() << cplex.getCplexStatus() << endl;
 
     if(solved){
-        // read the supply_selection
+        // read the trade selection
         vector<vector<int>> parse_result;
         parse_result.resize(_N);
         for (int n = 0; n < _N; n++){
@@ -413,14 +457,11 @@ bool SupplyChain::solveInstance() {
             fill(parse_result[n].begin(), parse_result[n].end(), 0);
         }
 
-        for (int n = 0; n < _N; n++){
-            for (int m = 0; m < _M; m++){
-                if(_network._demand[n][m] != 0){
-                    for (int j = 0; j < _network._producers[m].size(); j ++){
-                        parse_result[_network._producers[m][j]][n] = int(cplex.getValue(supply_selection[n][m][j]));
-                    }
+        for (int i = 0; i < _N; i++){
+            for (int j = 0; j < _N; j++){
+                if(_edge_map[i][j] >= 0){
+                    parse_result[i][j] = int(cplex.getValue(_var_select[_edge_map[i][j]]));
                 }
-
             }
         }
         
@@ -432,49 +473,39 @@ bool SupplyChain::solveInstance() {
         }
     }
 
+    else{
+        env.out() << "NO SOLUTION " << endl;
+    }
+
     return true;
 }
 
 void SupplyChain::genXORConstraints(){
-    const_xor.resize(_T);
-    ivars_xor.resize(_T);
-    bvars_xor.resize(_T);
-
+    // extract all variables that appear in XOR
     for( int t=0; t < _T; t++){
-        const_xor[t].resize(_N);
-        ivars_xor[t].resize(_N);
-        bvars_xor[t].resize(_N);
-
-        for(int n=0; n< _N; n++){
-            for(int m = 0; m < _M; m++){
-                int n_vars = bvars[t][n][m].getSize();
-                int n_parity = _network._demand[n][m];  // _demand determines the number of XORs
-
-                std::cout << ">> Number of variables in XOR is: " << n_vars << endl;
-                vector<vector<bool>> coeffA = generate_Toeplitz_matrix(n_parity, n_vars);
-
-                // coeffA: n_parity x (n_vars + 1)
-                // be sure to generate a set of non-self-conflict XOR constraints
-                while(!makeHashFuncSolvable(coeffA)){
-                    coeffA = generate_Toeplitz_matrix(n_parity, n_vars);
-                }
-                extractXorVarConst(coeffA, t, n, m);
-            }
+        _var_all_inxor.emplace_back(env);
+        _var_all_inxor[t].add(_var_disaster[t]);
+        for (int i = 0; i < _network._N_factors; i++){
+            _var_all_inxor[t].add(_var_prob_dis[t][i]);
         }
+        _var_all_inxor[t].add(_var_cap_dis[t]);
     }
 
+    for( int t=0; t < _T; t++) {
+        int n_vars = _var_all_inxor[t].getSize();
+        int n_parity = _network._demand;
+
+        std::cout << ">> Number of variables in XOR is: " << n_vars << endl;
+        vector<vector<bool>> coeffA = generate_Toeplitz_matrix(n_parity, n_vars);
+//        vector<vector<bool>> coeffA = generate_matrix(n_parity, n_vars);
+        while(!makeHashFuncSolvable(coeffA)){
+            coeffA = generate_Toeplitz_matrix(n_parity, n_vars);
+//            coeffA = generate_matrix(n_parity, n_vars);
+        }
+        print_matrix(coeffA);
+        extractXorVarConst(coeffA, t);
+    }
 }
-
-
-void SupplyChain::genAllConstraints(){
-    // generate everything
-    genSupplyConstraints();
-    cout << "Supply constraints generated!" << endl;
-    genXORConstraints(); 
-    cout << "XOR constraints generated!" << endl;
-}
-
-
 
 bool SupplyChain::makeHashFuncSolvable(vector<vector<bool>> &coeffA) {
     if (coeffA.empty()) 
@@ -572,7 +603,7 @@ bool SupplyChain::makeHashFuncSolvable(vector<vector<bool>> &coeffA) {
     // print_matrix(coeffA);
 
 
-    #ifdef DEBUG_SHELTER
+    #ifdef DEBUG_SUPPLYCHAIN
     cout << "row echelon form:" << endl;
     print_matrix(coeffA);
     #endif
@@ -587,12 +618,12 @@ bool SupplyChain::makeHashFuncSolvable(vector<vector<bool>> &coeffA) {
     return true;
 }
 
-void SupplyChain::extractXorVarConst(vector<vector<bool>> coeffA, int t, int n, int m) {
+void SupplyChain::extractXorVarConst(vector<vector<bool>> coeffA, int t) {
     // Encode XOR constraints, and extract corresponding variables and constraints
     IloConstraintArray xor_const_array(env);
     IloIntVarArray xor_int_vars_array(env);
     IloBoolVarArray xor_bool_vars_array(env);
-    int nbvars = bvars[t][n][m].getSize();
+    int nbvars = _var_all_inxor[t].getSize();
 
     std::vector < std::set <size_t> > varAppearancesInXors;
     if (!coeffA.empty())
@@ -605,45 +636,45 @@ void SupplyChain::extractXorVarConst(vector<vector<bool>> coeffA, int t, int n, 
 
     xor_bool_vars_array.add(dummy_parity);
     xor_const_array.add((dummy_parity==1));
-    
+
 
     vector <size_t> xors_length;
 
     if (!coeffA.empty()) {
         xors_length.resize(coeffA.size());
-        
+
         for (size_t j = 0; j < coeffA.size(); j++) {
         size_t f = 0;
-        
+
         for (size_t l = 0; l < coeffA[j].size(); l++)      // last column is the parity bit b
             if (coeffA[j][l]) {
             f++;
             }
-        
+
         xors_length[j] = f;    // save length of j-th xor
         }
-        
+
         for (size_t j = 0; j<coeffA.size();j++) {
         // use yannakis encoding for longer ones
         for (size_t l = 0; l<coeffA[j].size();l++)      // last column is the parity bit b
             if (coeffA[j][l]) {
-            varAppearancesInXors[l].insert(j);    // for each var, save list of xors involved  
+            varAppearancesInXors[l].insert(j);    // for each var, save list of xors involved
             }
         }
-        
+
         cout << "XOR minimum length: "
             << *std::min_element(xors_length.begin(),xors_length.end())
             <<" . XOR maximum length: "
             << *std::max_element(xors_length.begin(),xors_length.end())
             << endl;
-        
+
         if (yannakis) {
             for (size_t j= 0; j<coeffA.size();j++) {
                 IloIntVarArray alphas(env);
-                
+
                 // compute xor length
-                size_t f =xors_length[j];          
-                
+                size_t f =xors_length[j];
+
                 // add alpha_j_k var
                 IloNumExpr alpha_sum_to_one(env);
                 for (size_t k = 0; k<= 2* (size_t) floor(f/2);k=k+2) {
@@ -654,51 +685,51 @@ void SupplyChain::extractXorVarConst(vector<vector<bool>> coeffA, int t, int n, 
                 alphas.add(alpha_j_k);
                 alpha_sum_to_one = alpha_sum_to_one + alpha_j_k;
                 }
-                
+
                 xor_int_vars_array.add(alphas);
                 xor_const_array.add((alpha_sum_to_one==1));
-                
+
                 alpha_vars.add(alphas);
             }
 
             // add zeta_i_j_k var nbvar
-            
+
             for (size_t i= 0; i < coeffA[0].size();i++) {
                 IloArray<IloIntVarArray> zet_jk (env, coeffA.size());
-                
+
                 std::set< size_t > XorsContainingi =  varAppearancesInXors[i];
                 for (std::set<size_t >::iterator it=XorsContainingi.begin(); it!=XorsContainingi.end(); ++it) {
                 size_t f = xors_length[*it];
 
                 IloIntVarArray zet(env);
-                
+
                 IloNumExpr zeta_sum_to_f(env);
-                
+
                 for (size_t k = 0; k<= 2* (size_t) floor(f/2);k=k+2) {
                     char *name = new char[32];
                     snprintf(name, 32, "zeta_%d_%d_%d", (int) i, (int) *it, (int) k);
-                    
+
                     IloBoolVar zeta_i_j_k (env, 0, 1, name);
-                    
+
                     zet.add(zeta_i_j_k);
                     zeta_sum_to_f = zeta_sum_to_f + zeta_i_j_k;
-                    
+
                     xor_const_array.add((zeta_i_j_k<=alpha_vars[*it][k/2]));
                 }
                 xor_int_vars_array.add(zet);
-                    
+
                 if (i < nbvars){
-                    xor_const_array.add((zeta_sum_to_f == bvars[t][n][m][i]));
+                    xor_const_array.add((zeta_sum_to_f == _var_all_inxor[t][i]));
                 }
-                else if (i == nbvars) {       
+                else if (i == nbvars) {
                     xor_const_array.add((zeta_sum_to_f == dummy_parity)); // dummy
                 }
                 zet_jk[*it]=zet;
                 }
-                
-                zeta_vars.add(zet_jk);  
+
+                zeta_vars.add(zet_jk);
             }
-            
+
             for (size_t j= 0; j<coeffA.size();j++){
                 // use yannakis encoding for longer ones
                 size_t f = xors_length[j];
@@ -714,143 +745,39 @@ void SupplyChain::extractXorVarConst(vector<vector<bool>> coeffA, int t, int n, 
             }
         }
     }
-    const_xor[t][n].push_back(xor_const_array);
-    ivars_xor[t][n].push_back(xor_int_vars_array);
-    bvars_xor[t][n].push_back(xor_bool_vars_array);
+    ivars_xor.push_back(xor_int_vars_array);
+    bvars_xor.push_back(xor_bool_vars_array);
+    const_xor.push_back(xor_const_array);
 }
 
 
+void SupplyChain::genMajorityConstraints() {
+    IloNumExpr majority_sum(env);
+    for (int t = 0; t < _T; t++){
+        majority_sum = majority_sum + _vars_maj[t];
+    }
+    _const_majority = (majority_sum > _T/2);
 
-// void SupplyChain::genMajorityConstraints(){
-//     bvars_maj = IloBoolVarArray(env, _T);
+    vector<IloAnd> const_and;
+    for (int t = 0; t< _T; t++){
+        // load all constraints in t-th repetition
+        // Disaster Probability
+        IloAnd temp_const_and(env);
+        temp_const_and.add(_const_prob_dis[t]);   // constraints on discretization variables
+        for(const auto & carray:_const_prob_add[t]){   // constraints on added variables, T, N_factors, vars
+            temp_const_and.add(carray);
+        }
+        // Connection
+        temp_const_and.add(_const_connect[t]);
+        // Capacity
+        temp_const_and.add(_const_cap_dis[t]);
 
-//     IloNumExpr majority_sum(env);
-//     for (int t = 0; t < _T; t++){
-//         majority_sum = majority_sum + bvars_maj[t];
-//     }
+        const_and.push_back(temp_const_and);
+    }
 
-//     const_majority = (majority_sum > _T/2);
-
-//     const_flow_union.resize(_T);
-//     const_is_shelter_union.resize(_T);
-
-
-//     vector<vector<IloAnd>> const_flow_and;
-//     vector<vector<IloAnd>> const_is_shelter_and;
-
-//     const_flow_and.resize(_T);
-//     const_is_shelter_and.resize(_T);
-
-//     for (int t = 0; t< _T; t++){
-//         for (int s = 0; s< _src.size(); s++){
-//             IloAnd temp_cf(env);
-//             temp_cf.add(const_flow[t][s]);
-//             const_flow_and[t].push_back(temp_cf);
-
-//             IloAnd temp_is(env);
-//             temp_is.add(const_is_shelter[t][s]);
-//             const_is_shelter_and[t].push_back(temp_is);
-//         }
-//     }
-
-//     for (int t = 0; t< _T; t++){
-//         for (int s = 0; s< _src.size(); s++){
-//             IloConstraint temp_const;
-//             temp_const = ((const_flow_and[t][s]) || (bvars_maj[t] == 0));
-//             const_flow_union[t].push_back(temp_const);
-//             temp_const = ((const_is_shelter_and[t][s]) || (bvars_maj[t] == 0));
-//             const_is_shelter_union[t].push_back(temp_const);
-//         }
-//     }
-// }
-
-
-
-
-//     bvars.resize(_T);
-
-//     index_supplies.resize(_T);      // _T * _N * _N
-//     index_disasters.resize(_T);     // _T * _N * _N * _Nd * dim(disaster)
-//     index_capacities.resize(_T);    // _T * _N * _M * dim(capacity)
-
-//     for (int t = 0; t < _T; t++){
-//         bvars[t].resize(_N);
-
-//         index_supplies[t].resize(_N);
-//         index_disasters[t].resize(_N);
-//         index_capacities[t].resize(_N);
-
-//         for (int i = 0; i < _N; i++){
-//             index_supplies[t][i].resize(_N);
-//             fill(index_supplies[t][i].begin(), index_supplies[t][i].end(), -1); 
-
-//             index_disasters[t][i].resize(_M);
-//             for(int j = 0; j < _M; j++){
-//                 index_disasters[t][i][j].resize(_network._Nd);
-//             }
-
-//             index_capacities[t][i].resize(_M);
-//         }
-
-
-//         for (int i = 0; i < _N; i++){
-
-//             for (int m = 0; m < _M; m++){
-//                 bvars[t][i].push_back(IloBoolVarArray(env));
-
-//                 // add supply variables
-//                 if(_network._demand[i][m] != 0){
-//                     // node i requires _demand[i][m] unit of material m
-//                     // will create a bunch of variables for those trade edges
-//                     for (int p = 0; p < _network._producers[m].size(); p ++){
-//                         // node _network._producers[m][p] produces material m
-//                         IloBoolVar var_supply(env);
-//                         bvars[t][i][m].add(var_supply);
-
-//                         int idx = _network._producers[m][p];
-//                         index_supplies[t][idx][i] = bvars[t][i][m].getSize() - 1;
-//                     }
-//                 }
-
-//                 // add disaster variables
-//                 for (int d = 0; d < _network._Nd; d++){
-//                     for (int dd = 0; dd < _network._disaster_precision[d]; dd++){
-//                         IloBoolVar var_dis(env);
-//                         bvars[t][i][m].add(var_dis);
-
-//                         index_disasters[t][i][m][d].push_back(bvars[t][i][m].getSize() - 1);
-//                     }
-//                 }
-
-//                 // add capacity variables
-//                 for (int c = 0; c < _network._capacity_precision; c++){
-//                         IloBoolVar var_cap(env);
-//                         bvars[t][i][m].add(var_cap);
-
-//                         index_capacities[t][i][m].push_back(bvars[t][i][m].getSize() - 1);
-//                 }
-//             }
-//         }
-//     }
-
-//     supplier_selection = IloBoolVarArray(env);
-//     index_selection.resize(_N);
-//     for (int i = 0; i< _N; i++){
-//         index_selection[i].resize(_N);
-//         fill(index_selection[i].begin(), index_selection[i].end(), -1);
-//     }
-
-//     for (int i = 0; i< _N; i++){
-//         for (int m = 0; m < _M; m++){
-//             if(_network._demand[i][m] != 0){
-//                 for (int p = 0; p < _network._producers[m].size(); p ++){
-//                     IloBoolVar var_select(env);
-//                     supplier_selection.add(var_select);
-
-//                     int idx = _network._producers[m][p];
-//                     index_selection[idx][i] = supplier_selection.getSize() - 1;
-//                 }
-//             }
-//         }
-//     }
-// }
+    for (int t = 0; t< _T; t++){
+        IloConstraint temp_const;
+        temp_const = ((const_and[t]) || (_vars_maj[t] == 0));
+        _const_all_union.push_back(temp_const);
+    }
+}
