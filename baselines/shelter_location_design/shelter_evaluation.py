@@ -257,7 +257,7 @@ def mainFunc():
 
     # generateCNF("shelter_CNFs_250", sources, hawaii246_union, graph246)
     # generateCNF("shelter_CNFs_388", sources, hawaii388_union, graph388)
-    # for 250 and 388, must use sharpSAT-td as in shelter_eval.sh
+    # for 250 and 388, must use sharpSAT-td as in shelter_sharpSAT_eval.sh
     # 
     # Then
     useSharpSatResults("LOG-Eval/shelter_CNFs_250", xor_246, gibbs_246[:5], quick_246[:5], unigen_246[:5])
