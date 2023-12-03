@@ -1,78 +1,12 @@
 import numpy as np
-
-# read everything
-# how to sample?
-# estimate the expectation???
-
+from scipy.optimize import linprog
 # MCMC greedy
+from supply_chain_loader import SupplyNet
 
-class SupplyNet:
-    def __init__(self,network_folder, n_disaster):
-        self.folder = network_folder
-        self.n_disaster = n_disaster
-        self.initialize_from_file()
-        return
-    
-    def initialize_from_file(self,):
-        with open(self.folder + "/produce.txt", "r") as fp:
-            line = fp.readline()
-            self.N = int(line[:-1].split(" ")[0])
-            self.M = int(line[:-1].split(" ")[1])
-            line = fp.readline()
-            self.produce = [int(c) for c in line.split(" ")]
-        
-        self.end_users = []
-        for i, p in enumerate(self.produce):
-            if p == self.M - 1:
-                self.end_users.append(i)
 
-        self.demand = np.zeros((self.N, self.M), dtype=int).tolist()
-        with open(self.folder + "/demand.txt", "r") as fp:
-            n_lines = int(fp.readline()[:-1])
-            for i in range(n_lines):
-                line = fp.readline()[:-1].split(" ")
-                node = int(line[0])
-                material = int(line[1])
-                unit = int(line[2])
-                self.demand[node][material] = unit
-        
-        # cost
-        self.cost = []
-        with open(self.folder + "/cost.txt", "r") as fp:
-            for i in range(self.N):
-                line = fp.readline()[:-1].split(" ")
-                line_costs = [int(s) for s in line]
-                self.cost.append(line_costs)
-        
-        # capacity
-        self.capacity = []
-        with open(self.folder + "/capacity.txt", "r") as fp:
-            fp.readline()
-            for i in range(self.N):
-                line = fp.readline()[:-1].split(" ")
-                line_caps = [int(s) for s in line]
-                self.capacity.append(line_caps)
-
-        # budget
-        with open(self.folder + "/budget.txt", "r") as fp:
-            line = fp.readline()
-            self.budget = [int(c) for c in line.split(" ")]
-
-        # disasters
-        self.disasters = []
-        for i_dis in range(self.n_disaster):
-            temp_disaster = []
-            with open(self.folder + f"/disaster{i_dis}.txt", "r") as fp:
-                fp.readline()
-                for i in range(self.N):
-                    print(f"i_dis={i_dis}; i={i}")
-                    line = fp.readline()[:-1]
-                    line = line.split(" ")
-                    line_probs = [int(s) for s in line]
-                    temp_disaster.append(line_probs)
-            self.disasters.append(temp_disaster)
-        return
-
+class task(object):
+    def __init__(self, filename):
+        self.supply_chain = SupplyNet(filename)
 
     def ground_truth_production(self, ):
         res = {}
@@ -84,7 +18,7 @@ class SupplyNet:
             my_cost = [0] * self.N
 
             for s in range(self.N):
-                if(self.capacity[s][my_node] != 0):
+                if self.capacity[s][my_node] != 0:
 
                     # estimate the expectation
                     # ...
@@ -92,14 +26,14 @@ class SupplyNet:
                     prob_list = []
                     for dis in self.disasters:
                         prob_list.append(dis[s][my_node] / 16.0)
-                    
+
                     prob_pass = 1.0
                     for p in prob_list:
-                        prob_pass = prob_pass * (1-p)
+                        prob_pass = prob_pass * (1 - p)
                     # calc expected utility
                     expected_capacities[s] = prob_pass * self.capacity[s][my_node]
                     my_cost[s] = self.cost[s][my_node]
-            res[my_node] =  expected_capacities
+            res[my_node] = expected_capacities
             cost_dict[my_node] = my_cost
             # print(my_cost)
             # print(expected_capacities)
@@ -110,14 +44,13 @@ class SupplyNet:
 
 
 def linearProgramming(exp_cap, cost, budget=3000):
-    from scipy.optimize import linprog
     c = [-i for i in exp_cap]
     A = [cost]
     b = [budget]
     x_bounds = [(0, 1)] * len(A)
     res = linprog(c, A_ub=A, b_ub=b, bounds=x_bounds)
-    # print(res.fun)
-    # print(res.x)
+    print(res.fun)
+    print(res.x)
     return res.fun
 
 
@@ -171,7 +104,7 @@ def evaluateXORres():
             if res[i][e] == 1:
                 cap_acc += res_dict[e][i]
         xor_res.append(cap_acc)
-    
+
     print(supply_net.end_users)
     print(xor_res)
 
@@ -182,8 +115,8 @@ def evaluateXORres():
         best = 0
         # simply pick best
         for i, c in enumerate(cost_dict[e]):
-            if (c <= 1000):
-                if(res_dict[e][i] > best):
+            if c <= 1000:
+                if res_dict[e][i] > best:
                     best = res_dict[e][i]
 
         gt_res.append(best)
@@ -199,4 +132,3 @@ def evaluateXORres():
 if __name__ == '__main__':
     evaluateXORres()
     # sample a trading plan from the UAI file
-

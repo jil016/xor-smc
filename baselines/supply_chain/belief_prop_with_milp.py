@@ -5,7 +5,7 @@ import numpy as np
 from pgmpy.models import BayesianNetwork
 from pgmpy.readwrite import UAIWriter
 from pgmpy.factors.discrete.CPD import TabularCPD
-
+from pgmpy.inference import BeliefPropagation
 
 def gen(num_of_layers: int, num_of_nodes: list, basepath: str, iter):
     total_nodes = np.sum(num_of_nodes)
@@ -35,7 +35,7 @@ def gen(num_of_layers: int, num_of_nodes: list, basepath: str, iter):
                     continue
                 if Adj[i][j] == 1:
                     temp.append(adjacency_matrix[i][j])
-                    all_edges.append("e_{}_{}".format(i, j))
+                    all_edges.append("e({},{})".format(i, j))
                 else:
                     temp.append(0)
             fw.write(" ".join([str(x) for x in temp]) + '\n')
@@ -60,14 +60,13 @@ def gen(num_of_layers: int, num_of_nodes: list, basepath: str, iter):
         fw.write("{}".format(sum([int(rand_budget[x] * 0.7) for x in demand_nodes])))
 
     #
-    disaster_filename = os.path.join(basepath, folder_name, f"prog_{iter}_disaster")
+    disaster_filename = os.path.join(basepath, folder_name, f"prog_{iter}_disaster.txt")
 
     pairs_of_edges = [tuple(np.random.choice(all_edges, size=2)) for _ in range(4)]
-    pairs_of_edges = list(set([(ei,ej) for ei, ej in pairs_of_edges if ei!=ej]))
+    pairs_of_edges = list(set(pairs_of_edges))
     print(pairs_of_edges)
-
     disaster_graph = BayesianNetwork(pairs_of_edges)
-    disaster_graph.name = "disaster_probabilities"
+
     unique_edges = set([ej for ei, ej in pairs_of_edges])
     base_unit = 32
     for ei in unique_edges:
@@ -85,18 +84,15 @@ def gen(num_of_layers: int, num_of_nodes: list, basepath: str, iter):
         disaster_graph.add_cpds(cond_prob)
 
     writer = UAIWriter(disaster_graph)
-    writer.write_uai(disaster_filename+'.txt')
-    disaster_graph.save(disaster_filename+'.bif', filetype='bif')
-    print(disaster_filename+'.bif')
-    model = BayesianNetwork.load(disaster_filename+'.bif', filetype='bif')
-    print("the model is:",model )
+
+    writer.write_uai(disaster_filename)
 
 
 if __name__ == '__main__':
     iter = 0
     while iter < 100:
-        # try:
+        try:
             gen(2, [3, 4], "./", iter)
             iter += 1
-        # except Exception as e:
-        #     print(e)
+        except Exception as e:
+            print(e)
