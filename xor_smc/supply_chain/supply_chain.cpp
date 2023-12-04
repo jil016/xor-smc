@@ -1,6 +1,6 @@
 #include "supply_chain.h"
 
-// #define DEBUG_SUPPLYCHAIN
+#define DEBUG_SUPPLYCHAIN
 using namespace std;
 
 typedef std::set<int> set_type;
@@ -198,14 +198,17 @@ void SupplyChain::genProbConstraints(){
             _const_prob_dis[t].add(expr_i <= ((int) pow(2, _prec_prob) - 1) * _expr_prob[t][i] + 1);
         }
 
-        // DEBUG: try to output them
-//        model.add(_var_disaster[t]);
-//        for (const auto & v : _var_prob_add[t])
-//            model.add(v);
-//        model.add(_const_prob_dis[t]);
-//        for (const auto & c : _const_prob_add[t])
-//            model.add(c);
-//        cplex.exportModel("model_prob.lp");
+        #ifdef DEBUG_SUPPLYCHAIN
+        IloModel model_prob(env);
+        IloCplex cplex_prob(model_prob);
+        model_prob.add(_var_disaster[t]);
+        for (const auto & v : _var_prob_add[t])
+            model_prob.add(v);
+        model_prob.add(_const_prob_dis[t]);
+        for (const auto & c : _const_prob_add[t])
+            model_prob.add(c);
+        cplex_prob.exportModel("model_prob.lp");
+        #endif
     }
 }
 
@@ -248,21 +251,25 @@ void SupplyChain::genConnectionConstraints(){
             }
         }
 
-//        // DEBUG: try to output them
-//        model.add(_var_select);
-//        for(const auto & vars : _var_node_conn){
-//            model.add(vars);
-//        }
-//        for(const auto & vars : _var_edge_conn){
-//            model.add(vars);
-//        }
-//        for(const auto & vars : _var_disaster){
-//            model.add(vars);
-//        }
-//        for(const auto & cons : _const_connect){
-//            model.add(cons);
-//        }
-//        cplex.exportModel("model_connect.lp");
+        #ifdef DEBUG_SUPPLYCHAIN
+        IloModel model_cnt(env);
+        IloCplex cplex_cnt(model_cnt);
+
+        model_cnt.add(_var_select);
+        for(const auto & vars : _var_node_conn){
+            model_cnt.add(vars);
+        }
+        for(const auto & vars : _var_edge_conn){
+            model_cnt.add(vars);
+        }
+        for(const auto & vars : _var_disaster){
+            model_cnt.add(vars);
+        }
+        for(const auto & cons : _const_connect){
+            model_cnt.add(cons);
+        }
+        cplex_cnt.exportModel("model_connect.lp");
+        #endif
     }
 }
 
@@ -294,10 +301,13 @@ void SupplyChain::genCapacityConstraints(){
         }
         _const_cap_dis.push_back(cap_decode_dis <= expr_cap);
 
-        // DEBUG: try to output them
-//        model.add(_var_edge_conn[t]);
-//        model.add(_const_cap_dis[t]);
-//        cplex.exportModel("model_cap.lp");
+        #ifdef DEBUG_SUPPLYCHAIN
+        IloModel model_cap(env);
+        IloCplex cplex_cap(model_cap);
+        model_cap.add(_var_edge_conn[t]);
+        model_cap.add(_const_cap_dis[t]);
+        cplex_cap.exportModel("model_cap.lp");
+        #endif
     }
 }
 
@@ -315,11 +325,13 @@ void SupplyChain::genBudgetConstraints(){
         }
         if(in_degree > 0) _const_budget.add(expr_cst <= _network._raw_budget[i]);
     }
-
-    // DEBUG: try to output them
-//    model.add(_var_select);
-//    model.add(_const_budget);
-//    cplex.exportModel("model_bgt.lp");
+    #ifdef DEBUG_SUPPLYCHAIN
+        IloModel model_bgt(env);
+        IloCplex cplex_bgt(model_bgt);
+        model_bgt.add(_var_select);
+        model_bgt.add(_const_budget);
+        cplex_bgt.exportModel("model_bgt.lp");
+    #endif
 }
 
 void SupplyChain::genAllConstraints(){
@@ -398,14 +410,14 @@ void SupplyChain::prepareModel(){
 
 bool SupplyChain::solveInstance() {
     cout << "\n================== Set Output Path ===================\n" << endl;
-    #ifdef DEBUG_SUPPLYCHAIN
-    time_t now = time(0);
-    char* date_time = ctime(&now);
-    char log_folder_name[100] = "LOG-Shelter_";
-    strcat(log_folder_name, date_time);
-    #else
+//    #ifdef DEBUG_SUPPLYCHAIN
+//    time_t now = time(0);
+//    char* date_time = ctime(&now);
+//    char log_folder_name[100] = "LOG-Shelter_";
+//    strcat(log_folder_name, date_time);
+//    #else
     filesystem::path log_folder(_output_dir);
-    #endif
+//    #endif
 
     if (!filesystem::is_directory(log_folder) || !filesystem::exists(log_folder)) { // Check if src folder exists
         filesystem::create_directory(log_folder); // create src folder

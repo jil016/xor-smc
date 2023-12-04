@@ -75,7 +75,7 @@ int main(int argc, char **argv)
     string net_folder("./test_net_new");
     char output_dir[1024] = "./LOG-SPC\0";
     int target = 5;
-    int seed = 17;
+    int seed = 20;
 
     parseArgs(argc, argv, net_folder, target, T, seed, output_dir);
 
