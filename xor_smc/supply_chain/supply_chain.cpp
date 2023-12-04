@@ -197,19 +197,20 @@ void SupplyChain::genProbConstraints(){
 
             _const_prob_dis[t].add(expr_i <= ((int) pow(2, _prec_prob) - 1) * _expr_prob[t][i] + 1);
         }
-
-        #ifdef DEBUG_SUPPLYCHAIN
-        IloModel model_prob(env);
-        IloCplex cplex_prob(model_prob);
+    }
+#ifdef DEBUG_SUPPLYCHAIN
+    IloModel model_prob(env);
+    IloCplex cplex_prob(model_prob);
+    for (int t = 0; t < _T; t++){
         model_prob.add(_var_disaster[t]);
         for (const auto & v : _var_prob_add[t])
             model_prob.add(v);
         model_prob.add(_const_prob_dis[t]);
         for (const auto & c : _const_prob_add[t])
             model_prob.add(c);
-        cplex_prob.exportModel("model_prob.lp");
-        #endif
     }
+    cplex_prob.exportModel("model_prob.lp");
+#endif
 }
 
 void SupplyChain::genConnectionConstraints(){
@@ -250,27 +251,26 @@ void SupplyChain::genConnectionConstraints(){
                 in_degree = 0;
             }
         }
-
-        #ifdef DEBUG_SUPPLYCHAIN
-        IloModel model_cnt(env);
-        IloCplex cplex_cnt(model_cnt);
-
-        model_cnt.add(_var_select);
-        for(const auto & vars : _var_node_conn){
-            model_cnt.add(vars);
-        }
-        for(const auto & vars : _var_edge_conn){
-            model_cnt.add(vars);
-        }
-        for(const auto & vars : _var_disaster){
-            model_cnt.add(vars);
-        }
-        for(const auto & cons : _const_connect){
-            model_cnt.add(cons);
-        }
-        cplex_cnt.exportModel("model_connect.lp");
-        #endif
     }
+#ifdef DEBUG_SUPPLYCHAIN
+    IloModel model_cnt(env);
+    IloCplex cplex_cnt(model_cnt);
+    model_cnt.add(_var_select);
+
+    for(const auto & vars : _var_node_conn){
+        model_cnt.add(vars);
+    }
+    for(const auto & vars : _var_edge_conn){
+        model_cnt.add(vars);
+    }
+    for(const auto & vars : _var_disaster){
+        model_cnt.add(vars);
+    }
+    for(const auto & cons : _const_connect){
+        model_cnt.add(cons);
+    }
+    cplex_cnt.exportModel("model_connect.lp");
+#endif
 }
 
 void SupplyChain::genCapacityConstraints(){
@@ -300,15 +300,17 @@ void SupplyChain::genCapacityConstraints(){
             cap_decode_dis += pow(2, i) * _var_cap_dis[t][i];
         }
         _const_cap_dis.push_back(cap_decode_dis <= expr_cap);
+    }
 
-        #ifdef DEBUG_SUPPLYCHAIN
+    #ifdef DEBUG_SUPPLYCHAIN
         IloModel model_cap(env);
         IloCplex cplex_cap(model_cap);
-        model_cap.add(_var_edge_conn[t]);
-        model_cap.add(_const_cap_dis[t]);
+        for(int t = 0; t<_T;t++){
+            model_cap.add(_var_edge_conn[t]);
+            model_cap.add(_const_cap_dis[t]);
+        }
         cplex_cap.exportModel("model_cap.lp");
-        #endif
-    }
+    #endif
 }
 
 void SupplyChain::genBudgetConstraints(){
@@ -332,6 +334,45 @@ void SupplyChain::genBudgetConstraints(){
         model_bgt.add(_const_budget);
         cplex_bgt.exportModel("model_bgt.lp");
     #endif
+}
+
+void SupplyChain::genXORConstraints(){
+    // extract all variables that appear in XOR
+    for( int t=0; t < _T; t++){
+        _var_all_inxor.emplace_back(env);
+        _var_all_inxor[t].add(_var_disaster[t]);
+        for (int i = 0; i < _network._N_factors; i++){
+            _var_all_inxor[t].add(_var_prob_dis[t][i]);
+        }
+        _var_all_inxor[t].add(_var_cap_dis[t]);
+    }
+
+    for( int t=0; t < _T; t++) {
+        int n_vars = _var_all_inxor[t].getSize();
+        int n_parity = _network._demand;
+
+        std::cout << ">> Number of variables in XOR is: " << n_vars << endl;
+        vector<vector<bool>> coeffA = generate_Toeplitz_matrix(n_parity, n_vars);
+//        vector<vector<bool>> coeffA = generate_matrix(n_parity, n_vars);
+        while(!makeHashFuncSolvable(coeffA)){
+            coeffA = generate_Toeplitz_matrix(n_parity, n_vars);
+//            coeffA = generate_matrix(n_parity, n_vars);
+        }
+        print_matrix(coeffA);
+        extractXorVarConst(coeffA, t);
+    }
+#ifdef DEBUG_SUPPLYCHAIN
+    IloModel model_xor(env);
+    IloCplex cplex_xor(model_xor);
+
+    for(int t = 0; t<_T;t++){
+        model_xor.add(_var_all_inxor[t]);
+        model_xor.add(ivars_xor[t]);
+        model_xor.add(bvars_xor[t]);
+        model_xor.add(const_xor[t]);
+    }
+    cplex_xor.exportModel("model_xor.lp");
+#endif
 }
 
 void SupplyChain::genAllConstraints(){
@@ -483,6 +524,10 @@ bool SupplyChain::solveInstance() {
             }
             env.out() << endl;
         }
+
+        for(int t = 0; t < _T; t++){
+            env.out() << int(cplex.getValue(_vars_maj[t])) << " ";
+        }
     }
 
     else{
@@ -492,32 +537,6 @@ bool SupplyChain::solveInstance() {
     return true;
 }
 
-void SupplyChain::genXORConstraints(){
-    // extract all variables that appear in XOR
-    for( int t=0; t < _T; t++){
-        _var_all_inxor.emplace_back(env);
-        _var_all_inxor[t].add(_var_disaster[t]);
-        for (int i = 0; i < _network._N_factors; i++){
-            _var_all_inxor[t].add(_var_prob_dis[t][i]);
-        }
-        _var_all_inxor[t].add(_var_cap_dis[t]);
-    }
-
-    for( int t=0; t < _T; t++) {
-        int n_vars = _var_all_inxor[t].getSize();
-        int n_parity = _network._demand;
-
-        std::cout << ">> Number of variables in XOR is: " << n_vars << endl;
-        vector<vector<bool>> coeffA = generate_Toeplitz_matrix(n_parity, n_vars);
-//        vector<vector<bool>> coeffA = generate_matrix(n_parity, n_vars);
-        while(!makeHashFuncSolvable(coeffA)){
-            coeffA = generate_Toeplitz_matrix(n_parity, n_vars);
-//            coeffA = generate_matrix(n_parity, n_vars);
-        }
-        print_matrix(coeffA);
-        extractXorVarConst(coeffA, t);
-    }
-}
 
 bool SupplyChain::makeHashFuncSolvable(vector<vector<bool>> &coeffA) {
     if (coeffA.empty()) 
