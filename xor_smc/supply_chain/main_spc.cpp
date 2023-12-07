@@ -76,41 +76,16 @@ int main(int argc, char **argv)
     char output_dir[1024] = "./LOG-SPC\0";
     int target = 5;
     int seed = 20;
-
     parseArgs(argc, argv, net_folder, target, T, seed, output_dir);
-
     cout << "T: " <<  T << endl
          << "net_folder: " << net_folder << endl
          << "target: " << target << endl
          << "output_dir: " << output_dir << endl
          << "seed: " << seed << endl;
 
-//    IloEnv env = IloEnv();
-//    IloModel model(env);
-//    IloCplex cplex(model);
-//
-//    IloBoolVar v1(env);
-//    IloBoolVar v2(env);
-//
-//    IloNumExpr expr = v1 * v2;
-//    IloConstraint constraint_test = (expr == 1);
-//
-//    model.add(v1);
-//    model.add(v2);
-//    model.add(constraint_test);
-//
-//    bool solved = cplex.solve();
-//    cplex.exportModel("model.lp");
-//    // env.out() << "Solution status = " << cplex.getStatus() << endl;
-//    env.out() << cplex.getCplexStatus() << endl;
-
     srand(seed);
     SupplyChain sc;
     sc.loadParameters(net_folder, target, T, output_dir);
-//    sc.genProbConstraints();
-//    sc.genCapacityConstraints();
-//    sc.genConnectionConstraints();
-//    sc.genBudgetConstraints();
     sc.genAllConstraints();
     sc.prepareModel();
     sc.solveInstance();

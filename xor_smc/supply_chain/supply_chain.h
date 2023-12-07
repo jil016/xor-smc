@@ -94,7 +94,6 @@ class SupplyChain {
         IloConstraint _const_majority;
         vector<IloConstraint> _const_all_union;  // all constraints including majority
 
-
         SupplyChain();
         ~SupplyChain();
 
@@ -105,12 +104,11 @@ class SupplyChain {
         void genCapacityConstraints();
         void genBudgetConstraints();
         void genXORConstraints();
-
+        void genMajorityConstraints();
 
         // utils
         bool makeHashFuncSolvable(vector<vector<bool>> &coeffA);
         void extractXorVarConst(vector<vector<bool>> coeffA, int t);
-
 
         // running pipeline:
         void loadParameters(const string& net_folder, int target, int _T, char output_dir[]);
@@ -118,10 +116,6 @@ class SupplyChain {
         void prepareModel();
         bool solveInstance();
 
-        // Ignore majority in this application
-        // IloBoolVarArray bvars_maj;
-        // IloConstraint const_majority;
-         void genMajorityConstraints();
 };
 
 #endif

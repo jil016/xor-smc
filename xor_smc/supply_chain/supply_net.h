@@ -29,7 +29,6 @@ class SupplyNet {
 
 
     vector<vector<double>> _raw_capacity; // size: _N * _N; capacity[i][j] is the capacity of trading edge from i to j
-    vector<vector<int>> _dis_capacity;  // discretized capacity
 
     vector<vector<double>> _raw_cost;
     vector<double> _raw_budget;
@@ -53,19 +52,17 @@ class SupplyNet {
 
     // For discretization
     int _prec_cap, _prec_prob;    // precision represented by the number of bits
+    int _prec_cst, _prec_bgt;   // not used
+
     double _min_cap, _max_cap, _min_prob, _max_prob;
-    void discretizeAll();
+    double _min_cst, _max_cst, _min_bgt, _max_bgt;  // not used
+//    vector<vector<int>> _dis_capacity;  // discretized capacity
+//    void discretizeAll();
 
     SupplyNet();
     SupplyNet(string net_folder, int prec_cap, int prec_cst, int prec_bgt, int prec_prob);
     ~SupplyNet();
     void loadFromFile(string net_folder);
-
-    /// Unused discretization
-    // vector<vector<int>> _dis_cost;   // not used
-    // vector<int> _dis_budget;         // not used
-    int _prec_cst, _prec_bgt;   // not used
-    double _min_cst, _max_cst, _min_bgt, _max_bgt;  // not used
 };
 
 

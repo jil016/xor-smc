@@ -151,79 +151,35 @@ void SupplyNet::loadFromFile(string net_folder){
 SupplyNet::SupplyNet(string net_folder, int prec_cap, int prec_cst, int prec_bgt, int prec_prob):
         _prec_cap(prec_cap), _prec_cst(prec_cst), _prec_bgt(prec_bgt), _prec_prob(prec_prob){
     loadFromFile(net_folder);
-    discretizeAll();
+    // Don't discretize things NOW!
+    // discretizeAll();
 }
 
 
-//std::vector<int> discretize(const std::vector<double>& input, double v_min, double v_max, int k) {
-//    int range = (1 << k) - 1; // This is 2^k - 1
-//    std::vector<int> output(input.size());
-//
-//    for (size_t i = 0; i < input.size(); ++i) {
-//        // Clamp the value between v_min and v_max
-//        double clamped_value = std::max(v_min, std::min(v_max, input[i]));
-//        // Normalize the value to a [0, 1] range
-//        double normalized_value = (clamped_value - v_min) / (v_max - v_min);
-//        // Scale to the desired range [1, 2^k - 1] and round to the nearest integer
-//        output[i] = static_cast<int>(std::round(normalized_value * (range - 1))) + 1;
-//
-//        // output[i] = static_cast<int>(std::round(normalized_value * range)); // [0, 2^k-1]
+//void SupplyNet::discretizeAll() {
+//    // Discretize capacities.
+//    // [min_cap, max_cap] -> [1, ..., 2^prec_cap-1]
+//    _dis_capacity.resize(_N);
+//    int range = (1 << _prec_cap) - 1;
+//    for (int i = 0; i < _N; i++) {
+//        _dis_capacity[i].resize(_N);
+//        for (int j = 0; j < _N; j++) {
+//            if (_raw_capacity[i][j] == 0) {   // no edge
+//                _dis_capacity[i][j] = 0;
+//            } else if (_min_cap == _max_cap) {
+//                _dis_capacity[i][j] = range;
+//            } else if (_min_cap < 1 || _max_cap > range) {
+//                // exceed effective digits, normalize
+//                double clamped_value = std::max(_min_cap, std::min(_max_cap, _raw_capacity[i][j]));
+//                double normalized_value = (clamped_value - _min_cap) / (_max_cap - _min_cap);
+//                _dis_capacity[i][j] = static_cast<int>(std::round(normalized_value * (range - 1))) + 1;
+//            } else {
+//                // simply cast
+//                _dis_capacity[i][j] = static_cast<int>(std::round(_raw_capacity[i][j]));
+//            }
+//        }
 //    }
 //
-//    return output;
+//    // TODO: Discretize probabilities
+//    //  Suppose the discretization is done by special design
 //}
-
-void SupplyNet::discretizeAll() {
-    // Discretize capacities.
-    // [min_cap, max_cap] -> [1, ..., 2^prec_cap-1]
-    _dis_capacity.resize(_N);
-    int range = (1 << _prec_cap) - 1;
-    for (int i = 0; i < _N; i++) {
-        _dis_capacity[i].resize(_N);
-        for (int j = 0; j < _N; j++) {
-            if (_raw_capacity[i][j] == 0) {   // no edge
-                _dis_capacity[i][j] = 0;
-            } else if (_min_cap == _max_cap) {
-                _dis_capacity[i][j] = range;
-            } else if (_min_cap < 1 || _max_cap > range) {
-                // exceed effective digits, normalize
-                double clamped_value = std::max(_min_cap, std::min(_max_cap, _raw_capacity[i][j]));
-                double normalized_value = (clamped_value - _min_cap) / (_max_cap - _min_cap);
-                _dis_capacity[i][j] = static_cast<int>(std::round(normalized_value * (range - 1))) + 1;
-            } else {
-                // simply cast
-                _dis_capacity[i][j] = static_cast<int>(std::round(_raw_capacity[i][j]));
-            }
-        }
-    }
-
-    // TODO: Discretize probabilities
-    //  Suppose the discretization is done by special design
-}
-
-
-/*
-void SupplyNet::discretizeAll(){
-    // TODO: Discretize costs and budgets (related) for other applications
-    // [_min_cst, _max_cst] -> [1, ..., 2^prec_cst-1]
-    // [_min_bgt, _max_bgt]
-
-    _dis_cost.resize(_N);
-    range = (1 << _prec_cst) - 1;
-    for(int i = 0; i < _N; i++) {
-        _dis_cost[i].resize(_N);
-        for (int j = 0; j < _N; j++) {
-            if(_raw_capacity[i][j] == 0){   // no edge
-                _dis_cost[i][j] = 0;
-            }
-            else if(_min_cst == _max_cst){
-                _dis_cost[i][j] = range;
-            }
-            else{
-                double clamped_value = std::max(_min_cst, std::min(_max_cst, _raw_cost[i][j]));
-                double normalized_value = (clamped_value - _min_cst) / (_max_cst - _min_cst);
-                _dis_cost[i][j] = static_cast<int>(std::round(normalized_value * (range - 1))) + 1;
-            }
-        }
-    }
-} */

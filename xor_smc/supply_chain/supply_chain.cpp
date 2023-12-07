@@ -195,7 +195,7 @@ void SupplyChain::genProbConstraints(){
                 expr_i += pow(2, j) * _var_prob_dis[t][i][j];
             }
 
-            _const_prob_dis[t].add(expr_i <= ((int) pow(2, _prec_prob) - 1) * _expr_prob[t][i] + 1);
+            _const_prob_dis[t].add(expr_i + 1 <= ((int) pow(2, _prec_prob) - 1) * _expr_prob[t][i]);
         }
     }
 #ifdef DEBUG_SUPPLYCHAIN
@@ -285,9 +285,9 @@ void SupplyChain::genCapacityConstraints(){
             for(int i = 0; i < _N; i++){
                 if(_edge_map[i][node] >= 0){    // detected one incoming edge of one end node
                     in_edges.push_back(_edge_map[i][node]); // only for debug purpose
-                    in_edge_cap.push_back(_network._dis_capacity[i][node]); // only for debug purpose
+                    in_edge_cap.push_back(_network._raw_capacity[i][node]); // only for debug purpose
 
-                    expr_cap += _var_edge_conn[t][_edge_map[i][node]] * _network._dis_capacity[i][node];
+                    expr_cap += _var_edge_conn[t][_edge_map[i][node]] * _network._raw_capacity[i][node];
                 }
             }
         }
@@ -299,7 +299,7 @@ void SupplyChain::genCapacityConstraints(){
         for(int i = 0; i < _prec_cap; i++){
             cap_decode_dis += pow(2, i) * _var_cap_dis[t][i];
         }
-        _const_cap_dis.push_back(cap_decode_dis <= expr_cap);
+        _const_cap_dis.push_back(cap_decode_dis + 1 <= expr_cap);
     }
 
     #ifdef DEBUG_SUPPLYCHAIN
