@@ -93,11 +93,8 @@ void SupplyNet::loadFromFile(string net_folder){
     fp >> _demand;
     fp.close();
 
-    // Load disaster models
-    fp.open(net_folder + disaster_file);
-
-    char pbname[1024];
-    fp >> pbname;
+    // Read disaster edges
+    fp.open(net_folder + disaster_uai_edge_file);
     fp >> _N_dedges;
     _dedges.resize(2);
     // read edges
@@ -108,7 +105,6 @@ void SupplyNet::loadFromFile(string net_folder){
             _dedges[i].push_back(tmp);
         }
     }
-
     _dedge_map.resize(_N);
     for(int i = 0; i < _N; i++){ // initialize demand
         _dedge_map[i].resize(_N);
@@ -116,6 +112,20 @@ void SupplyNet::loadFromFile(string net_folder){
     }
     for (int i = 0; i < _N_dedges; i++){
         _dedge_map[_dedges[0][i]][_dedges[1][i]] = i;
+    }
+    fp.close();
+
+    // Load disaster models
+    fp.open(net_folder + disaster_uai_file);
+
+    char pbname[1024];
+    fp >> pbname;
+    fp >> tmp;
+    if(tmp != _N_dedges) exit(0);   // doesn't match the uai.edge file
+    // read scopes
+    for (int j = 0; j < _N_dedges; j++){
+        fp >> tmp;  // scopes are all 2 by default
+        if(tmp != 2) exit(0);
     }
 
     fp >> _N_factors;
