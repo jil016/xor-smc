@@ -15,6 +15,8 @@ void SupplyNet::loadFromFile(string net_folder){
     string budget_file("/budget.txt");
     string cost_file("/cost.txt");
     string disaster_file("/disaster.txt");
+    string disaster_uai_file("/disaster.uai");
+    string disaster_uai_edge_file("/disaster.uai.edges");
 
     ifstream fp;
 
