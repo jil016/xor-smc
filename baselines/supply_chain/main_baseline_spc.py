@@ -58,6 +58,7 @@ class SupplyNet(object):
                 v_idx = [int(s) for s in sp_line]
                 self.dedges.append(v_idx)
 
+        return
 
     def sample_disaster_via_bayesian_sampling(self):
         inference = sampling.BayesianModelSampling(self.disasters)
@@ -122,7 +123,7 @@ class SupplyNet(object):
 
 def test_gibbs_sampler():
     from sampler.gibbs_sampler.gibbs_mrf import Gibbs_Sampling
-    n_samples = 200
+    n_samples = 100
     samples = Gibbs_Sampling("/Users/jinzhao/Desktop/git_repos/xor_smt/data/supply_chain/network/disaster.uai",
                    n_samples,
                    None,
@@ -130,10 +131,7 @@ def test_gibbs_sampler():
 
     probs = samples.sum(axis=0)
     probs = probs / n_samples
-
-    return probs
-
-
+    print(probs)
 
 
 
@@ -155,14 +153,11 @@ if __name__ == '__main__':
     print(args)
 
     # uai_path = os.path.join(args.filepath, "disaster.uai")
-    probs = test_gibbs_sampler()
-
-    print(probs)
+    test_gibbs_sampler()
 
 
-
-    # # load network
-    # sn = SupplyNet(args.filepath)
+    # load network
+    sn = SupplyNet(args.filepath)
     #
     # # sample a disaster
     # print(sn.sample_disaster_via_gibbs_sampling())
