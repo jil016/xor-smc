@@ -4,11 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-from pgmpy.models import BayesianNetwork
-from pgmpy.readwrite import UAIWriter
-from pgmpy.factors.discrete.CPD import TabularCPD
-
-
 def generate_random_dag(nodes, edges, max_parents):
     G = nx.DiGraph()
     for i in range(nodes):
@@ -48,28 +43,29 @@ def export_to_uai(G, cpts, filename):
         file.write("BAYES\n")
         file.write(f"{len(G.nodes())}\n")
 
+        # Assuming binary variables for simplicity
         file.write(" ".join(["2"] * len(G.nodes())) + "\n")
 
         file.write(f"{len(G.nodes())}\n")
         for node in G.nodes():
             parents = list(G.predecessors(node))
-            scope = sorted([node] + parents)  # Sort the scope in ascending order
+            scope = parents + [node]    # the order matters! the last one X is P(X|others)
             file.write(f"{len(scope)} " + " ".join(map(str, scope)) + "\n")
 
         file.write("\n")
         for node, cpt in cpts.items():
             file.write(f"{cpt.size}\n")
-            file.write(" ".join(map(str, cpt.flatten())) + "\n\n")
+            # file.write(" ".join(map(str, cpt.flatten())) + "\n\n")
+            file.write(" ".join(f"{num:.2f}" for num in cpt.flatten()) + "\n\n")    # precision
 
 
 def generate_disaster_model(num_nodes, num_edges, precision, max_parents, out_path):
-
-    os.makedirs(out_path, exist_ok=True)
     num_edges = np.min([num_edges, (num_nodes * (num_nodes - 1)) // 2]) # within maximum possible number
     G = generate_random_dag(num_nodes, num_edges, max_parents)
     cpts = assign_random_cpts(G, precision)
-    export_to_uai(G, cpts, os.path.join(out_path, "disaster.uai"))
 
+    os.makedirs(out_path, exist_ok=True)
+    export_to_uai(G, cpts, os.path.join(out_path, "disaster.uai"))
     # Visualize the graph
     nx.draw(G, with_labels=True)
     plt.savefig(os.path.join(out_path, "disaster_bn.png"))
@@ -195,8 +191,8 @@ if __name__ == "__main__":
     generate_demand(net_struct, n_demands, q, out_path)
 
     # Generate Disasters
-    num_dedges = 5
-    num_bayes_edges = 9
+    num_dedges = 4
+    num_bayes_edges = 8
     precision = 4  # k-digit precision
     max_parents = 1000 # maximum of parents allowed
 
