@@ -1,76 +1,71 @@
 import os
 import numpy as np
 import argparse
-from pgmpy.models import BayesianNetwork
-from pgmpy.readwrite import UAIReader
 import time
 import random
-from pgmpy.factors.discrete.CPD import TabularCPD
-from pgmpy.inference import BeliefPropagation
 from pgmpy import sampling
 from pgmpy.inference import ApproxInference
+from supply_net import SupplyNet
+
+from mip import Model, xsum, maximize, BINARY
+
+def mip_knapsack_example():
+    p = [10, 13, 18, 31, 7, 15]
+    w = [11, 15, 20, 35, 10, 33]
+    c, I = 47, range(len(w))
+
+    m = Model("knapsack")
+
+    x = [m.add_var(var_type=BINARY) for i in I]
+
+    m.objective = maximize(xsum(p[i] * x[i] for i in I))
+
+    m += xsum(w[i] * x[i] for i in I) <= c
+
+    m.optimize()
+
+    selected = [i for i in I if x[i].x >= 0.99]
+    print("selected items: {}".format(selected))
+
+def find_best_plan(supply_net, disaster_sample):
+    trade_plan = []
+
+    # add constraints
 
 
-class SupplyNet(object):
-    def __init__(self, network_folder):
-        self.folder = network_folder
-        self.initialize_from_file()
+    # production >= threshold
 
-    def initialize_from_file(self):
-        with open(os.path.join(self.folder, "demand.txt"), "r") as fp:
-            # n_lines = int([:-1])
-            fp.readline()
-            line = fp.readline().strip().split(" ")
-            self.demand_node = [int(x) for x in line]
-            self.total_demand = int(fp.readline().strip())
 
-        # cost
-        self.cost = []
-        with open(os.path.join(self.folder, "cost.txt"), "r") as fp:
-            for line in fp:
-                sp_line = line.strip().split(" ")
-                line_costs = [int(s) for s in sp_line]
-                self.cost.append(line_costs)
-        self.cost = np.asarray(self.cost).astype(int)
 
-        # capacity
-        self.capacity = []
-        with open(os.path.join(self.folder, "capacity.txt"), "r") as fp:
-            fp.readline()
-            for line in fp:
-                sp_line = line.strip().split(" ")
-                line_caps = [int(s) for s in sp_line]
-                self.capacity.append(line_caps)
-        self.capacity = np.asarray(self.capacity).astype(int)
+    return
 
-        # budget
-        with open(os.path.join(self.folder, "capacity.txt"), "r") as fp:
-            line = fp.readline()
-            self.budget = [int(c) for c in line.strip().split(" ")]
 
-        # disaster edges
-        self.dedges = []
-        with open(os.path.join(self.folder, "disaster.uai.edges"), "r") as fp:
-            fp.readline()
-            for i in range(2):
-                line = fp.readline()
-                sp_line = line.strip().split(" ")
-                v_idx = [int(s) for s in sp_line]
-                self.dedges.append(v_idx)
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--filepath",
+                        default="/Users/jinzhao/Desktop/git_repos/xor_smt/data/supply_chain/network",
+                        help="the filename.")
 
-        return
+    args = parser.parse_args()
 
-    def sample_disaster_via_bayesian_sampling(self):
-        inference = sampling.BayesianModelSampling(self.disasters)
-        return inference.forward_sample(size=1)
+    seed = int(time.perf_counter() * 10000) % 1000007
+    random.seed(seed)
+    print('random seed=', seed)
 
-    def sample_disaster_via_gibbs_sampling(self):
+    seed = int(time.perf_counter() * 10000) % 1000007
+    np.random.seed(seed)
+    print('np.random seed=', seed)
+    print(args)
 
-        gibbs_chain = sampling.GibbsSampling(self.disasters)
-        return gibbs_chain.sample(size=1)
+    # load network
+    sn = SupplyNet(args.filepath)
 
-    def sample_disaster_via_approx_infer(self):
-        infer = ApproxInference(self.disasters)
+    # generate a MIP instance
+
+
+
+
+
 
 
 # def evaluateXORres():
@@ -119,46 +114,3 @@ class SupplyNet(object):
 #
 #     print(gt_res)
 #     return
-
-
-def test_gibbs_sampler():
-    from sampler.gibbs_sampler.gibbs_mrf import Gibbs_Sampling
-    n_samples = 100
-    samples = Gibbs_Sampling("/Users/jinzhao/Desktop/git_repos/xor_smt/data/supply_chain/network/disaster.uai",
-                   n_samples,
-                   None,
-                   50)
-
-    probs = samples.sum(axis=0)
-    probs = probs / n_samples
-    print(probs)
-
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--filepath",
-                        default="/Users/jinzhao/Desktop/git_repos/xor_smt/data/supply_chain/network",
-                        help="the filename.")
-
-    args = parser.parse_args()
-
-    seed = int(time.perf_counter() * 10000) % 1000007
-    random.seed(seed)
-    print('random seed=', seed)
-
-    seed = int(time.perf_counter() * 10000) % 1000007
-    np.random.seed(seed)
-    print('np.random seed=', seed)
-    print(args)
-
-    # uai_path = os.path.join(args.filepath, "disaster.uai")
-    test_gibbs_sampler()
-
-
-    # load network
-    sn = SupplyNet(args.filepath)
-    #
-    # # sample a disaster
-    # print(sn.sample_disaster_via_gibbs_sampling())
-    # print(sn.sample_disaster_via_bayesian_sampling())

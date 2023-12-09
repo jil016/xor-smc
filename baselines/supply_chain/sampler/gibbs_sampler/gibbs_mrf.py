@@ -115,3 +115,15 @@ def Gibbs_Sampling(filename, n_samples, initial=None, burnin_time=50):
 
 
     return term
+
+
+if __name__ == "__main__":
+    n_samples = 100
+    samples = Gibbs_Sampling("disaster.uai",
+                             n_samples,
+                             None,
+                             200)
+
+    probs = samples.sum(axis=0)
+    probs = probs / n_samples
+    print(probs)
