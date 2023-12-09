@@ -28,9 +28,23 @@ def mip_knapsack_example():
     print("selected items: {}".format(selected))
 
 def find_best_plan(supply_net, disaster_sample):
-    trade_plan = []
+    supply_net = SupplyNet("/Users/jinzhao/Desktop/git_repos/xor_smt/data/supply_chain/network")
 
-    # add constraints
+    mip_model = Model()
+
+    # trade plan variables
+    trade_plan = []
+    for e in supply_net.edges:
+        trade_plan.append(mip_model.add_var(name=f"s_{e[0]}_{e[1]}", var_type=BINARY))
+
+    # node connection
+    x_nodes = [mip_model.add_var(name=f"n_{i}", var_type=BINARY) for i in range(supply_net.num_nodes)]
+    x_edges = [mip_model.add_var(name=f"e_{eg[0]}_{eg[1]}", var_type=BINARY) for eg in supply_net.edges]
+
+    # for i in range(supply_net.num_nodes):
+    #     for j in range(supply_net.num_nodes):
+
+    a = 1
 
 
     # production >= threshold
@@ -61,10 +75,7 @@ if __name__ == '__main__':
     sn = SupplyNet(args.filepath)
 
     # generate a MIP instance
-
-
-
-
+    find_best_plan(sn, None)
 
 
 
