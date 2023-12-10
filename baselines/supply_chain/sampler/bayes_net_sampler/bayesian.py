@@ -1,6 +1,5 @@
 import numpy as np
 from pgmpy.models import BayesianNetwork
-from pgmpy.utils import get_example_model
 from pgmpy.sampling import BayesianModelSampling
 
 import re
@@ -90,13 +89,8 @@ def Bayesian_Sampling(filename, n_samples):
     print("P(X) = 1: ", probs)
 
 
-
-def my_Bayesian_Sampling():
-    pass
-
-
 if __name__ == "__main__":
     uai = UaiFile("disaster.uai")
     uai.writeUai("disaster2.uai")
 
-    Bayesian_Sampling("disaster.uai", 20000)
+    Bayesian_Sampling("disaster.uai", 20)

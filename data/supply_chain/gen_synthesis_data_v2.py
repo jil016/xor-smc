@@ -32,7 +32,7 @@ def assign_random_cpts(G, precision):
 
         cpt_size = 2 ** num_parents
         cpt = np.random.choice(allowed_probs, (cpt_size, 2))
-        cpt[:,-1] = 1 - cpt[:,0]  # Normalize
+        cpt[:, -1] = 1 - cpt[:, 0]  # Normalize
 
         cpts[node] = cpt
     return cpts
@@ -49,18 +49,19 @@ def export_to_uai(G, cpts, filename):
         file.write(f"{len(G.nodes())}\n")
         for node in G.nodes():
             parents = list(G.predecessors(node))
-            scope = parents + [node]    # the order matters! the last one X is P(X|others)
+            scope = parents + [node]  # the order matters! the last one X is P(X|others)
             file.write(f"{len(scope)} " + " ".join(map(str, scope)) + "\n")
 
         file.write("\n")
         for node, cpt in cpts.items():
             file.write(f"{cpt.size}\n")
-            # file.write(" ".join(map(str, cpt.flatten())) + "\n\n")
-            file.write(" ".join(f"{num:.2f}" for num in cpt.flatten()) + "\n\n")    # precision
+            # for li in range(cpt.shape[0]):
+            file.write(" ".join(f"{num:.2f}" for num in cpt.flatten()) + "\n\n")  # precision
+            # file.write("\n")
 
 
 def generate_disaster_model(num_nodes, num_edges, precision, max_parents, out_path):
-    num_edges = np.min([num_edges, (num_nodes * (num_nodes - 1)) // 2]) # within maximum possible number
+    num_edges = np.min([num_edges, (num_nodes * (num_nodes - 1)) // 2])  # within maximum possible number
     G = generate_random_dag(num_nodes, num_edges, max_parents)
     cpts = assign_random_cpts(G, precision)
 
@@ -73,7 +74,7 @@ def generate_disaster_model(num_nodes, num_edges, precision, max_parents, out_pa
 
 def generate_budget(net_struct, min_bgt, max_bgt, out_path):
     total_nodes = np.sum(net_struct)
-    rand_budget = np.random.randint(min_bgt, max_bgt+1, size=total_nodes)
+    rand_budget = np.random.randint(min_bgt, max_bgt + 1, size=total_nodes)
 
     os.makedirs(out_path, exist_ok=True)
     budget_filename = os.path.join(out_path, f"budget.txt")
@@ -93,8 +94,8 @@ def generate_capacity(net_struct, min_cap, max_cap, p_edge, out_path):
 
         for j in range(start_index, next_layer_start):
             for k in range(next_layer_start, next_layer_start + next_layer_nodes):
-                if np.random.uniform(0,1) < p_edge:
-                    adjacency_matrix[j, k] = np.random.randint(min_cap, max_cap+1)
+                if np.random.uniform(0, 1) < p_edge:
+                    adjacency_matrix[j, k] = np.random.randint(min_cap, max_cap + 1)
 
         start_index += num_nodes
 
@@ -194,7 +195,7 @@ if __name__ == "__main__":
     num_dedges = 4  #
     num_bayes_edges = 8
     precision = 4  # k-digit precision 2^n-1 0~15
-    max_parents = 1000 # maximum of parents allowed
+    max_parents = 1000  # maximum of parents allowed
 
     generate_disaster_edges(adjacency_matrix, num_dedges, out_path)
     generate_disaster_model(num_dedges, num_bayes_edges, precision, max_parents, out_path)

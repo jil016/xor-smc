@@ -5,7 +5,7 @@ import time
 import random
 from pgmpy import sampling
 from pgmpy.inference import ApproxInference
-from supply_net import SupplyNet
+from supply_net_with_disaster import SupplyNet
 
 
 from docplex.cp.model import CpoModel, CpoIntVar

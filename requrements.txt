@@ -1,3 +1,5 @@
 pgmpy
 networkx
-boolexpr
+boolexp
+mip
+pyAgrum
