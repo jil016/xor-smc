@@ -15,45 +15,7 @@ context.solver.agent = 'local'
 context.solver.local.execfile = '/Applications/CPLEX_Studio2211/cpoptimizer/bin/arm64_osx/cpoptimizer'
 
 
-def cplex_color_example():
-    # Create CPO model
-    mdl = CpoModel()
-
-    # Create model variables containing colors of the countries
-    Belgium = mdl.integer_var(0, 3, "Belgium")
-    Denmark = mdl.integer_var(0, 3, "Denmark")
-    France = mdl.integer_var(0, 3, "France")
-    Germany = mdl.integer_var(0, 3, "Germany")
-    Luxembourg = mdl.integer_var(0, 3, "Luxembourg")
-    Netherlands = mdl.integer_var(0, 3, "Netherlands")
-    ALL_COUNTRIES = (Belgium, Denmark, France, Germany, Luxembourg, Netherlands)
-
-    # Create constraints
-    mdl.add(Belgium != France)
-    mdl.add(Belgium != Germany)
-    mdl.add(Belgium != Netherlands)
-    mdl.add(Belgium != Luxembourg)
-    mdl.add(Denmark != Germany)
-    mdl.add(France != Germany)
-    mdl.add(France != Luxembourg)
-    mdl.add(Germany != Luxembourg)
-    mdl.add(Germany != Netherlands)
-
-    # Solve model
-    print("\nSolving model....")
-    msol = mdl.solve()
-
-    if msol:
-        print("Solution status: " + msol.get_solve_status())
-        colors = ("Yellow", "Red", "Green", "Blue")
-        for country in ALL_COUNTRIES:
-            print("   " + country.get_name() + ": " + colors[msol[country]])
-    else:
-        print("No solution found")
-
-
 def find_best_plan(supply_net, disaster_sample):
-    supply_net = SupplyNet("/Users/jinzhao/Desktop/git_repos/xor_smt/data/supply_chain/network")
     mdl = CpoModel()
 
     # trade plan variables
@@ -189,7 +151,7 @@ def calc_actual_production(supply_net, trade_plan, disaster_sample):
                 total_production += capacity_matrix[i, node]
 
     print(total_production)
-    pass
+    return total_production
 
 
 
@@ -220,7 +182,7 @@ if __name__ == '__main__':
     trade_plan = find_best_plan(sn, disaster_sample)
 
 
-    calc_actual_production(sn, trade_plan, disaster_sample)
+    total_production = calc_actual_production(sn, trade_plan, disaster_sample)
 
 
 

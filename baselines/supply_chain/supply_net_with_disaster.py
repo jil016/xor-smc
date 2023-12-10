@@ -277,6 +277,7 @@ if __name__ == '__main__':
 
     # load network
     sn = SupplyNet(args.filepath)
-    sn.sample_disaster_via_gibbs_sampling(10, "./sampled_output_")
-    sn.disaster_exact_LazyPropagation(10, './sampled_output_')
+    gibbs_samples = sn.sample_disaster_via_gibbs_sampling(10, "./sampled_output_")
+    exact_samples = sn.disaster_exact_LazyPropagation(10, './sampled_output_')
     # compareIE(sn.disasters,5,1e-2)
+    pass
