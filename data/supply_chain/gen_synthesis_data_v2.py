@@ -191,9 +191,9 @@ if __name__ == "__main__":
     generate_demand(net_struct, n_demands, q, out_path)
 
     # Generate Disasters
-    num_dedges = 4
+    num_dedges = 4  #
     num_bayes_edges = 8
-    precision = 4  # k-digit precision
+    precision = 4  # k-digit precision 2^n-1 0~15
     max_parents = 1000 # maximum of parents allowed
 
     generate_disaster_edges(adjacency_matrix, num_dedges, out_path)

@@ -7,51 +7,139 @@ from pgmpy import sampling
 from pgmpy.inference import ApproxInference
 from supply_net import SupplyNet
 
-from mip import Model, xsum, maximize, BINARY
 
-def mip_knapsack_example():
-    p = [10, 13, 18, 31, 7, 15]
-    w = [11, 15, 20, 35, 10, 33]
-    c, I = 47, range(len(w))
+from docplex.cp.model import CpoModel, CpoIntVar
+from docplex.cp.config import context
 
-    m = Model("knapsack")
+context.solver.agent = 'local'
+context.solver.local.execfile = '/Applications/CPLEX_Studio2211/cpoptimizer/bin/arm64_osx/cpoptimizer'
 
-    x = [m.add_var(var_type=BINARY) for i in I]
 
-    m.objective = maximize(xsum(p[i] * x[i] for i in I))
 
-    m += xsum(w[i] * x[i] for i in I) <= c
+# def find_best_plan(supply_net, disaster_sample):
+#     from mip import Model, xsum, maximize, BINARY
+#     from docplex.cp.model import CpoModel
+#
+#     supply_net = SupplyNet("/Users/jinzhao/Desktop/git_repos/xor_smt/data/supply_chain/network")
+#     mip_model = Model()
+#
+#     # trade plan variables
+#     trade_plan = []
+#     for e in supply_net.edges:
+#         trade_plan.append(mip_model.add_var(name=f"s_{e[0]}_{e[1]}", var_type=BINARY))
+#
+#     # node connection
+#     x_nodes = [mip_model.add_var(name=f"n_{i}", var_type=BINARY) for i in range(supply_net.num_nodes)]
+#     x_edges = [mip_model.add_var(name=f"e_{eg[0]}_{eg[1]}", var_type=BINARY) for eg in supply_net.edges]
+#
+#     # production >= threshold
+#     return
 
-    m.optimize()
+def cplex_color_example():
+    # Create CPO model
+    mdl = CpoModel()
 
-    selected = [i for i in I if x[i].x >= 0.99]
-    print("selected items: {}".format(selected))
+    # Create model variables containing colors of the countries
+    Belgium = mdl.integer_var(0, 3, "Belgium")
+    Denmark = mdl.integer_var(0, 3, "Denmark")
+    France = mdl.integer_var(0, 3, "France")
+    Germany = mdl.integer_var(0, 3, "Germany")
+    Luxembourg = mdl.integer_var(0, 3, "Luxembourg")
+    Netherlands = mdl.integer_var(0, 3, "Netherlands")
+    ALL_COUNTRIES = (Belgium, Denmark, France, Germany, Luxembourg, Netherlands)
+
+    # Create constraints
+    mdl.add(Belgium != France)
+    mdl.add(Belgium != Germany)
+    mdl.add(Belgium != Netherlands)
+    mdl.add(Belgium != Luxembourg)
+    mdl.add(Denmark != Germany)
+    mdl.add(France != Germany)
+    mdl.add(France != Luxembourg)
+    mdl.add(Germany != Luxembourg)
+    mdl.add(Germany != Netherlands)
+
+    # Solve model
+    print("\nSolving model....")
+    msol = mdl.solve()
+
+    if msol:
+        print("Solution status: " + msol.get_solve_status())
+        colors = ("Yellow", "Red", "Green", "Blue")
+        for country in ALL_COUNTRIES:
+            print("   " + country.get_name() + ": " + colors[msol[country]])
+    else:
+        print("No solution found")
+
 
 def find_best_plan(supply_net, disaster_sample):
     supply_net = SupplyNet("/Users/jinzhao/Desktop/git_repos/xor_smt/data/supply_chain/network")
-
-    mip_model = Model()
+    mdl = CpoModel()
 
     # trade plan variables
-    trade_plan = []
-    for e in supply_net.edges:
-        trade_plan.append(mip_model.add_var(name=f"s_{e[0]}_{e[1]}", var_type=BINARY))
+    trade_plan = [mdl.binary_var(f"s_{eg[0]}_{eg[1]}") for eg in supply_net.edges]
 
-    # node connection
-    x_nodes = [mip_model.add_var(name=f"n_{i}", var_type=BINARY) for i in range(supply_net.num_nodes)]
-    x_edges = [mip_model.add_var(name=f"e_{eg[0]}_{eg[1]}", var_type=BINARY) for eg in supply_net.edges]
+    # connection variables
+    x_nodes = [mdl.binary_var(f"n_{i}") for i in range(supply_net.num_nodes)]
+    x_edges = [mdl.binary_var(f"e_{eg[0]}_{eg[1]}") for eg in supply_net.edges]
 
-    # for i in range(supply_net.num_nodes):
-    #     for j in range(supply_net.num_nodes):
+    # connection constraints
+    edge_connection_const = []
+    node_connection_const = []
+    for i in range(supply_net.num_nodes):
+        in_degree = 0
+        for j in range(supply_net.num_nodes):
+            out_edge_idx = supply_net.edge_map[i,j]
+            dedge_idx = supply_net.dedge_map[i,j]
 
-    a = 1
+            no_dis = 1
+            if(dedge_idx != -1 and disaster_sample[dedge_idx] == 1):
+                no_dis = 0
+
+            if(out_edge_idx > -1):
+                edge_connection_const.append(x_edges[out_edge_idx] <= x_nodes[i])
+                edge_connection_const.append(x_edges[out_edge_idx] <= trade_plan[out_edge_idx])
+                edge_connection_const.append(x_edges[out_edge_idx] <= no_dis)   # can be pruned ...
+                edge_connection_const.append(x_edges[out_edge_idx] >= x_nodes[i] + trade_plan[out_edge_idx] + no_dis - 2)
+
+            in_edge_idx = supply_net.edge_map[j, i]
+            if(in_edge_idx > -1):
+                node_connection_const.append(x_nodes[i] >= x_edges[in_edge_idx])
+                in_degree += 1
+
+        if(in_degree == 0):
+            node_connection_const.append(x_nodes[i] == 1)
+
+    # budget constraint
+    budget_const = []
+    for i in range(supply_net.num_nodes):
+        total_cost = 0
+        for j in range(supply_net.num_nodes):
+            in_edge_idx = supply_net.edge_map[j, i]
+
+            if (in_edge_idx > -1):
+                total_cost += supply_net.cost[j, i] * trade_plan[in_edge_idx]
+
+        budget_const.append((total_cost <= supply_net.budget[i]))
+
+    # objective
+    total_production = 0
+    for edge in supply_net.edges:
+        if(edge[1] in supply_net.demand_node):
+            total_production += supply_net.capacity[edge[0], edge[1]] * trade_plan[supply_net.edge_map[edge[0],edge[1]]]
+
+    production_const = (total_production >= 2 ** supply_net.total_demand)
+    # add constraints
 
 
-    # production >= threshold
-
-
-
+    # load all constraints
     return
+
+
+
+def calc_actual_production(supply_net, trade_plan, disaster_sample):
+
+    pass
 
 
 if __name__ == '__main__':
@@ -74,8 +162,10 @@ if __name__ == '__main__':
     # load network
     sn = SupplyNet(args.filepath)
 
+    disaster_sample = np.random.randint(0,2,size=sn.num_dedges)
+
     # generate a MIP instance
-    find_best_plan(sn, None)
+    find_best_plan(sn, disaster_sample)
 
 
 

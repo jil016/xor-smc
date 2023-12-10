@@ -86,6 +86,7 @@ class SupplyNet(object):
         for i, e in enumerate(self.dedges):
             self.dedge_map[e[0], e[1]] = i
 
+        self.num_dedges = len(self.dedges)
         return
 
     def sample_disaster_via_bayesian_sampling(self):
