@@ -93,4 +93,4 @@ if __name__ == "__main__":
     uai = UaiFile("disaster.uai")
     uai.writeUai("disaster2.uai")
 
-    Bayesian_Sampling("disaster.uai", 20)
+    Bayesian_Sampling("disaster.uai", 20000)
