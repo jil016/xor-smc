@@ -525,9 +525,9 @@ bool SupplyChain::solveInstance() {
             env.out() << endl;
         }
 
-        for(int t = 0; t < _T; t++){
-            env.out() << int(cplex.getValue(_vars_maj[t])) << " ";
-        }
+//        for(int t = 0; t < _T; t++){
+//            env.out() << int(cplex.getValue(_vars_maj[t])) << " ";
+//        }
     }
 
     else{

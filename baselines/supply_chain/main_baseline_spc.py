@@ -14,8 +14,10 @@ from docplex.cp.config import context
 context.solver.agent = 'local'
 context.solver.local.execfile = '/Applications/CPLEX_Studio2211/cpoptimizer/bin/arm64_osx/cpoptimizer'
 
+from sampler.bayes_net_sampler.bayesian import Bayesian_Sampling
+from sampler.gibbs_sampler.gibbs_mrf import Gibbs_Sampling
 
-def find_best_plan(supply_net, disaster_sample):
+def mip_find_plan(supply_net, disaster_sample, find_best = False):
     mdl = CpoModel()
 
     # trade plan variables
@@ -72,6 +74,10 @@ def find_best_plan(supply_net, disaster_sample):
 
     production_const = (total_production >= 2 ** supply_net.total_demand)
 
+    # optional!! maximize ...
+    if (find_best):
+        mdl.maximize(total_production)
+
     # add constraints
     for c in edge_connection_const:
         mdl.add(c)
@@ -113,7 +119,7 @@ def find_reachable_nodes(start_nodes, adjacency_matrix):
 
 
 def calc_actual_production(supply_net, trade_plan, disaster_sample):
-    # trade_plan can be num_edges x 1
+    # trade_plan can be num_edges x 1 or N x N matrix
     # don't verify budget
     # only check connectivity!
 
@@ -124,9 +130,13 @@ def calc_actual_production(supply_net, trade_plan, disaster_sample):
     capacity_matrix = supply_net.capacity.copy()
     connection_list = [0] * supply_net.num_nodes
 
-    for i, e in enumerate(supply_net.edges):
-        if(trade_plan[i] == 0):
-            capacity_matrix[e[0], e[1]] = 0
+    if isinstance(trade_plan, list):
+        for i, e in enumerate(supply_net.edges):
+            if(trade_plan[i] == 0):
+                capacity_matrix[e[0], e[1]] = 0
+    else:
+        # N x N numpy array
+        capacity_matrix[trade_plan == 0] = 0
 
     for i, de in enumerate(supply_net.disaster_edges):
         if(disaster_sample[i] == 1):
@@ -154,6 +164,22 @@ def calc_actual_production(supply_net, trade_plan, disaster_sample):
     return total_production
 
 
+def parse_SPC_results(filepath):
+    matrix = []
+    with open(filepath, "r") as fp:
+        line1 = fp.readline()[:-1]
+        if(line1 != "Optimal"):
+            print("SPC No solution!")
+            exit(0)
+        for line in fp:
+            matrix.append([int(num) for num in line.split()])
+    return np.array(matrix)
+
+def run_SPC_program(smc_binary = "", network_folder="", out_path=""):
+    random_seed = 20
+    T = 1
+    os.system(f"{smc_binary} {network_folder} -seed {random_seed} -T {T} -output {out_path}")
+    print("XMC_SPC finished!")
 
 
 if __name__ == '__main__':
@@ -175,9 +201,33 @@ if __name__ == '__main__':
 
     # load network
     sn = SupplyNet(args.filepath)
+    n_samples = 10
 
-    disaster_sample = np.random.randint(0,2,size=sn.num_dedges)
+    # disaster_samples = Bayesian_Sampling(os.path.join(args.filepath, "disaster.uai"),
+    #                                      n_samples)
 
-    # generate a MIP instance
-    trade_plan = find_best_plan(sn, disaster_sample)
-    total_production = calc_actual_production(sn, trade_plan, disaster_sample)
+    disaster_samples = Gibbs_Sampling(os.path.join(args.filepath, "disaster.uai"), n_samples,
+                                      None, 50)
+
+    # generate a MIP plan
+    trade_plan = mip_find_plan(sn, disaster_samples[0], False)
+
+    # generate a SMC plan
+    smc_binary = "/Users/jinzhao/Desktop/git_repos/xor_smt/xor_smc/supply_chain/SPC"
+    smc_outpath = "/Users/jinzhao/Desktop/git_repos/xor_smt/xor_smc/supply_chain/LOG-SPC"
+    # run_SPC_program(smc_binary, args.filepath, smc_outpath)
+    smc_trade_plan = parse_SPC_results(os.path.join(smc_outpath, "result.log"))
+
+
+    n_eval_samples = 10
+    gt_disaster_samples = Bayesian_Sampling(os.path.join(args.filepath, "disaster.uai"),
+                                          n_eval_samples)
+    baseline_total_prodcution = []
+    smc_total_prodcution = []
+    for i in range(n_eval_samples):
+        baseline_total_prodcution.append(calc_actual_production(sn, trade_plan, gt_disaster_samples[i]))
+        smc_total_prodcution.append(calc_actual_production(sn, smc_trade_plan, gt_disaster_samples[i]))
+
+    print(f"baseline_total_prodcution: {sum(baseline_total_prodcution)}")
+    print(f"smc_total_prodcution: {sum(smc_total_prodcution)}")
+    pass

@@ -104,7 +104,7 @@ def Bayesian_Sampling(filename, n_samples):
     print("P(X) = 1: ", probs)
 
     os.remove(random_filename)
-    return samples
+    return samples.values
 
 
 
