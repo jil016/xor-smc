@@ -15,26 +15,6 @@ context.solver.agent = 'local'
 context.solver.local.execfile = '/Applications/CPLEX_Studio2211/cpoptimizer/bin/arm64_osx/cpoptimizer'
 
 
-
-# def find_best_plan(supply_net, disaster_sample):
-#     from mip import Model, xsum, maximize, BINARY
-#     from docplex.cp.model import CpoModel
-#
-#     supply_net = SupplyNet("/Users/jinzhao/Desktop/git_repos/xor_smt/data/supply_chain/network")
-#     mip_model = Model()
-#
-#     # trade plan variables
-#     trade_plan = []
-#     for e in supply_net.edges:
-#         trade_plan.append(mip_model.add_var(name=f"s_{e[0]}_{e[1]}", var_type=BINARY))
-#
-#     # node connection
-#     x_nodes = [mip_model.add_var(name=f"n_{i}", var_type=BINARY) for i in range(supply_net.num_nodes)]
-#     x_edges = [mip_model.add_var(name=f"e_{eg[0]}_{eg[1]}", var_type=BINARY) for eg in supply_net.edges]
-#
-#     # production >= threshold
-#     return
-
 def cplex_color_example():
     # Create CPO model
     mdl = CpoModel()
@@ -126,18 +106,38 @@ def find_best_plan(supply_net, disaster_sample):
     total_production = 0
     for edge in supply_net.edges:
         if(edge[1] in supply_net.demand_node):
-            total_production += supply_net.capacity[edge[0], edge[1]] * trade_plan[supply_net.edge_map[edge[0],edge[1]]]
+            total_production += supply_net.capacity[edge[0], edge[1]] * x_edges[supply_net.edge_map[edge[0],edge[1]]]
 
     production_const = (total_production >= 2 ** supply_net.total_demand)
+
     # add constraints
+    for c in edge_connection_const:
+        mdl.add(c)
+    for c in node_connection_const:
+        mdl.add(c)
+    for c in budget_const:
+        mdl.add(c)
 
+    mdl.add(production_const)
 
-    # load all constraints
+    print("\nSolving model....")
+    mdl.export_model("baseline_sampled.lp")
+    msol = mdl.solve()  # (TimeLimit=10)
+
+    if msol:
+        print("Solution status: " + msol.get_solve_status())
+        for edge in trade_plan:
+            print("   " + edge.get_name() + f": {msol[edge.get_name()]}")
+    else:
+        print("No solution found")
     return
 
 
-
 def calc_actual_production(supply_net, trade_plan, disaster_sample):
+    # trade_plan can be either NxN or num_edges
+    # don't verify budget
+    supply_net
+
 
     pass
 
