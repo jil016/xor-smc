@@ -52,6 +52,12 @@ class SupplyNet(object):
         self.budget = None
         self.disaster_edges = None
         self.disaster_uai_filepath = None
+
+        self.edges = None
+        self.edge_map = None
+        self.num_edges = 0
+        self.dedge_map = None
+        self.num_dedges = 0
         #
         self.initialize_from_file()
         self.generate_advance_info()
@@ -211,7 +217,6 @@ class SupplyNet(object):
                 total_sampled.append(sampled)
         return total_sampled
 
-
     def sample_disaster_via_loopy_importance_sampling(self, sample_size, output_filepath):
         ie9 = gum.LoopyImportanceSampling(self.disasters)
         if self.evs is not None:
@@ -245,12 +250,13 @@ class SupplyNet(object):
 
 
 def sample_(marg_prob: list):
-    sampled_nodes=[]
+    sampled_nodes = []
     for i in range(int(len(marg_prob) / 2)):
         val = np.random.choice([True, False], p=[marg_prob[i], 1 - marg_prob[i]])
         if val:
             sampled_nodes.append(str(i))
     return " ".join(sampled_nodes), sampled_nodes
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
