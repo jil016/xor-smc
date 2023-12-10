@@ -47,10 +47,13 @@ class UaiFile(object):
             f_table = np.empty(t_size)
             for i in range(t_size):
                 f_table[i] = float(next(gen))
-            f_table = f_table.reshape(factor_size)
 
-            f_table_T = np.transpose(f_table, tuple(np.argsort(cliques[c])))
-            # factors[c] = tuple((cliques[c], np.array(f_table_T, dtype=float)))
+            f_table_T = np.empty(factor_size)
+            for index in np.ndindex(factor_size):
+                # Convert index to binary and reverse it
+                b_str = ''.join(str(bit) for bit in index)
+                f_table_T[index] = f_table[int(b_str, 2)]
+
             factors[c] = np.array(f_table_T, dtype=float)
 
         self.inst_type = inst_type
@@ -62,6 +65,8 @@ class UaiFile(object):
 
         return factors, n_var
 
+    def writeUai(self, filename):
+        pass
 
 
 def Bayesian_Sampling(filename, n_samples):
@@ -82,6 +87,6 @@ def my_Bayesian_Sampling(filename, n_samples):
 
 
 if __name__ == "__main__":
-    uai = UaiFile("disaster.uai")
+    uai = UaiFile("/Users/jinzhao/Desktop/git_repos/xor_smt/data/supply_chain/network/disaster.uai")
 
-    Bayesian_Sampling("disaster.uai", 20000)
+    my_Bayesian_Sampling("disaster.uai", 20000)
