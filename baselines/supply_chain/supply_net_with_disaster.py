@@ -165,6 +165,13 @@ class SupplyNet(object):
         marginal_prob = vals(self.disasters, ie4)
         print(marginal_prob)
         print(txt)
+        total_sampled = []
+        with open(output_filepath + 'weighted_sampling.txt', 'w') as fw:
+            for si in range(sample_size):
+                str_sampled, sampled = sample_(marginal_prob)
+                fw.write(str_sampled + "\n")
+                total_sampled.append(sampled)
+        return total_sampled
 
     def sample_disaster_via_importance_sampling(self, sample_size, output_filepath):
         ie5 = gum.ImportanceSampling(self.disasters)
@@ -176,6 +183,14 @@ class SupplyNet(object):
         marginal_prob = vals(self.disasters, ie5)
         print(marginal_prob)
         print(txt)
+        total_sampled = []
+        with open(output_filepath + 'importance_sampling.txt', 'w') as fw:
+            for si in range(sample_size):
+                str_sampled, sampled = sample_(marginal_prob)
+                fw.write(str_sampled + "\n")
+                total_sampled.append(sampled)
+        return total_sampled
+
 
     def sample_disaster_via_loopy_belief_propagation(self, sample_size, output_filepath):
         ie6 = gum.LoopyBeliefPropagation(self.disasters)
@@ -187,6 +202,13 @@ class SupplyNet(object):
         marginal_prob = vals(self.disasters, ie6)
         print(marginal_prob)
         print(txt)
+        total_sampled = []
+        with open(output_filepath + 'loopy_belief_propagation.txt', 'w') as fw:
+            for si in range(sample_size):
+                str_sampled, sampled = sample_(marginal_prob)
+                fw.write(str_sampled + "\n")
+                total_sampled.append(sampled)
+        return total_sampled
 
     def sample_disaster_via_loopy_weighted_sampling(self, sample_size, output_filepath):
         ie7 = gum.LoopyWeightedSampling(self.disasters)
@@ -198,6 +220,13 @@ class SupplyNet(object):
         marginal_prob = vals(self.disasters, ie7)
         print(marginal_prob)
         print(txt)
+        total_sampled = []
+        with open(output_filepath + 'loopy_weighted_sampling.txt', 'w') as fw:
+            for si in range(sample_size):
+                str_sampled, sampled = sample_(marginal_prob)
+                fw.write(str_sampled + "\n")
+                total_sampled.append(sampled)
+        return total_sampled
 
     def sample_disaster_via_loopy_gibbs_sampling(self, sample_size, output_filepath):
         ie8 = gum.LoopyGibbsSampling(self.disasters)
@@ -250,11 +279,13 @@ class SupplyNet(object):
 
 
 def sample_(marg_prob: list):
+    """return the list of sampled nodes"""
     sampled_nodes = []
-    for i in range(int(len(marg_prob) / 2)):
-        val = np.random.choice([True, False], p=[marg_prob[i], 1 - marg_prob[i]])
-        if val:
-            sampled_nodes.append(str(i))
+    for i in range(int(len(marg_prob))):
+        if i % 2 == 0:
+            val = np.random.choice([True, False], p=[marg_prob[i], 1 - marg_prob[i]])
+            if val:
+                sampled_nodes.append(str(int(i/2)))
     return " ".join(sampled_nodes), sampled_nodes
 
 
@@ -277,7 +308,13 @@ if __name__ == '__main__':
 
     # load network
     sn = SupplyNet(args.filepath)
+    """in the output file, every line contains the list of nodes with disaster happened."""
     gibbs_samples = sn.sample_disaster_via_gibbs_sampling(10, "./sampled_output_")
     exact_samples = sn.disaster_exact_LazyPropagation(10, './sampled_output_')
-    # compareIE(sn.disasters,5,1e-2)
-    pass
+    sampledoutput = sn.sample_disaster_via_importance_sampling(10, "./sampled_output_")
+    sampledoutput = sn.sample_disaster_via_weighted_sampling(10, "./sampled_output_")
+    sampledoutput = sn.sample_disaster_via_loopy_weighted_sampling(10, "./sampled_output_")
+    sampledoutput = sn.sample_disaster_via_loopy_gibbs_sampling(10, "./sampled_output_")
+    sampledoutput = sn.sample_disaster_via_loopy_belief_propagation(10, "./sampled_output_")
+    sampledoutput = sn.sample_disaster_via_loopy_importance_sampling(10, "./sampled_output_")
+
