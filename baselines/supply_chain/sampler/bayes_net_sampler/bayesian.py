@@ -62,20 +62,6 @@ class UaiFile(object):
 
         return factors, n_var
 
-    def writeUai(self, filename):
-        with open(filename, 'w') as fp:
-            fp.write(self.inst_type + "\n")
-            fp.write("{:d}\n".format(self.n_var))  # number of variables in model
-            fp.write(" ".join(map(str, self.dims)) + "\n")  # write dimensions of each variable
-            fp.write("{:d}\n".format(self.n_cliques));  # number of factors
-            for clique in self.cliques:
-                fp.write(str(len(clique)) + " " + " ".join(map(str, clique)))
-                fp.write("\n")
-            fp.write("\n")
-            for factor in self.factors:
-                fp.write(str(factor.size) + "\n")
-                fp.write(str(factor).replace(' [', '').replace('[', '').replace(']', ''))
-                fp.write("\n\n")
 
 
 def Bayesian_Sampling(filename, n_samples):
@@ -89,8 +75,13 @@ def Bayesian_Sampling(filename, n_samples):
     print("P(X) = 1: ", probs)
 
 
+def my_Bayesian_Sampling(filename, n_samples):
+    uai = UaiFile(filename)
+    is_fixed = [0]
+    pass
+
+
 if __name__ == "__main__":
     uai = UaiFile("disaster.uai")
-    uai.writeUai("disaster2.uai")
 
     Bayesian_Sampling("disaster.uai", 20000)
