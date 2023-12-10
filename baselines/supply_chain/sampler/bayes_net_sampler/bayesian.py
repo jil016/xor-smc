@@ -82,7 +82,8 @@ def Bayesian_Sampling(filename, n_samples):
 
 def my_Bayesian_Sampling(filename, n_samples):
     uai = UaiFile(filename)
-    is_fixed = [0]
+    is_fixed = [0] * uai.n_var
+
     pass
 
 
