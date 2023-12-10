@@ -289,6 +289,24 @@ def sample_(marg_prob: list):
     return " ".join(sampled_nodes), sampled_nodes
 
 
+def process_samples(samples, n_dim):
+    def one_hot_encode_single(indices, n_dim):
+        # Initialize a list of zeros
+        encoded = [1] * n_dim
+
+        # Set the specified indices to 1
+        for index in indices:
+            if 0 <= int(index) < n_dim:
+                encoded[int(index)] = 0
+            else:
+                raise ValueError(f"Index {index} out of range for dimension {n_dim}")
+
+        return encoded
+
+        # Encode each list of indices
+    return [one_hot_encode_single(indices, n_dim) for indices in samples]
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--filepath",
@@ -309,12 +327,20 @@ if __name__ == '__main__':
     # load network
     sn = SupplyNet(args.filepath)
     """in the output file, every line contains the list of nodes with disaster happened."""
-    gibbs_samples = sn.sample_disaster_via_gibbs_sampling(10, "./sampled_output_")
-    exact_samples = sn.disaster_exact_LazyPropagation(10, './sampled_output_')
-    sampledoutput = sn.sample_disaster_via_importance_sampling(10, "./sampled_output_")
-    sampledoutput = sn.sample_disaster_via_weighted_sampling(10, "./sampled_output_")
-    sampledoutput = sn.sample_disaster_via_loopy_weighted_sampling(10, "./sampled_output_")
-    sampledoutput = sn.sample_disaster_via_loopy_gibbs_sampling(10, "./sampled_output_")
-    sampledoutput = sn.sample_disaster_via_loopy_belief_propagation(10, "./sampled_output_")
-    sampledoutput = sn.sample_disaster_via_loopy_importance_sampling(10, "./sampled_output_")
+    n_samples = 1000
+
+    gibbs_samples = sn.sample_disaster_via_gibbs_sampling(n_samples, "./sampled_output_")
+    processed_gibbs_samples = process_samples(gibbs_samples, sn.num_dedges)
+
+    marginal_prob = np.array(processed_gibbs_samples).sum(axis=0)
+    marginal_prob = marginal_prob / n_samples
+    print(marginal_prob)
+
+    # exact_samples = sn.disaster_exact_LazyPropagation(10, './sampled_output_')
+    # sampledoutput = sn.sample_disaster_via_importance_sampling(10, "./sampled_output_")
+    # sampledoutput = sn.sample_disaster_via_weighted_sampling(10, "./sampled_output_")
+    # sampledoutput = sn.sample_disaster_via_loopy_weighted_sampling(10, "./sampled_output_")
+    # sampledoutput = sn.sample_disaster_via_loopy_gibbs_sampling(10, "./sampled_output_")
+    # sampledoutput = sn.sample_disaster_via_loopy_belief_propagation(10, "./sampled_output_")
+    # sampledoutput = sn.sample_disaster_via_loopy_importance_sampling(10, "./sampled_output_")
 
