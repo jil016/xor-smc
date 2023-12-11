@@ -185,7 +185,7 @@ def run_SPC_program(smc_binary = "", network_folder="", out_path=""):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--filepath",
-                        default="/Users/jinzhao/Desktop/git_repos/xor_smt/data/supply_chain/network",
+                        default="/Users/jinzhao/Desktop/git_repos/xor_smt/data/supply_chain/real_sized_network_simple_distribution",
                         help="the filename.")
 
     args = parser.parse_args()
@@ -215,7 +215,7 @@ if __name__ == '__main__':
     # generate a SMC plan
     smc_binary = "/Users/jinzhao/Desktop/git_repos/xor_smt/xor_smc/supply_chain/SPC"
     smc_outpath = "/Users/jinzhao/Desktop/git_repos/xor_smt/xor_smc/supply_chain/LOG-SPC"
-    # run_SPC_program(smc_binary, args.filepath, smc_outpath)
+    run_SPC_program(smc_binary, args.filepath, smc_outpath)
     smc_trade_plan = parse_SPC_results(os.path.join(smc_outpath, "result.log"))
 
 

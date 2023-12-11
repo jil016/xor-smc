@@ -167,35 +167,62 @@ def generate_disaster_edges(adj_matrix, n_edges, out_path):
 
 if __name__ == "__main__":
     # supply network
-    net_struct = [10, 10, 10]
-    out_path = "./network"
+    net_struct = [9, 7, 9, 19]
 
     # Generate Budgets
-    min_bgt = 100
-    max_bgt = 100
-    generate_budget(net_struct, min_bgt, max_bgt, out_path)
+    min_bgt = 40
+    max_bgt = 40
 
     # Generate Capacities
     min_cap = 10
     max_cap = 10
     p_edge = 1
-    adjacency_matrix = generate_capacity(net_struct, min_cap, max_cap, p_edge, out_path)
 
     # Generate Costs
-    min_cst = 20
-    max_cst = 20
-    generate_cost(adjacency_matrix, min_cst, max_cst, out_path)
+    min_cst = 10
+    max_cst = 10
 
     # Generate Demands
-    n_demands = 3
-    q = 4
-    generate_demand(net_struct, n_demands, q, out_path)
+    n_demands = 5
+    q = 6
 
     # Generate Disasters
-    num_dedges = 5  #
+    num_dedges = 50  #
     num_bayes_edges = 100
     precision = 4  # k-digit precision 2^n-1 0~15
-    max_parents = 1000  # maximum of parents allowed
+    max_parents = 7  # maximum of parents allowed
 
+
+    out_path = f"./real_sized_network_simple_distribution"
+
+
+    # generates everything
+    generate_budget(net_struct, min_bgt, max_bgt, out_path)
+    adjacency_matrix = generate_capacity(net_struct, min_cap, max_cap, p_edge, out_path)
+    generate_cost(adjacency_matrix, min_cst, max_cst, out_path)
+    generate_demand(net_struct, n_demands, q, out_path)
     generate_disaster_edges(adjacency_matrix, num_dedges, out_path)
     generate_disaster_model(num_dedges, num_bayes_edges, precision, max_parents, out_path)
+
+    # save parameters
+    with open(os.path.join(out_path, "params.txt"), "w") as fp:
+        fp.write("net_struct: ")
+        [fp.write(f"{x} ") for x in net_struct]
+        fp.write("\n")
+
+        # Generate Budgets
+        fp.write(f"min_bgt: {min_bgt}, max_bgt: {max_bgt}\n")
+
+        # Generate Capacities
+        fp.write(f"min_cap: {min_cap}, max_cap: {max_cap}, p_edge: {p_edge}\n")
+
+        # Generate Costs
+        fp.write(f"min_cst: {min_cst}, max_cst: {max_cst}\n")
+
+        # Generate Demands
+        fp.write(f"n_demands: {n_demands}, q: {q}\n")
+
+        # Generate Disasters
+        fp.write(f"num_dedges: {num_dedges}, num_bayes_edges: {num_bayes_edges}\n")
+        fp.write(f"precision: {precision}, max_parents: {max_parents}\n")
+
