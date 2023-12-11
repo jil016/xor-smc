@@ -1,6 +1,6 @@
 #include "supply_chain.h"
 
-#define DEBUG_SUPPLYCHAIN
+//#define DEBUG_SUPPLYCHAIN
 using namespace std;
 
 typedef std::set<int> set_type;
