@@ -35,7 +35,7 @@ def run_spc_program(smc_binary = "", network_folder="", out_path=""):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--filepath",
-                        default="/home/jinzhao/jinzhao/xor_smt/data/supply_chain/large_sized_network_medium_distribution",
+                        default="/Users/jinzhao/Desktop/git_repos/xor_smt/data/supply_chain/large_sized_network_medium_distribution",
                         help="the filename.")
 
     args = parser.parse_args()
