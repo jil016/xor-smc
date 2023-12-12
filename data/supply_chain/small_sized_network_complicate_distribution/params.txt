@@ -1,7 +1,7 @@
-net_struct: 9 7 9 19 
+net_struct: 5 5 5 5 
 min_bgt: 20, max_bgt: 50
 min_cap: 8, max_cap: 12, p_edge: 1
 min_cst: 5, max_cst: 15
 n_demands: 5, q: 6
-num_dedges: 10, num_bayes_edges: 40
-precision: 4, max_parents: 7
+num_dedges: 25, num_bayes_edges: 150 / 300
+precision: 4, max_parents: 8
