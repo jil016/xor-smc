@@ -167,34 +167,33 @@ def generate_disaster_edges(adj_matrix, n_edges, out_path):
 
 if __name__ == "__main__":
     # supply network
-    net_struct = [9, 7, 9, 19]
+    net_struct = [20, 20, 20, 20]
 
     # Generate Budgets
-    min_bgt = 40
-    max_bgt = 40
+    min_bgt = 20
+    max_bgt = 50
 
     # Generate Capacities
-    min_cap = 10
-    max_cap = 10
+    min_cap = 8
+    max_cap = 12
     p_edge = 1
 
     # Generate Costs
-    min_cst = 10
-    max_cst = 10
+    min_cst = 5
+    max_cst = 15
 
     # Generate Demands
     n_demands = 5
     q = 6
 
     # Generate Disasters
-    num_dedges = 50  #
-    num_bayes_edges = 100
+    num_dedges = 150  #
+    num_bayes_edges = 800
     precision = 4  # k-digit precision 2^n-1 0~15
-    max_parents = 7  # maximum of parents allowed
+    max_parents = 8  # maximum of parents allowed
 
 
-    out_path = f"./real_sized_network_simple_distribution"
-
+    out_path = f"./data/supply_chain/large_sized_network_medium_distribution"
 
     # generates everything
     generate_budget(net_struct, min_bgt, max_bgt, out_path)
@@ -223,6 +222,6 @@ if __name__ == "__main__":
         fp.write(f"n_demands: {n_demands}, q: {q}\n")
 
         # Generate Disasters
-        fp.write(f"num_dedges: {num_dedges}, num_bayes_edges: {num_bayes_edges}\n")
+        fp.write(f"num_dedges: {num_dedges}, num_bayes_edges: {np.min([num_bayes_edges, (num_dedges * (num_dedges - 1)) // 2])} / {(num_dedges * (num_dedges - 1)) // 2}\n")
         fp.write(f"precision: {precision}, max_parents: {max_parents}\n")
 

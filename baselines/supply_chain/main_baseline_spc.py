@@ -5,14 +5,14 @@ import time
 import random
 from pgmpy import sampling
 from pgmpy.inference import ApproxInference
-from supply_net_with_disaster import SupplyNet
+from supply_net_with_disaster import SupplyNet, process_samples
 
 
 from docplex.cp.model import CpoModel, CpoIntVar
 from docplex.cp.config import context
 
 context.solver.agent = 'local'
-context.solver.local.execfile = '/Applications/CPLEX_Studio2211/cpoptimizer/bin/arm64_osx/cpoptimizer'
+context.solver.local.execfile = '/home/jinzhao/.local/ibm/ILOG/CPLEX_Studio2211/cpoptimizer/bin/x86-64_linux/cpoptimizer'
 
 from sampler.bayes_net_sampler.bayesian import Bayesian_Sampling
 from sampler.gibbs_sampler.gibbs_mrf import Gibbs_Sampling
@@ -73,6 +73,7 @@ def mip_find_plan(supply_net, disaster_sample, find_best = False):
             total_production += supply_net.capacity[edge[0], edge[1]] * x_edges[supply_net.edge_map[edge[0],edge[1]]]
 
     production_const = (total_production >= 2 ** supply_net.total_demand)
+    production_const = (total_production >= 128)
 
     # optional!! maximize ...
     if (find_best):
@@ -160,7 +161,6 @@ def calc_actual_production(supply_net, trade_plan, disaster_sample):
             if(capacity_matrix[i, node] > 0 and reachable_nodes[i] == 1):
                 total_production += capacity_matrix[i, node]
 
-    print(total_production)
     return total_production
 
 
@@ -185,7 +185,7 @@ def run_SPC_program(smc_binary = "", network_folder="", out_path=""):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--filepath",
-                        default="/Users/jinzhao/Desktop/git_repos/xor_smt/data/supply_chain/real_sized_network_simple_distribution",
+                        default="/home/jinzhao/jinzhao/xor_smt/data/supply_chain/large_sized_network_medium_distribution",
                         help="the filename.")
 
     args = parser.parse_args()
@@ -203,31 +203,54 @@ if __name__ == '__main__':
     sn = SupplyNet(args.filepath)
     n_samples = 10
 
-    # disaster_samples = Bayesian_Sampling(os.path.join(args.filepath, "disaster.uai"),
-    #                                      n_samples)
+    disaster_samples = Gibbs_Sampling(os.path.join(args.filepath, "disaster.uai"), n_samples, None, 50)
+    
+    # disaster_samples = sn.disaster_exact_LazyPropagation(n_samples, './sampled_output_')
+    # disaster_samples = sn.sample_disaster_via_importance_sampling(n_samples, "./sampled_output_")
+    # disaster_samples = sn.sample_disaster_via_weighted_sampling(n_samples, "./sampled_output_")
+    # disaster_samples = sn.sample_disaster_via_loopy_weighted_sampling(n_samples, "./sampled_output_")
+    # disaster_samples = sn.sample_disaster_via_loopy_gibbs_sampling(n_samples, "./sampled_output_")
+    # disaster_samples = sn.sample_disaster_via_loopy_belief_propagation(n_samples, "./sampled_output_")
+    # disaster_samples = sn.sample_disaster_via_loopy_importance_sampling(n_samples, "./sampled_output_")
 
-    disaster_samples = Gibbs_Sampling(os.path.join(args.filepath, "disaster.uai"), n_samples,
-                                      None, 50)
+    # disaster_samples = sn.sample_disaster_via_loopy_belief_propagation(n_samples, "./sampled_output_")
+    disaster_samples = process_samples(disaster_samples, sn.num_dedges)
+
 
     # generate a MIP plan
-    trade_plan = mip_find_plan(sn, disaster_samples[0], False)
+    n_samples = 1
+    baseline_trade_plans = []
+    for i in range(n_samples):
+        baseline_trade_plans.append(mip_find_plan(sn, disaster_samples[i], False))
+
 
     # generate a SMC plan
-    smc_binary = "/Users/jinzhao/Desktop/git_repos/xor_smt/xor_smc/supply_chain/SPC"
-    smc_outpath = "/Users/jinzhao/Desktop/git_repos/xor_smt/xor_smc/supply_chain/LOG-SPC"
+    smc_binary = "/home/jinzhao/jinzhao/xor_smt/xor_smc/supply_chain/SPC"
+    smc_outpath = "/home/jinzhao/jinzhao/xor_smt/xor_smc/supply_chain/LOG-SPC"
     run_SPC_program(smc_binary, args.filepath, smc_outpath)
     smc_trade_plan = parse_SPC_results(os.path.join(smc_outpath, "result.log"))
 
 
-    n_eval_samples = 10
+    n_eval_samples = 100
     gt_disaster_samples = Bayesian_Sampling(os.path.join(args.filepath, "disaster.uai"),
                                           n_eval_samples)
-    baseline_total_prodcution = []
+    
     smc_total_prodcution = []
     for i in range(n_eval_samples):
-        baseline_total_prodcution.append(calc_actual_production(sn, trade_plan, gt_disaster_samples[i]))
         smc_total_prodcution.append(calc_actual_production(sn, smc_trade_plan, gt_disaster_samples[i]))
+    print(f"smc_total_prodcution: {sum(smc_total_prodcution) / n_eval_samples}")
 
-    print(f"baseline_total_prodcution: {sum(baseline_total_prodcution)}")
-    print(f"smc_total_prodcution: {sum(smc_total_prodcution)}")
+
+    baseline_total_prodcution_list = []
+    for i_plan in range(n_samples):
+        baseline_total_prodcution = []
+        for i in range(n_eval_samples):
+            baseline_total_prodcution.append(calc_actual_production(sn, baseline_trade_plans[i_plan], gt_disaster_samples[i]))
+
+        baseline_total_prodcution_list.append(sum(baseline_total_prodcution) / n_eval_samples)
+        print(f"baseline_total_prodcution {i_plan}: {sum(baseline_total_prodcution) / n_eval_samples}")
+    
+
+    print(f"baseline_entire_average: {sum(baseline_total_prodcution_list) / n_samples}")
+
     pass
