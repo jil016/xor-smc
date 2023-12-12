@@ -64,7 +64,7 @@ if __name__ == '__main__':
     # disaster_samples = sn.sample_disaster_via_loopy_importance_sampling(n_samples, "./sampled_output_")
     # disaster_samples = sn.sample_disaster_via_loopy_belief_propagation(n_samples, "./sampled_output_")
 
-    disaster_samples = process_samples(disaster_samples, sn.num_dedges)
+    # disaster_samples = process_samples(disaster_samples, sn.num_dedges)
 
 
     # generate a MIP plan

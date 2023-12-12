@@ -71,25 +71,22 @@ def mip_find_plan(supply_net, disaster_sample, find_best=False):
             total_production += supply_net.capacity[edge[0], edge[1]] * x_edges[supply_net.edge_map[edge[0], edge[1]]]
 
     production_const = (total_production >= 2 ** supply_net.total_demand)
-    production_const = (total_production >= 128)
 
     # optional!! maximize ...
-    if (find_best):
+    if find_best:
         mdl.maximize(total_production)
+    else:
+        mdl.add(production_const)
 
     # add constraints
-    for c in edge_connection_const:
-        mdl.add(c)
-    for c in node_connection_const:
-        mdl.add(c)
-    for c in budget_const:
-        mdl.add(c)
+    mdl.add(edge_connection_const)
+    mdl.add(node_connection_const)
+    mdl.add(budget_const)
 
-    mdl.add(production_const)
 
     print("\nSolving model....")
     mdl.export_model("baseline_sampled.lp")
-    msol = mdl.solve() #(TimeLimit=10)
+    msol = mdl.solve(TimeLimit=3)
 
     # msol.stop_cause = 'SearchStoppedByLimit'
     # msol.solve_status = 'Feasible'
@@ -103,23 +100,26 @@ def mip_find_plan(supply_net, disaster_sample, find_best=False):
     return [msol[edge.get_name()] for edge in trade_plan]
 
 
-def saa_find_plan(supply_net, disaster_samples, find_best=False, time_limit="2h"):
+def saa_find_plan(supply_net, disaster_samples, find_best=False, avg_demand_require=0, time_limit="2h"):
     mdl = CpoModel()
 
     # trade plan variables, for all samples
     trade_plan = [mdl.binary_var(f"s_{eg[0]}_{eg[1]}") for eg in supply_net.edges]
 
-
-    x_nodes = []
+    x_nodes_all = []
+    x_edges_all = []
+    edge_connection_const_all = []
+    node_connection_const_all = []
+    total_producton_all = []
+    total_total_production = 0
 
     for idx_sample, sample in enumerate(disaster_samples):
         # connection variables
-        x_nodes = [mdl.binary_var(f"n_{i}") for i in range(supply_net.num_nodes)]
-        x_edges = [mdl.binary_var(f"e_{eg[0]}_{eg[1]}") for eg in supply_net.edges]
+        x_nodes = [mdl.binary_var(f"n_{idx_sample}_{nd}") for nd in range(supply_net.num_nodes)]
+        x_edges = [mdl.binary_var(f"e_{idx_sample}_{eg[0]}_{eg[1]}") for eg in supply_net.edges]
+        edge_connection_const = []  # connection constraints
+        node_connection_const = []  # connection constraints
 
-        # connection constraints
-        edge_connection_const = []
-        node_connection_const = []
         for i in range(supply_net.num_nodes):
             in_degree = 0
             for j in range(supply_net.num_nodes):
@@ -145,7 +145,24 @@ def saa_find_plan(supply_net, disaster_samples, find_best=False, time_limit="2h"
             if (in_degree == 0):
                 node_connection_const.append(x_nodes[i] == 1)
 
-    # budget constraint, unique
+        x_nodes_all.append(x_nodes)
+        x_edges_all.append(x_edges)
+        node_connection_const_all.append(node_connection_const)
+        edge_connection_const_all.append(edge_connection_const)
+
+        # objective, for all samples -- on average
+        total_production = 0
+        for edge in supply_net.edges:
+            if (edge[1] in supply_net.demand_node):
+                total_production += supply_net.capacity[edge[0], edge[1]] * x_edges[
+                    supply_net.edge_map[edge[0], edge[1]]]
+                total_total_production += supply_net.capacity[edge[0], edge[1]] * x_edges[
+                    supply_net.edge_map[edge[0], edge[1]]]  # get this total_total ready in advance
+
+        total_producton_all.append(total_production)
+
+
+    # budget constraint, only one constraint
     budget_const = []
     for i in range(supply_net.num_nodes):
         total_cost = 0
@@ -157,32 +174,28 @@ def saa_find_plan(supply_net, disaster_samples, find_best=False, time_limit="2h"
 
         budget_const.append((total_cost <= supply_net.budget[i]))
 
-    # objective, for all samples -- on average
-    total_production = 0
-    for edge in supply_net.edges:
-        if (edge[1] in supply_net.demand_node):
-            total_production += supply_net.capacity[edge[0], edge[1]] * x_edges[supply_net.edge_map[edge[0], edge[1]]]
+    mdl.add(budget_const)
 
-    production_const = (total_production >= 2 ** supply_net.total_demand)
-    production_const = (total_production >= 128)
+    # production constraint
+    if not find_best:
+        production_const = (total_total_production >= avg_demand_require * len(disaster_samples))
+        mdl.add(production_const)
+    else:
+        mdl.maximize(total_total_production)
 
-    # optional!! maximize ...
-    if (find_best):
-        mdl.maximize(total_production)
 
     # add constraints
     for c in edge_connection_const:
         mdl.add(c)
     for c in node_connection_const:
         mdl.add(c)
-    for c in budget_const:
-        mdl.add(c)
 
-    mdl.add(production_const)
+
+
 
     print("\nSolving model....")
     mdl.export_model("baseline_sampled.lp")
-    msol = mdl.solve()  # (TimeLimit=10)
+    msol = mdl.solve(TimeLimit=3)
 
     # msol.stop_cause = 'SearchStoppedByLimit'
     # msol.solve_status = 'Feasible'
@@ -191,9 +204,20 @@ def saa_find_plan(supply_net, disaster_samples, find_best=False, time_limit="2h"
         print("Solution status: " + msol.get_solve_status())
         for edge in trade_plan:
             print("   " + edge.get_name() + f": {msol[edge.get_name()]}")
+
+        return [msol[edge.get_name()] for edge in trade_plan]
     else:
         print("No solution found")
-    return [msol[edge.get_name()] for edge in trade_plan]
+        return None
+
+
+def saa_find_plan_iteratively(supply_net, time_limit="2h"):
+    demand = supply_net.total_demand
+
+
+
+
+    pass
 
 
 if __name__ == '__main__':
