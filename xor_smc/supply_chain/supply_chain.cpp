@@ -446,7 +446,9 @@ void SupplyChain::prepareModel(){
     cout << "Majority constraints (union with all constraints) added!" << endl;
 
     // DEBUG
-    cplex.exportModel("model_all_w_maj.lp");
+    #ifdef DEBUG_SUPPLYCHAIN
+        cplex.exportModel("model_all_w_maj.lp");
+    #endif
 }
 
 bool SupplyChain::solveInstance() {
@@ -497,7 +499,9 @@ bool SupplyChain::solveInstance() {
     cplex.setParam(IloCplex::Threads, 4);    // number of parallel threads (automatic by default)
 
     bool solved = cplex.solve();
-    cplex.exportModel("model.lp");
+    #ifdef DEBUG_SUPPLYCHAIN
+        cplex.exportModel("model_solved.lp");
+    #endif
     // env.out() << "Solution status = " << cplex.getStatus() << endl;
     env.out() << cplex.getCplexStatus() << endl;
 
