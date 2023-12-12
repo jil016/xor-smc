@@ -1,5 +1,6 @@
 pgmpy
 networkx
 boolexp
-mip
 pyAgrum
+docplex
+setuptools==58.2.0
