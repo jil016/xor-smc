@@ -72,7 +72,7 @@ int main(int argc, char **argv)
     // params: graph, src, q_list, N, T, M
 
     int T = 1;
-    string net_folder("./test_net_new");
+    string net_folder("./network");
     char output_dir[1024] = "./LOG-SPC\0";
     int target = 5;
     int seed = 20;

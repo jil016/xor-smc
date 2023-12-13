@@ -29,6 +29,9 @@ def calc_actual_production(supply_net, trade_plan, disaster_sample):
     # trade_plan = [1] * len(trade_plan)
     # disaster_sample = [0] * len(disaster_sample)
 
+    if trade_plan is None:
+        return 0
+
     capacity_matrix = supply_net.capacity.copy()
     connection_list = [0] * supply_net.num_nodes
 

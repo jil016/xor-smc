@@ -35,7 +35,7 @@ def run_spc_program(smc_binary = "", network_folder="", out_path=""):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--filepath",
-                        default="/Users/jinzhao/Desktop/git_repos/xor_smt/data/supply_chain/large_sized_network_medium_distribution",
+                        default="/Users/jinzhao/Desktop/git_repos/xor_smt/data/supply_chain/real_sized_network_simple_distribution",
                         help="the filename.")
 
     args = parser.parse_args()
@@ -68,20 +68,21 @@ if __name__ == '__main__':
 
 
     # generate a MIP plan
-    n_samples = 1
-    baseline_trade_plans = []
-    for i in range(n_samples):
-        baseline_trade_plans.append(mip_find_plan(sn, disaster_samples[i], False))
+    # baseline_trade_plans = []
+    # for i in range(n_samples):
+    #     baseline_trade_plans.append(mip_find_plan(sn, disaster_samples[i], False))
 
+    # generate a SAA plan
+    baseline_trade_plan = saa_find_plan(sn, disaster_samples, False, 200, 10)
 
     # generate a SMC plan
-    smc_binary = "/home/jinzhao/jinzhao/xor_smt/xor_smc/supply_chain/SPC"
-    smc_outpath = "/home/jinzhao/jinzhao/xor_smt/xor_smc/supply_chain/LOG-SPC"
+    smc_binary = "/Users/jinzhao/Desktop/git_repos/xor_smt/xor_smc/supply_chain/SPC"
+    smc_outpath = "/Users/jinzhao/Desktop/git_repos/xor_smt/xor_smc/supply_chain/LOG-SPC"
     run_spc_program(smc_binary, args.filepath, smc_outpath)
     smc_trade_plan = parse_spc_results(os.path.join(smc_outpath, "result.log"))
 
 
-    n_eval_samples = 100
+    n_eval_samples = 1000
     gt_disaster_samples = Bayesian_Sampling(os.path.join(args.filepath, "disaster.uai"),
                                           n_eval_samples)
     
@@ -91,15 +92,10 @@ if __name__ == '__main__':
     print(f"smc_total_prodcution: {sum(smc_total_prodcution) / n_eval_samples}")
 
 
-    baseline_total_prodcution_list = []
-    for i_plan in range(n_samples):
-        baseline_total_prodcution = []
-        for i in range(n_eval_samples):
-            baseline_total_prodcution.append(calc_actual_production(sn, baseline_trade_plans[i_plan], gt_disaster_samples[i]))
+    baseline_total_prodcution = []
+    for i in range(n_eval_samples):
+        baseline_total_prodcution.append(calc_actual_production(sn, baseline_trade_plan, gt_disaster_samples[i]))
 
-        baseline_total_prodcution_list.append(sum(baseline_total_prodcution) / n_eval_samples)
-        print(f"baseline_total_prodcution {i_plan}: {sum(baseline_total_prodcution) / n_eval_samples}")
-    
+    print(f"baseline_total_prodcution: {sum(baseline_total_prodcution) / n_eval_samples}")
 
-    print(f"baseline_entire_average: {sum(baseline_total_prodcution_list) / n_samples}")
     pass

@@ -1,4 +1,5 @@
 import os
+import platform
 import numpy as np
 import argparse
 import time
@@ -21,7 +22,7 @@ def mip_find_plan(supply_net, disaster_sample, find_best=False):
     trade_plan = [mdl.binary_var(f"s_{eg[0]}_{eg[1]}") for eg in supply_net.edges]
 
     # connection variables
-    x_nodes = [mdl.binary_var(f"n_{i}") for i in range(supply_net.num_nodes)]
+    x_nodes = [mdl.binary_var(f"n_{nd}") for nd in range(supply_net.num_nodes)]
     x_edges = [mdl.binary_var(f"e_{eg[0]}_{eg[1]}") for eg in supply_net.edges]
 
     # connection constraints
@@ -59,7 +60,7 @@ def mip_find_plan(supply_net, disaster_sample, find_best=False):
         for j in range(supply_net.num_nodes):
             in_edge_idx = supply_net.edge_map[j, i]
 
-            if (in_edge_idx > -1):
+            if in_edge_idx > -1:
                 total_cost += supply_net.cost[j, i] * trade_plan[in_edge_idx]
 
         budget_const.append((total_cost <= supply_net.budget[i]))
@@ -83,13 +84,10 @@ def mip_find_plan(supply_net, disaster_sample, find_best=False):
     mdl.add(node_connection_const)
     mdl.add(budget_const)
 
-
     print("\nSolving model....")
-    mdl.export_model("baseline_sampled.lp")
-    msol = mdl.solve(TimeLimit=3)
+    # mdl.export_model("baseline_sampled.lp")
+    msol = mdl.solve(TimeLimit=99)
 
-    # msol.stop_cause = 'SearchStoppedByLimit'
-    # msol.solve_status = 'Feasible'
 
     if msol:
         print("Solution status: " + msol.get_solve_status())
@@ -100,12 +98,11 @@ def mip_find_plan(supply_net, disaster_sample, find_best=False):
     return [msol[edge.get_name()] for edge in trade_plan]
 
 
-def saa_find_plan(supply_net, disaster_samples, find_best=False, avg_demand_require=0, time_limit="2h"):
+def saa_find_plan(supply_net, disaster_samples, find_best=False, avg_demand_require=0, time_limit=10):
     mdl = CpoModel()
 
     # trade plan variables, for all samples
     trade_plan = [mdl.binary_var(f"s_{eg[0]}_{eg[1]}") for eg in supply_net.edges]
-
     x_nodes_all = []
     x_edges_all = []
     edge_connection_const_all = []
@@ -174,8 +171,6 @@ def saa_find_plan(supply_net, disaster_samples, find_best=False, avg_demand_requ
 
         budget_const.append((total_cost <= supply_net.budget[i]))
 
-    mdl.add(budget_const)
-
     # production constraint
     if not find_best:
         production_const = (total_total_production >= avg_demand_require * len(disaster_samples))
@@ -183,19 +178,17 @@ def saa_find_plan(supply_net, disaster_samples, find_best=False, avg_demand_requ
     else:
         mdl.maximize(total_total_production)
 
-
     # add constraints
-    for c in edge_connection_const:
+    for c in edge_connection_const_all:
         mdl.add(c)
-    for c in node_connection_const:
+    for c in node_connection_const_all:
         mdl.add(c)
-
-
+    mdl.add(budget_const)
 
 
     print("\nSolving model....")
-    mdl.export_model("baseline_sampled.lp")
-    msol = mdl.solve(TimeLimit=3)
+    # mdl.export_model("baseline_sampled.lp")
+    msol = mdl.solve(TimeLimit = time_limit)
 
     # msol.stop_cause = 'SearchStoppedByLimit'
     # msol.solve_status = 'Feasible'
@@ -214,16 +207,13 @@ def saa_find_plan(supply_net, disaster_samples, find_best=False, avg_demand_requ
 def saa_find_plan_iteratively(supply_net, time_limit="2h"):
     demand = supply_net.total_demand
 
-
-
-
     pass
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--filepath",
-                        default="/home/jinzhao/jinzhao/xor_smt/data/supply_chain/large_sized_network_medium_distribution",
+                        default="/Users/jinzhao/Desktop/git_repos/xor_smt/data/supply_chain/large_sized_network_medium_distribution",
                         help="the filename.")
 
     args = parser.parse_args()
@@ -237,6 +227,10 @@ if __name__ == '__main__':
     print('np.random seed=', seed)
     print(args)
 
+    print(platform.system())
+    print(platform.release())
+    print(platform.version())
+
     # load network
     sn = SupplyNet(args.filepath)
     n_samples = 10
@@ -244,7 +238,4 @@ if __name__ == '__main__':
     disaster_samples = process_samples(disaster_samples, sn.num_dedges)
 
     # generate a MIP plan
-    n_samples = 10
-    baseline_trade_plans = []
-    for i in range(n_samples):
-        baseline_trade_plans.append(mip_find_plan(sn, disaster_samples[i], False))
+    saa_find_plan(sn, disaster_samples, False, 200, 10)

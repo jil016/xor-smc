@@ -32,10 +32,10 @@ SupplyChain::~SupplyChain(){
 // start modification
 void SupplyChain::loadParameters(const string& net_folder, int target, int T, char output_dir[]){
     _net_folder = net_folder;
-    _prec_prob = 4;
-    _prec_cap = 6;
-    _prec_cst = 4;   // not used in our application
-    _prec_bgt = 4;   // not used
+    _prec_prob = 5;
+    _prec_cap = 12;
+    _prec_cst = 5;   // not used in our application
+    _prec_bgt = 5;   // not used
 
     _network = SupplyNet(net_folder, _prec_cap, _prec_cst, _prec_bgt, _prec_prob);
     _N = _network._N;
@@ -497,6 +497,15 @@ bool SupplyChain::solveInstance() {
     cplex.setParam(IloCplex::Param::WorkMem, 2048);
     cplex.setParam(IloCplex::Param::MIP::Limits::TreeMemory, 2048);
     cplex.setParam(IloCplex::Threads, 4);    // number of parallel threads (automatic by default)
+
+    IloNumVarArray start_var(env);
+    IloNumArray init_hint(env);
+    for (int i = 0; i < _var_select.getSize(); i++){
+        start_var.add(_var_select[i]);
+        init_hint.add(1);
+    }
+
+    cplex.addMIPStart(start_var, init_hint);
 
     bool solved = cplex.solve();
     #ifdef DEBUG_SUPPLYCHAIN
