@@ -204,9 +204,10 @@ def saa_find_plan(supply_net, disaster_samples, find_best=False, avg_demand_requ
         return None
 
 
-def saa_find_plan_iteratively(supply_net, time_limit="2h"):
+def saa_find_plan_iteratively(supply_net, disaster_samples, time_limit=3600):
     demand = supply_net.total_demand
 
+    saa_find_plan(supply_net, disaster_samples, find_best=False, avg_demand_require=0, time_limit=10)
     pass
 
 

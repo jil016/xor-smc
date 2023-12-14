@@ -1,7 +1,0 @@
-net_struct: 20 20 20 20 
-min_bgt: 20, max_bgt: 50
-min_cap: 8, max_cap: 12, p_edge: 1
-min_cst: 5, max_cst: 15
-n_demands: 5, q: 6
-num_dedges: 20, num_bayes_edges: 100 / 190
-precision: 4, max_parents: 8

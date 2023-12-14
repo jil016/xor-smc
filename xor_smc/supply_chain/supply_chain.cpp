@@ -30,7 +30,7 @@ SupplyChain::~SupplyChain(){
 }
 
 // start modification
-void SupplyChain::loadParameters(const string& net_folder, int target, int T, char output_dir[]){
+void SupplyChain::loadParameters(const string& net_folder, int threshold, int T, char output_dir[]){
     _net_folder = net_folder;
     _prec_prob = 5;
     _prec_cap = 12;
@@ -43,7 +43,7 @@ void SupplyChain::loadParameters(const string& net_folder, int target, int T, ch
     _N_dedges = _network._N_dedges;
     _N_end = _network._N_end;   // suppose single for now!
 
-    _target = target;   // number of xor constraints
+    _threshold = threshold;   // number of xor constraints
     _end_nodes = _network._end_nodes;
 
     _edges = _network._edges;
@@ -54,11 +54,6 @@ void SupplyChain::loadParameters(const string& net_folder, int target, int T, ch
 
     _T = T;
 
-    _N_inedge = 0;
-    for(auto & row : _edge_map){
-        if(row[_target] != 0)
-            _N_inedge++;
-    }
 
     strcpy(_output_dir, output_dir);
     initializeVariables();
@@ -350,6 +345,8 @@ void SupplyChain::genXORConstraints(){
     for( int t=0; t < _T; t++) {
         int n_vars = _var_all_inxor[t].getSize();
         int n_parity = _network._demand;
+        if(_threshold >= 0)
+            n_parity = _threshold;
 
         std::cout << ">> Number of variables in XOR is: " << n_vars << endl;
         vector<vector<bool>> coeffA = generate_Toeplitz_matrix(n_parity, n_vars);
@@ -486,7 +483,7 @@ bool SupplyChain::solveInstance() {
 
     fs_params << "N: " << _N << "\n"
               << "T: " << _T << "\n"
-              << "demand: " << _network._demand << "\n"
+              << "demand: " << _threshold << "\n"
               << "Data path: " << _net_folder << endl;
 
     fs_params.close();

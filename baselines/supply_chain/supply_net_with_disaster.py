@@ -292,12 +292,12 @@ def sample_(marg_prob: list):
 def process_samples(samples, n_dim):
     def one_hot_encode_single(indices, n_dim):
         # Initialize a list of zeros
-        encoded = [1] * n_dim
+        encoded = [0] * n_dim
 
         # Set the specified indices to 1
         for index in indices:
             if 0 <= int(index) < n_dim:
-                encoded[int(index)] = 0
+                encoded[int(index)] = 1
             else:
                 raise ValueError(f"Index {index} out of range for dimension {n_dim}")
 

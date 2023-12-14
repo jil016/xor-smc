@@ -44,8 +44,8 @@ class SupplyChain {
         int _N_dedges;
         int _N_end;
         int _T;
-        int _target;
-        int _N_inedge;
+        int _threshold;
+
         string _net_folder;
         SupplyNet _network;
         char _output_dir[1024];
@@ -111,7 +111,7 @@ class SupplyChain {
         void extractXorVarConst(vector<vector<bool>> coeffA, int t);
 
         // running pipeline:
-        void loadParameters(const string& net_folder, int target, int _T, char output_dir[]);
+        void loadParameters(const string& net_folder, int threshold, int _T, char output_dir[]);
         void genAllConstraints();
         void prepareModel();
         bool solveInstance();

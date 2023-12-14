@@ -10,7 +10,7 @@ using namespace std;
 
 
 void parseArgs(int argc, char **argv, string &net_folder, 
-               int &target, int &T, int &seed,
+               int &threshold, int &T, int &seed,
                char output[]) 
 {
   // one argument must be the instance filename
@@ -29,9 +29,9 @@ void parseArgs(int argc, char **argv, string &net_folder,
         // must be the graph name
         net_folder = argv[argIndex];
     }
-    else if ( !strcmp(argv[argIndex], "-target") ) {
+    else if ( !strcmp(argv[argIndex], "-threshold") ) {
         argIndex++;
-        target = atol(argv[argIndex]);
+        threshold = atol(argv[argIndex]);
     }
     else if ( !strcmp(argv[argIndex], "-T") ) {
         argIndex++;
@@ -50,7 +50,7 @@ void parseArgs(int argc, char **argv, string &net_folder,
             << "USAGE: Supply Chain [options]" << endl
             << endl
             << "   -network      Network folder name" << endl
-            << "   -target       Target node" << endl
+            << "   -threshold       Threshold" << endl
             << "   -T          Parameter T" << endl
             << "   -output     Output directory" << endl
             << endl;
@@ -74,18 +74,18 @@ int main(int argc, char **argv)
     int T = 1;
     string net_folder("./network");
     char output_dir[1024] = "./LOG-SPC\0";
-    int target = 5;
+    int threshold = -1;
     int seed = 20;
-    parseArgs(argc, argv, net_folder, target, T, seed, output_dir);
+    parseArgs(argc, argv, net_folder, threshold, T, seed, output_dir);
     cout << "T: " <<  T << endl
          << "net_folder: " << net_folder << endl
-         << "target: " << target << endl
+         << "threshold: " << threshold << endl
          << "output_dir: " << output_dir << endl
          << "seed: " << seed << endl;
 
     srand(seed);
     SupplyChain sc;
-    sc.loadParameters(net_folder, target, T, output_dir);
+    sc.loadParameters(net_folder, threshold, T, output_dir);
     sc.genAllConstraints();
     sc.prepareModel();
     sc.solveInstance();

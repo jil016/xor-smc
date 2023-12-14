@@ -111,6 +111,34 @@ def generate_capacity(net_struct, min_cap, max_cap, p_edge, out_path):
     return adjacency_matrix
 
 
+def generate_extreme_capacity(net_struct, cap_list, p_edge, out_path):
+    total_nodes = sum(net_struct)
+    adjacency_matrix = np.zeros((total_nodes, total_nodes), dtype=int)
+
+    start_index = 0
+    for i, num_nodes in enumerate(net_struct[:-1]):
+        next_layer_start = start_index + num_nodes
+        next_layer_nodes = net_struct[i + 1]
+
+        for j in range(start_index, next_layer_start):
+            for k in range(next_layer_start, next_layer_start + next_layer_nodes):
+                if np.random.uniform(0, 1) < p_edge:
+                    adjacency_matrix[j, k] = np.random.choice(cap_list, 1)
+
+        start_index += num_nodes
+
+    os.makedirs(out_path, exist_ok=True)
+    capacity_filename = os.path.join(out_path, f"capacity.txt")
+
+    with open(capacity_filename, 'w') as file:
+        file.write(f"{total_nodes}\n")
+        for row in adjacency_matrix:
+            row_str = ' '.join(map(str, row))
+            file.write(f"{row_str}\n")
+
+    return adjacency_matrix
+
+
 def generate_cost(adj_matrix, min_cst, max_cst, out_path):
     random_matrix = np.random.randint(min_cst, max_cst + 1, adj_matrix.shape)
 
@@ -167,7 +195,7 @@ def generate_disaster_edges(adj_matrix, n_edges, out_path):
 
 if __name__ == "__main__":
     # supply network
-    net_struct = [20, 20, 20, 20]
+    net_struct = [5, 5, 5, 5]
 
     # Generate Budgets
     min_bgt = 20
@@ -183,17 +211,16 @@ if __name__ == "__main__":
     max_cst = 15
 
     # Generate Demands
-    n_demands = 5
+    n_demands = 4
     q = 6
 
     # Generate Disasters
-    num_dedges = 150  #
-    num_bayes_edges = 800
+    num_dedges = 35  #
+    num_bayes_edges = 242
     precision = 4  # k-digit precision 2^n-1 0~15
     max_parents = 8  # maximum of parents allowed
 
-
-    out_path = f"./data/supply_chain/large_sized_network_medium_distribution"
+    out_path = f"./small_sized_testnet"
 
     # generates everything
     generate_budget(net_struct, min_bgt, max_bgt, out_path)
@@ -222,6 +249,6 @@ if __name__ == "__main__":
         fp.write(f"n_demands: {n_demands}, q: {q}\n")
 
         # Generate Disasters
-        fp.write(f"num_dedges: {num_dedges}, num_bayes_edges: {np.min([num_bayes_edges, (num_dedges * (num_dedges - 1)) // 2])} / {(num_dedges * (num_dedges - 1)) // 2}\n")
+        fp.write(
+            f"num_dedges: {num_dedges}, num_bayes_edges: {np.min([num_bayes_edges, (num_dedges * (num_dedges - 1)) // 2])} / {(num_dedges * (num_dedges - 1)) // 2}\n")
         fp.write(f"precision: {precision}, max_parents: {max_parents}\n")
-

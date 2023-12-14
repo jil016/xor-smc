@@ -20,7 +20,7 @@ def parse_spc_results(filepath):
         line1 = fp.readline()[:-1]
         if(line1 != "Optimal"):
             print("SPC No solution!")
-            exit(0)
+            return np.zeros_like(matrix)
         for line in fp:
             matrix.append([int(num) for num in line.split()])
     return np.array(matrix)
@@ -28,14 +28,15 @@ def parse_spc_results(filepath):
 def run_spc_program(smc_binary = "", network_folder="", out_path=""):
     random_seed = 20
     T = 1
-    os.system(f"{smc_binary} {network_folder} -seed {random_seed} -T {T} -output {out_path}")
+    threshold = 5
+    os.system(f"{smc_binary} {network_folder} -seed {random_seed} -T {T} -output {out_path} -threshold {threshold}")
     print("XMC_SPC finished!")
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--filepath",
-                        default="/Users/jinzhao/Desktop/git_repos/xor_smt/data/supply_chain/real_sized_network_simple_distribution",
+                        default="/Users/jinzhao/Desktop/git_repos/xor_smt/data/supply_chain/fast_gen_net_save3",
                         help="the filename.")
 
     args = parser.parse_args()
@@ -50,52 +51,65 @@ if __name__ == '__main__':
     print(args)
 
     # load network
+    n_samples = 50
+    all_baselines = ["gibbs", "bp", "imp", "loopy-imp", "weight"]
+
+
     sn = SupplyNet(args.filepath)
-    n_samples = 10
+    all_baselines_samples = []
+    all_baselines_plans = []
+    all_baselines_eval = []
+    all_baselines_time = []
 
-    disaster_samples = Gibbs_Sampling(os.path.join(args.filepath, "disaster.uai"), n_samples, None, 50)
-    
-    # disaster_samples = sn.disaster_exact_LazyPropagation(n_samples, './sampled_output_')
-    # disaster_samples = sn.sample_disaster_via_importance_sampling(n_samples, "./sampled_output_")
-    # disaster_samples = sn.sample_disaster_via_weighted_sampling(n_samples, "./sampled_output_")
-    # disaster_samples = sn.sample_disaster_via_loopy_weighted_sampling(n_samples, "./sampled_output_")
-    # disaster_samples = sn.sample_disaster_via_loopy_gibbs_sampling(n_samples, "./sampled_output_")
-    # disaster_samples = sn.sample_disaster_via_loopy_belief_propagation(n_samples, "./sampled_output_")
-    # disaster_samples = sn.sample_disaster_via_loopy_importance_sampling(n_samples, "./sampled_output_")
-    # disaster_samples = sn.sample_disaster_via_loopy_belief_propagation(n_samples, "./sampled_output_")
+    for method in all_baselines:
+        if method == "gibbs":
+            disaster_samples = sn.sample_disaster_via_gibbs_sampling(n_samples, "./sampled_output_")
+        elif method == "bp":
+            disaster_samples = sn.sample_disaster_via_loopy_belief_propagation(n_samples, "./sampled_output_")
+        elif method == "imp":
+            disaster_samples = sn.sample_disaster_via_importance_sampling(n_samples, "./sampled_output_")
+        elif method == "loopy-imp":
+            disaster_samples = sn.sample_disaster_via_loopy_importance_sampling(n_samples, "./sampled_output_")
+        elif method == "weight":
+            disaster_samples = sn.sample_disaster_via_weighted_sampling(n_samples, "./sampled_output_")
+        else:
+            exit(1)
+        disaster_samples = process_samples(disaster_samples, sn.num_dedges)
+        all_baselines_samples.append(disaster_samples)
 
-    # disaster_samples = process_samples(disaster_samples, sn.num_dedges)
-
-
-    # generate a MIP plan
-    # baseline_trade_plans = []
-    # for i in range(n_samples):
-    #     baseline_trade_plans.append(mip_find_plan(sn, disaster_samples[i], False))
-
-    # generate a SAA plan
-    baseline_trade_plan = saa_find_plan(sn, disaster_samples, False, 200, 10)
+    # generate SAA plans
+    for samples in all_baselines_samples:
+        baseline_start_time = time.time()
+        all_baselines_plans.append(saa_find_plan(sn, samples, True, 250, 100))
+        baseline_end_time = time.time()
+        all_baselines_time.append(baseline_end_time - baseline_start_time)
 
     # generate a SMC plan
     smc_binary = "/Users/jinzhao/Desktop/git_repos/xor_smt/xor_smc/supply_chain/SPC"
     smc_outpath = "/Users/jinzhao/Desktop/git_repos/xor_smt/xor_smc/supply_chain/LOG-SPC"
+    smc_start_time = time.time()
     run_spc_program(smc_binary, args.filepath, smc_outpath)
+    smc_end_time = time.time()
     smc_trade_plan = parse_spc_results(os.path.join(smc_outpath, "result.log"))
 
-
-    n_eval_samples = 1000
+    n_eval_samples = 10000
     gt_disaster_samples = Bayesian_Sampling(os.path.join(args.filepath, "disaster.uai"),
-                                          n_eval_samples)
-    
+                                            n_eval_samples)
+
     smc_total_prodcution = []
     for i in range(n_eval_samples):
         smc_total_prodcution.append(calc_actual_production(sn, smc_trade_plan, gt_disaster_samples[i]))
-    print(f"smc_total_prodcution: {sum(smc_total_prodcution) / n_eval_samples}")
 
+    smc_product_amount = sum(smc_total_prodcution) / n_eval_samples
+    print(f"smc_total_prodcution: {smc_product_amount}")
 
-    baseline_total_prodcution = []
-    for i in range(n_eval_samples):
-        baseline_total_prodcution.append(calc_actual_production(sn, baseline_trade_plan, gt_disaster_samples[i]))
+    for plan in all_baselines_plans:
+        baseline_total_prodcution = []
+        for i in range(n_eval_samples):
+            baseline_total_prodcution.append(calc_actual_production(sn, plan, gt_disaster_samples[i]))
+        all_baselines_eval.append(sum(baseline_total_prodcution) / n_eval_samples)
 
-    print(f"baseline_total_prodcution: {sum(baseline_total_prodcution) / n_eval_samples}")
-
-    pass
+    print(f"smc_total_prodcution: {smc_product_amount}")
+    print(f"smc_time: {smc_end_time - smc_start_time}")
+    print(f"baseline_total_product:" + ' '.join(map(str, all_baselines_eval)))
+    print(f"baseline_time:" + ' '.join(map(str, all_baselines_time)))
