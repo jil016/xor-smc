@@ -1,7 +1,7 @@
 import numpy as np
 
 
-if __name__ == "__main__":
+def parse_fast_gen_save3():
     res = np.array([[85.0, 90.0, 85.0, 90.0, 85.0],
                     [90.0, 85.0, 85.0, 90.0, 85.0],
                     [85.0, 90.0, 85.0, 90.0, 90.0],
@@ -14,3 +14,7 @@ if __name__ == "__main__":
                     [85.0, 90.0, 90.0, 85.0, 85.0]])
 
     print(np.sum(res, axis=0) / 10.0)
+
+
+if __name__ == "__main__":
+    parse_fast_gen_save3()
