@@ -37,13 +37,13 @@ the baselines algorithms are collected in the folder with name `baselines`.
 # Cite
 
 ```
-@article{DBLP:proceedings/AAAI24/li-xor-smc,
+@inproceedings{DBLP:proceedings/AAAI24/li-xor-smc,
   author       = {Jinzhao Li and
                   Nan Jiang and
                   Yexiang Xue},
   title        = {Solving Satisfiability Modulo Counting for Symbolic and Statistical
                   {AI} Integration With Provable Guarantees},
-  journal      = {AAAI},
+  booktitle      = {AAAI},
   year         = {2024}
 }
 ```
