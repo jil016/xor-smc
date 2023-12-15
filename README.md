@@ -5,8 +5,6 @@
 
 
 
-# Generate the data for supply chain
-
 
 
 
@@ -24,11 +22,16 @@ pip install -r requirements.txt
 sudo chown -R username /ibm_directory/
 ```
 
+# dataset
+the data are available in the `data` folder.
+
 # Applications
+## our algorithm
 Please goto the `src` folder to run the program for our XOR-SMC the two applications.
 - shelter design.
 - supply chain.
 
+## baselines
 the baselines algorithms are collected in the folder with name `baselines`.
 
 # Cite
