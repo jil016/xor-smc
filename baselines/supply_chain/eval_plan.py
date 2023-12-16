@@ -1,6 +1,14 @@
 import os
 import numpy as np
 from supply_net_with_disaster import SupplyNet
+from docplex.cp.model import CpoModel
+from docplex.cp.config import context
+
+context.solver.agent = 'local'
+# context.solver.local.execfile = '/Applications/CPLEX_Studio2211/cpoptimizer/bin/arm64_osx/cpoptimizer'
+context.solver.local.execfile = '/home/jinzhao/.local/ibm/ILOG/CPLEX_Studio2211/cpoptimizer/bin/x86-64_linux/cpoptimizer'
+context.log_output = None   # sys.stdout
+context.verbose = 0         # 0~9
 
 
 def find_reachable_nodes(start_nodes, adjacency_matrix):
@@ -66,3 +74,35 @@ def calc_actual_production(supply_net, trade_plan, disaster_sample):
                 total_production += capacity_matrix[i, node]
 
     return total_production
+
+
+def calc_no_disaster_fc_production(supply_net, timelimit=99):
+    # no disaster, fully connected
+    mdl = CpoModel()
+
+    N = supply_net.num_nodes
+    total_capacity = 0
+    const_all = []
+
+    candidate_edges = []
+    for node in supply_net.demand_node:
+        in_cost = 0
+        for i in range(N):
+            if supply_net.capacity[i][node] > 0:
+                var_i_node = mdl.binary_var(f"n_{i}_{node}")
+                in_cost += var_i_node * supply_net.cost[i][node]
+                total_capacity += var_i_node * supply_net.capacity[i][node]
+                candidate_edges.append([i, node])
+
+        const_all.append(in_cost <= supply_net.budget[node])
+
+
+    # add constraints
+    mdl.add(const_all)
+    mdl.maximize(total_capacity)
+
+    print("\nSolving model....")
+    # mdl.export_model("baseline_sampled.lp")
+    msol = mdl.solve(TimeLimit = timelimit)
+        
+    return msol.get_objective_value()

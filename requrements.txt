@@ -1,4 +1,0 @@
-pgmpy
-networkx
-pyAgrum
-docplex

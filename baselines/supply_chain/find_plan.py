@@ -10,12 +10,12 @@ from docplex.cp.model import CpoModel
 from docplex.cp.config import context
 
 context.solver.agent = 'local'
-context.solver.local.execfile = '/Applications/CPLEX_Studio2211/cpoptimizer/bin/arm64_osx/cpoptimizer'
-# context.solver.local.execfile =
-# '/home/jinzhao/.local/ibm/ILOG/CPLEX_Studio2211/cpoptimizer/bin/x86-64_linux/cpoptimizer'
+# context.solver.local.execfile = '/Applications/CPLEX_Studio2211/cpoptimizer/bin/arm64_osx/cpoptimizer'
+context.solver.local.execfile = '/home/jinzhao/.local/ibm/ILOG/CPLEX_Studio2211/cpoptimizer/bin/x86-64_linux/cpoptimizer'
+context.log_output = None   # sys.stdout
+context.verbose = 0         # 0~9
 
-
-def mip_find_plan(supply_net, disaster_sample, find_best=False):
+def mip_find_plan(supply_net, disaster_sample, find_best=False, timelimit=99):
     mdl = CpoModel()
 
     # trade plan variables
@@ -86,7 +86,7 @@ def mip_find_plan(supply_net, disaster_sample, find_best=False):
 
     print("\nSolving model....")
     # mdl.export_model("baseline_sampled.lp")
-    msol = mdl.solve(TimeLimit=99)
+    msol = mdl.solve(TimeLimit=timelimit)
 
 
     if msol:

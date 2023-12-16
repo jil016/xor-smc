@@ -1,4 +1,5 @@
 import os
+import random
 import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
@@ -169,26 +170,92 @@ def generate_demand(net_struct, n_nodes, q, out_path):
         file.write(f"{nodes_str}\n")
         file.write(f"{q}\n")
 
+    return demand_nodes
 
 def generate_disaster_edges(adj_matrix, n_edges, out_path):
-    disaster_edges = []
-    # Find the indices of non-zero elements
-    non_zero_indices = np.argwhere(adj_matrix != 0)
+    non_zero_indices = np.nonzero(adj_matrix)
+    non_zero_indices_list = list(zip(non_zero_indices[0], non_zero_indices[1]))
 
-    for i in range(np.min([len(non_zero_indices), n_edges])):
-        # Uniformly sample one index pair
-        sampled_index = non_zero_indices[np.random.choice(len(non_zero_indices))]
-        # Get the corresponding value
-        assert (adj_matrix[sampled_index[0], sampled_index[1]] != 0)
-        disaster_edges.append(sampled_index)
+    num_samples = n_edges
+
+    sampled_indices = random.sample(non_zero_indices_list, num_samples)
 
     os.makedirs(out_path, exist_ok=True)
     disaster_edges_filename = os.path.join(out_path, f"disaster.uai.edges")
 
     with open(disaster_edges_filename, 'w') as file:
-        file.write(f"{len(disaster_edges)}\n")
+        file.write(f"{len(sampled_indices)}\n")
         for i in range(2):
-            for d in disaster_edges:
+            for d in sampled_indices:
+                file.write(f"{d[i]} ")
+            file.write(f"\n")
+
+
+def sample_edges_only_tonodes(adj_matrix, n_edges, node_list, out_path):
+    N = adj_matrix.shape[0]
+
+    candidate_edges = []
+    for node in node_list:
+        for i in range(N):
+            if adj_matrix[i][node] > 0:
+                candidate_edges.append([i, node])
+    
+
+    n_alloc = np.min([len(candidate_edges), n_edges])
+    sampled_indices = random.sample(candidate_edges, n_alloc)
+        
+    return sampled_indices, n_alloc
+
+
+def generate_disaster_edges_only_end(adj_matrix, n_edges, out_path):
+    end_nodes = []
+    other_nodes = []
+    for i in range(adj_matrix.shape[0]):
+        out_degree = 0
+        for j in range(adj_matrix.shape[1]):
+            if adj_matrix[i,j] > 0:
+                out_degree += 1
+                break
+        
+        if out_degree == 0:
+            end_nodes.append(i)
+        else:
+            other_nodes.append(i)
+    
+    sampled_edges, n_alloc = sample_edges_only_tonodes(adj_matrix, n_edges, end_nodes, out_path)
+    if(n_alloc < n_edges):
+        sampled_edges_add,_ = sample_edges_only_tonodes(adj_matrix, n_edges - n_alloc, other_nodes, out_path)
+        sampled_edges.extend(sampled_edges_add)
+
+    os.makedirs(out_path, exist_ok=True)
+    disaster_edges_filename = os.path.join(out_path, f"disaster.uai.edges")
+
+    with open(disaster_edges_filename, 'w') as file:
+        file.write(f"{len(sampled_edges)}\n")
+        for i in range(2):
+            for d in sampled_edges:
+                file.write(f"{d[i]} ")
+            file.write(f"\n")
+
+
+def generate_disaster_edges_only_tonodes(adj_matrix, n_edges, node_list, out_path):
+    other_nodes = []
+    for i in range(adj_matrix.shape[0]):
+        if i not in node_list:
+            other_nodes.append(i)
+    
+    sampled_edges, n_alloc = sample_edges_only_tonodes(adj_matrix, n_edges, node_list, out_path)
+    if(n_alloc < n_edges):
+        sampled_edges_add,_ = sample_edges_only_tonodes(adj_matrix, n_edges - n_alloc, other_nodes, out_path)
+        sampled_edges.extend(sampled_edges_add)
+
+    os.makedirs(out_path, exist_ok=True)
+    disaster_edges_filename = os.path.join(out_path, f"disaster.uai.edges")
+
+    with open(disaster_edges_filename, 'w') as file:
+        file.write(f"{len(sampled_edges)}\n")
+        for i in range(2):
+            for d in sampled_edges:
                 file.write(f"{d[i]} ")
             file.write(f"\n")
 
